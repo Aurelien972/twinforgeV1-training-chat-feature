@@ -107,6 +107,7 @@ export function useHealthProfileSave() {
                     medications: currentHealth?.medical_history?.medications || [],
                     allergies: data.allergies || [],
                   },
+                  no_allergies: data.no_allergies || false,
                 };
                 break;
 
@@ -132,7 +133,8 @@ export function useHealthProfileSave() {
                     medications: data.medications || [],
                     allergies: currentHealth?.medical_history?.allergies || [],
                   },
-                  declaredNoIssues: data.declaredNoIssues || false,
+                  no_medical_conditions: data.no_medical_conditions || false,
+                  no_medications: data.no_medications || false,
                 };
                 break;
 

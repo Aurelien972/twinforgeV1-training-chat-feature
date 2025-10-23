@@ -15,6 +15,8 @@ interface InjuriesLimitationsSectionProps {
   setNewPhysicalLimitation: (value: string) => void;
   onAddPhysicalLimitation: () => void;
   onRemovePhysicalLimitation: (index: number) => void;
+  onDeclareNoLimitations?: () => void;
+  hasDeclaredNoLimitations?: boolean;
   onSave?: () => void;
   isSaving?: boolean;
   isDirty?: boolean;
@@ -26,6 +28,8 @@ export const InjuriesLimitationsSection: React.FC<InjuriesLimitationsSectionProp
   setNewPhysicalLimitation,
   onAddPhysicalLimitation,
   onRemovePhysicalLimitation,
+  onDeclareNoLimitations,
+  hasDeclaredNoLimitations,
   onSave,
   isSaving,
   isDirty,
@@ -70,37 +74,86 @@ export const InjuriesLimitationsSection: React.FC<InjuriesLimitationsSectionProp
       </div>
 
       <div className="space-y-4">
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-400/20">
-          <div className="flex items-start gap-3">
-            <SpatialIcon Icon={ICONS.Info} size={16} className="text-red-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-red-200 text-sm leading-relaxed mb-2">
-                Indiquez vos blessures passées, douleurs chroniques ou limitations physiques pour adapter
-                vos programmes d'entraînement et éviter les mouvements à risque.
-              </p>
-              <div className="text-red-300 text-xs">
-                <strong>Exemples :</strong> "Douleur au genou gauche", "Problème de dos", "Épaule fragile",
-                "Tendinite du coude", "Entorse cheville droite"
-              </div>
+        {/* No Limitations Checkbox */}
+        <div>
+          <label className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors">
+            <input
+              type="checkbox"
+              checked={hasDeclaredNoLimitations || false}
+              onChange={(e) => {
+                if (onDeclareNoLimitations) {
+                  if (e.target.checked) {
+                    onDeclareNoLimitations();
+                  } else {
+                    onDeclareNoLimitations();
+                  }
+                }
+              }}
+              className="sr-only"
+            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              hasDeclaredNoLimitations
+                ? 'border-green-400 bg-green-500'
+                : 'border-white/30'
+            }`}>
+              {hasDeclaredNoLimitations && (
+                <SpatialIcon Icon={ICONS.Check} size={12} className="text-white" />
+              )}
             </div>
-          </div>
+            <div>
+              <div className="text-white font-medium">Je n'ai aucune blessure ou limitation physique</div>
+              <div className="text-white/60 text-sm">Cochez si vous n'avez aucune douleur, blessure ou limitation physique</div>
+            </div>
+          </label>
         </div>
 
-        <div>
-          <label className="block text-white/90 text-sm font-medium mb-3">
-            Limitations physiques et blessures
-          </label>
-          <ArrayItemManager
-            items={physicalLimitations}
-            newItem={newPhysicalLimitation}
-            setNewItem={setNewPhysicalLimitation}
-            onAdd={onAddPhysicalLimitation}
-            onRemove={onRemovePhysicalLimitation}
-            placeholder="Ex: Douleur au genou, problème de dos..."
-            itemColor="rgba(239, 68, 68"
-            itemLabel="limitation"
-          />
-        </div>
+        {/* Info and Input - Only show if not declared no limitations */}
+        {!hasDeclaredNoLimitations && (
+          <>
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-400/20">
+              <div className="flex items-start gap-3">
+                <SpatialIcon Icon={ICONS.Info} size={16} className="text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-red-200 text-sm leading-relaxed mb-2">
+                    Indiquez vos blessures passées, douleurs chroniques ou limitations physiques pour adapter
+                    vos programmes d'entraînement et éviter les mouvements à risque.
+                  </p>
+                  <div className="text-red-300 text-xs">
+                    <strong>Exemples :</strong> "Douleur au genou gauche", "Problème de dos", "Épaule fragile",
+                    "Tendinite du coude", "Entorse cheville droite"
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-white/90 text-sm font-medium mb-3">
+                Limitations physiques et blessures
+              </label>
+              <ArrayItemManager
+                items={physicalLimitations}
+                newItem={newPhysicalLimitation}
+                setNewItem={setNewPhysicalLimitation}
+                onAdd={onAddPhysicalLimitation}
+                onRemove={onRemovePhysicalLimitation}
+                placeholder="Ex: Douleur au genou, problème de dos..."
+                itemColor="rgba(239, 68, 68"
+                itemLabel="limitation"
+              />
+            </div>
+          </>
+        )}
+
+        {/* Positive Confirmation for No Limitations */}
+        {hasDeclaredNoLimitations && (
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-3">
+              <SpatialIcon Icon={ICONS.CheckCircle} size={32} className="text-green-400" />
+            </div>
+            <p className="text-white font-medium">Aucune limitation déclarée</p>
+            <p className="text-white/60 text-sm mt-1">Vous avez confirmé ne pas avoir de blessures ou limitations physiques</p>
+          </div>
+        )}
       </div>
 
       {isDirty && onSave && (

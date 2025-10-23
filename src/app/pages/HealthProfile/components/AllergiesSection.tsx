@@ -19,6 +19,8 @@ interface AllergiesSectionProps {
   allergies: Allergy[];
   onAddAllergy: (allergy: Allergy) => void;
   onRemoveAllergy: (index: number) => void;
+  onDeclareNoAllergies?: () => void;
+  hasDeclaredNoAllergies?: boolean;
   onSave: () => void;
   isSaving: boolean;
   isDirty: boolean;
@@ -66,6 +68,8 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
   allergies,
   onAddAllergy,
   onRemoveAllergy,
+  onDeclareNoAllergies,
+  hasDeclaredNoAllergies,
   onSave,
   isSaving,
   isDirty,
@@ -169,8 +173,37 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
           )}
         </div>
 
+        {/* No Allergies Checkbox */}
+        <div className="mb-4">
+          <label className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors">
+            <input
+              type="checkbox"
+              checked={hasDeclaredNoAllergies || false}
+              onChange={() => {
+                if (onDeclareNoAllergies) {
+                  onDeclareNoAllergies();
+                }
+              }}
+              className="sr-only"
+            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              hasDeclaredNoAllergies
+                ? 'border-green-400 bg-green-500'
+                : 'border-white/30'
+            }`}>
+              {hasDeclaredNoAllergies && (
+                <SpatialIcon Icon={ICONS.Check} size={12} className="text-white" />
+              )}
+            </div>
+            <div>
+              <div className="text-white font-medium">Je n'ai aucune allergie</div>
+              <div className="text-white/60 text-sm">Cochez si vous n'avez aucune allergie connue</div>
+            </div>
+          </label>
+        </div>
+
         {/* Anaphylaxis Alert */}
-        {hasAnaphylaxisRisk && (
+        {!hasDeclaredNoAllergies && hasAnaphylaxisRisk && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -188,7 +221,20 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
           </motion.div>
         )}
 
-        {/* Simple Add Form */}
+        {/* Positive Confirmation for No Allergies */}
+        {hasDeclaredNoAllergies && (
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-3">
+              <SpatialIcon Icon={ICONS.CheckCircle} size={32} className="text-green-400" />
+            </div>
+            <p className="text-white font-medium">Aucune allergie déclarée</p>
+            <p className="text-white/60 text-sm mt-1">Vous avez confirmé ne pas avoir d'allergie connue</p>
+          </div>
+        )}
+
+        {/* Simple Add Form - Only show if not declared no allergies */}
+        {!hasDeclaredNoAllergies && (
+        <>
         <div className="relative mb-4">
           <label className="block text-white/90 text-sm font-medium mb-3">
             Ajouter une allergie
@@ -316,6 +362,8 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
           )}
         </AnimatePresence>
 
+        {/* Allergies List by Category - moved inside the condition */}
+
         {/* Allergies List by Category */}
         <div className="space-y-6">
           {(['food', 'medication', 'environmental'] as const).map((category) => {
@@ -384,6 +432,8 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
             <p className="text-xs mt-1">Ajoutez vos allergies pour une meilleure personnalisation</p>
           </div>
         )}
+        </>
+        )}
 
         {/* Save Button */}
         {isDirty && (
@@ -407,6 +457,7 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
         )}
 
         {/* Info Banner */}
+        {!hasDeclaredNoAllergies && (
         <div className="mt-6 p-3 rounded-lg bg-red-500/10 border border-red-400/20">
           <div className="flex items-start gap-2">
             <SpatialIcon Icon={ICONS.Info} size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
@@ -415,6 +466,7 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({
             </p>
           </div>
         </div>
+        )}
       </GlassCard>
     </motion.div>
   );

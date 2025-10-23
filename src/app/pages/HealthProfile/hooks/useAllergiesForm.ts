@@ -26,6 +26,8 @@ export function useAllergiesForm() {
   // Parse allergies from medical_history.allergies (string array) to structured format
   const [allergies, setAllergies] = React.useState<Allergy[]>([]);
   const [initialAllergies, setInitialAllergies] = React.useState<Allergy[]>([]);
+  const [hasDeclaredNoAllergies, setHasDeclaredNoAllergies] = React.useState(false);
+  const [initialNoAllergies, setInitialNoAllergies] = React.useState(false);
 
   // Initialize allergies from database
   React.useEffect(() => {
@@ -35,28 +37,35 @@ export function useAllergiesForm() {
       category: 'food' as const,
       severity: 'mild' as const,
     }));
+    const noAllergies = healthV2?.no_allergies || false;
 
     setAllergies(parsedAllergies);
+    setHasDeclaredNoAllergies(noAllergies);
 
     // Always update initial state when database values change
     setInitialAllergies(parsedAllergies);
+    setInitialNoAllergies(noAllergies);
 
     logger.debug('ALLERGIES_FORM', 'Initialized allergies from database', {
       count: parsedAllergies.length,
       allergies: parsedAllergies,
+      noAllergies,
       timestamp: new Date().toISOString(),
     });
-  }, [healthV2?.medical_history?.allergies]);
+  }, [healthV2?.medical_history?.allergies, healthV2?.no_allergies]);
 
   // Use intelligent dirty state detection
   const { isDirty, changedFieldsCount, resetDirtyState } = useHealthFormDirtyState({
-    currentValues: { allergies },
-    initialValues: { allergies: initialAllergies },
+    currentValues: { allergies, hasDeclaredNoAllergies },
+    initialValues: { allergies: initialAllergies, hasDeclaredNoAllergies: initialNoAllergies },
     formName: 'ALLERGIES',
   });
 
   const handleAddAllergy = (allergy: Allergy) => {
     setAllergies((prev) => [...prev, allergy]);
+    if (hasDeclaredNoAllergies) {
+      setHasDeclaredNoAllergies(false);
+    }
     logger.info('ALLERGIES_FORM', 'Added allergy', {
       name: allergy.name,
       category: allergy.category,
@@ -69,12 +78,22 @@ export function useAllergiesForm() {
     logger.info('ALLERGIES_FORM', 'Removed allergy', { index });
   };
 
+  const handleDeclareNoAllergies = () => {
+    const newState = !hasDeclaredNoAllergies;
+    setHasDeclaredNoAllergies(newState);
+    if (newState) {
+      setAllergies([]);
+      logger.info('ALLERGIES_FORM', 'User declared no allergies');
+    }
+  };
+
   const handleSave = async () => {
     try {
       logger.info('ALLERGIES_FORM', 'Saving allergies', {
         userId: profile?.userId,
         count: allergies.length,
         allergies: allergies.map(a => a.name),
+        noAllergies: hasDeclaredNoAllergies,
       });
 
       // Convert structured allergies to string array for database
@@ -82,12 +101,17 @@ export function useAllergiesForm() {
 
       await saveSection({
         section: 'allergies',
-        data: { allergies: allergyNames },
+        data: {
+          allergies: allergyNames,
+          no_allergies: hasDeclaredNoAllergies
+        },
         onSuccess: () => {
           setInitialAllergies(allergies);
-          resetDirtyState({ allergies });
+          setInitialNoAllergies(hasDeclaredNoAllergies);
+          resetDirtyState({ allergies, hasDeclaredNoAllergies });
           logger.info('ALLERGIES_FORM', 'Successfully saved and reset dirty state', {
             count: allergies.length,
+            noAllergies: hasDeclaredNoAllergies,
           });
         },
       });
@@ -102,6 +126,8 @@ export function useAllergiesForm() {
     allergies,
     onAddAllergy: handleAddAllergy,
     onRemoveAllergy: handleRemoveAllergy,
+    onDeclareNoAllergies: handleDeclareNoAllergies,
+    hasDeclaredNoAllergies,
     onSave: handleSave,
     isSaving: isSectionSaving('allergies'),
     isDirty,

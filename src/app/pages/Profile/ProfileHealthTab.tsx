@@ -38,6 +38,8 @@ const ProfileHealthTab: React.FC = () => {
 
   const [newConstraint, setNewConstraint] = React.useState('');
   const [newPhysicalLimitation, setNewPhysicalLimitation] = React.useState('');
+  const [hasDeclaredNoConstraints, setHasDeclaredNoConstraints] = React.useState(false);
+  const [hasDeclaredNoLimitations, setHasDeclaredNoLimitations] = React.useState(false);
 
   // Calculate completion percentage - memoized
   const completionPercentage = useMemo(
@@ -134,21 +136,65 @@ const ProfileHealthTab: React.FC = () => {
           </div>
 
           <div className="space-y-4">
+            {/* No Constraints Checkbox */}
             <div>
-              <label className="block text-white/90 text-sm font-medium mb-3">
-                Contraintes spécifiques (ex: faible en sodium, sans gluten)
+              <label className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={hasDeclaredNoConstraints}
+                  onChange={(e) => {
+                    setHasDeclaredNoConstraints(e.target.checked);
+                    if (e.target.checked) {
+                      setValue('constraints', [], { shouldDirty: true });
+                    }
+                  }}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                  hasDeclaredNoConstraints
+                    ? 'border-green-400 bg-green-500'
+                    : 'border-white/30'
+                }`}>
+                  {hasDeclaredNoConstraints && (
+                    <SpatialIcon Icon={ICONS.Check} size={12} className="text-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-white font-medium">Je n'ai aucune contrainte alimentaire spécifique</div>
+                  <div className="text-white/60 text-sm">Cochez si vous n'avez aucune restriction ou contrainte alimentaire particulière</div>
+                </div>
               </label>
-              <ArrayItemManager
-                items={watchedValues.constraints || []}
-                newItem={newConstraint}
-                setNewItem={setNewConstraint}
-                onAdd={addConstraint}
-                onRemove={removeConstraint}
-                placeholder="Ajouter une contrainte..."
-                itemColor="rgba(139, 92, 246"
-                itemLabel="contrainte"
-              />
             </div>
+
+            {/* Input - Only show if not declared no constraints */}
+            {!hasDeclaredNoConstraints && (
+              <div>
+                <label className="block text-white/90 text-sm font-medium mb-3">
+                  Contraintes spécifiques (ex: faible en sodium, sans gluten)
+                </label>
+                <ArrayItemManager
+                  items={watchedValues.constraints || []}
+                  newItem={newConstraint}
+                  setNewItem={setNewConstraint}
+                  onAdd={addConstraint}
+                  onRemove={removeConstraint}
+                  placeholder="Ajouter une contrainte..."
+                  itemColor="rgba(139, 92, 246"
+                  itemLabel="contrainte"
+                />
+              </div>
+            )}
+
+            {/* Positive Confirmation for No Constraints */}
+            {hasDeclaredNoConstraints && (
+              <div className="text-center py-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-3">
+                  <SpatialIcon Icon={ICONS.CheckCircle} size={32} className="text-green-400" />
+                </div>
+                <p className="text-white font-medium">Aucune contrainte alimentaire déclarée</p>
+                <p className="text-white/60 text-sm mt-1">Vous avez confirmé ne pas avoir de contrainte alimentaire spécifique</p>
+              </div>
+            )}
           </div>
 
           <SectionSaveButton
@@ -181,6 +227,8 @@ const ProfileHealthTab: React.FC = () => {
             setNewCondition={medicalConditions.setNewCondition}
             onAddCondition={medicalConditions.addCondition}
             onRemoveCondition={medicalConditions.removeCondition}
+            onDeclareNoConditions={medicalConditions.onDeclareNoConditions}
+            hasDeclaredNoConditions={medicalConditions.hasDeclaredNoConditions}
             onSave={medicalConditions.saveChanges}
             isSaving={medicalConditions.saving}
             isDirty={medicalConditions.isDirty}
@@ -190,6 +238,8 @@ const ProfileHealthTab: React.FC = () => {
             allergies={allergies.allergies}
             onAddAllergy={allergies.onAddAllergy}
             onRemoveAllergy={allergies.onRemoveAllergy}
+            onDeclareNoAllergies={allergies.onDeclareNoAllergies}
+            hasDeclaredNoAllergies={allergies.hasDeclaredNoAllergies}
             onSave={allergies.onSave}
             isSaving={allergies.isSaving}
             isDirty={allergies.isDirty}
@@ -203,6 +253,8 @@ const ProfileHealthTab: React.FC = () => {
           setNewMedication={medicalConditions.setNewMedication}
           onAddMedication={medicalConditions.addMedication}
           onRemoveMedication={medicalConditions.removeMedication}
+          onDeclareNoMedications={medicalConditions.onDeclareNoMedications}
+          hasDeclaredNoMedications={medicalConditions.hasDeclaredNoMedications}
           onSave={medicalConditions.saveChanges}
           isSaving={medicalConditions.saving}
           isDirty={medicalConditions.isDirty}
@@ -215,6 +267,8 @@ const ProfileHealthTab: React.FC = () => {
           setNewPhysicalLimitation={setNewPhysicalLimitation}
           onAddPhysicalLimitation={addPhysicalLimitation}
           onRemovePhysicalLimitation={removePhysicalLimitation}
+          onDeclareNoLimitations={() => setHasDeclaredNoLimitations(!hasDeclaredNoLimitations)}
+          hasDeclaredNoLimitations={hasDeclaredNoLimitations}
           onSave={saveMedicalSection}
           isSaving={sectionSaving === 'medical'}
           isDirty={hasConstraintsChanges}

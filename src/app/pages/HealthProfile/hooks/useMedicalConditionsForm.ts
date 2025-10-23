@@ -19,45 +19,52 @@ export function useMedicalConditionsForm() {
   const [medications, setMedications] = useState<string[]>([]);
   const [newCondition, setNewCondition] = useState('');
   const [newMedication, setNewMedication] = useState('');
-  const [hasDeclaredNoIssues, setHasDeclaredNoIssues] = useState(false);
+  const [hasDeclaredNoConditions, setHasDeclaredNoConditions] = useState(false);
+  const [hasDeclaredNoMedications, setHasDeclaredNoMedications] = useState(false);
   const [initialState, setInitialState] = useState({
     conditions: [] as string[],
     medications: [] as string[],
-    hasDeclaredNoIssues: false,
+    hasDeclaredNoConditions: false,
+    hasDeclaredNoMedications: false,
   });
 
   // Initialize from profile
   useEffect(() => {
     const conditionsData = health?.medical_history?.conditions || [];
     const medicationsData = health?.medical_history?.medications || [];
-    const declaredNoIssues = health?.declaredNoIssues || false;
+    const noConditions = health?.no_medical_conditions || false;
+    const noMedications = health?.no_medications || false;
 
     setConditions(conditionsData);
     setMedications(medicationsData);
-    setHasDeclaredNoIssues(declaredNoIssues);
+    setHasDeclaredNoConditions(noConditions);
+    setHasDeclaredNoMedications(noMedications);
 
     // Always update initial state when database values change
     setInitialState({
       conditions: conditionsData,
       medications: medicationsData,
-      hasDeclaredNoIssues: declaredNoIssues,
+      hasDeclaredNoConditions: noConditions,
+      hasDeclaredNoMedications: noMedications,
     });
 
     logger.debug('MEDICAL_CONDITIONS_FORM', 'Initialized from database', {
       conditionsCount: conditionsData.length,
       medicationsCount: medicationsData.length,
-      declaredNoIssues,
+      noConditions,
+      noMedications,
       timestamp: new Date().toISOString(),
     });
   }, [
     health?.medical_history?.conditions,
     health?.medical_history?.medications,
-    health?.declaredNoIssues,
+    health?.no_medical_conditions,
+    health?.no_medications,
   ]);
 
   // Use intelligent dirty state detection
   const { isDirty, changedFieldsCount, resetDirtyState } = useHealthFormDirtyState({
-    currentValues: { conditions, medications, hasDeclaredNoIssues },
+    currentValues: { conditions, medications, hasDeclaredNoConditions, hasDeclaredNoMedications },
     initialValues: initialState,
     formName: 'MEDICAL_CONDITIONS',
   });
@@ -66,14 +73,14 @@ export function useMedicalConditionsForm() {
     if (newCondition.trim()) {
       setConditions(prev => [...prev, newCondition.trim()]);
       setNewCondition('');
-      if (hasDeclaredNoIssues) {
-        setHasDeclaredNoIssues(false);
+      if (hasDeclaredNoConditions) {
+        setHasDeclaredNoConditions(false);
       }
       logger.info('MEDICAL_CONDITIONS_FORM', 'Added condition', {
         condition: newCondition.trim(),
       });
     }
-  }, [newCondition, hasDeclaredNoIssues]);
+  }, [newCondition, hasDeclaredNoConditions]);
 
   const removeCondition = useCallback((index: number) => {
     setConditions(prev => prev.filter((_, i) => i !== index));
@@ -84,61 +91,45 @@ export function useMedicalConditionsForm() {
     if (newMedication.trim()) {
       setMedications(prev => [...prev, newMedication.trim()]);
       setNewMedication('');
-      if (hasDeclaredNoIssues) {
-        setHasDeclaredNoIssues(false);
+      if (hasDeclaredNoMedications) {
+        setHasDeclaredNoMedications(false);
       }
       logger.info('MEDICAL_CONDITIONS_FORM', 'Added medication', {
         medication: newMedication.trim(),
       });
     }
-  }, [newMedication, hasDeclaredNoIssues]);
+  }, [newMedication, hasDeclaredNoMedications]);
 
   const removeMedication = useCallback((index: number) => {
     setMedications(prev => prev.filter((_, i) => i !== index));
     logger.info('MEDICAL_CONDITIONS_FORM', 'Removed medication', { index });
   }, []);
 
-  const declareNoIssues = useCallback(async () => {
-    try {
-      logger.info('MEDICAL_CONDITIONS_FORM', 'Declaring no health issues');
-
-      await saveSection({
-        section: 'medical_conditions',
-        data: {
-          conditions: [],
-          medications: [],
-          declaredNoIssues: true,
-        },
-        onSuccess: () => {
-          setConditions([]);
-          setMedications([]);
-          setHasDeclaredNoIssues(true);
-          setInitialState({
-            conditions: [],
-            medications: [],
-            hasDeclaredNoIssues: true,
-          });
-          resetDirtyState({
-            conditions: [],
-            medications: [],
-            hasDeclaredNoIssues: true,
-          });
-          logger.info('MEDICAL_CONDITIONS_FORM', 'Successfully declared no issues');
-        },
-      });
-    } catch (error) {
-      logger.error('MEDICAL_CONDITIONS_FORM', 'Failed to declare no issues', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+  const handleDeclareNoConditions = useCallback(() => {
+    const newState = !hasDeclaredNoConditions;
+    setHasDeclaredNoConditions(newState);
+    if (newState) {
+      setConditions([]);
+      logger.info('MEDICAL_CONDITIONS_FORM', 'User declared no medical conditions');
     }
-  }, [saveSection, resetDirtyState]);
+  }, [hasDeclaredNoConditions]);
+
+  const handleDeclareNoMedications = useCallback(() => {
+    const newState = !hasDeclaredNoMedications;
+    setHasDeclaredNoMedications(newState);
+    if (newState) {
+      setMedications([]);
+      logger.info('MEDICAL_CONDITIONS_FORM', 'User declared no medications');
+    }
+  }, [hasDeclaredNoMedications]);
 
   const saveChanges = useCallback(async () => {
     try {
       logger.info('MEDICAL_CONDITIONS_FORM', 'Saving medical conditions and medications', {
         conditionsCount: conditions.length,
         medicationsCount: medications.length,
-        declaredNoIssues: hasDeclaredNoIssues,
+        noConditions: hasDeclaredNoConditions,
+        noMedications: hasDeclaredNoMedications,
       });
 
       await saveSection({
@@ -146,11 +137,22 @@ export function useMedicalConditionsForm() {
         data: {
           conditions,
           medications,
-          declaredNoIssues: conditions.length === 0 && medications.length === 0 ? hasDeclaredNoIssues : false,
+          no_medical_conditions: hasDeclaredNoConditions,
+          no_medications: hasDeclaredNoMedications,
         },
         onSuccess: () => {
-          setInitialState({ conditions, medications, hasDeclaredNoIssues });
-          resetDirtyState({ conditions, medications, hasDeclaredNoIssues });
+          setInitialState({
+            conditions,
+            medications,
+            hasDeclaredNoConditions,
+            hasDeclaredNoMedications
+          });
+          resetDirtyState({
+            conditions,
+            medications,
+            hasDeclaredNoConditions,
+            hasDeclaredNoMedications
+          });
           logger.info('MEDICAL_CONDITIONS_FORM', 'Successfully saved and reset dirty state', {
             conditionsCount: conditions.length,
             medicationsCount: medications.length,
@@ -162,7 +164,7 @@ export function useMedicalConditionsForm() {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
-  }, [conditions, medications, hasDeclaredNoIssues, saveSection, resetDirtyState]);
+  }, [conditions, medications, hasDeclaredNoConditions, hasDeclaredNoMedications, saveSection, resetDirtyState]);
 
   return {
     conditions,
@@ -175,8 +177,10 @@ export function useMedicalConditionsForm() {
     removeCondition,
     addMedication,
     removeMedication,
-    declareNoIssues,
-    hasDeclaredNoIssues,
+    onDeclareNoConditions: handleDeclareNoConditions,
+    onDeclareNoMedications: handleDeclareNoMedications,
+    hasDeclaredNoConditions,
+    hasDeclaredNoMedications,
     saveChanges,
     saving: isSectionSaving('medical_conditions'),
     isDirty,
