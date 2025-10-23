@@ -12,8 +12,10 @@ export const useProfileCompletion = (profile: UserProfile | null) => {
       return { percentage: 0, completedFields: 0, totalFields: 4 };
     }
 
+    // Accéder à profile.health pour les données de training
     const health = (profile as any).health;
 
+    // Vérifier si les champs sont définis et valides
     const trainingFields = [
       health?.fitness_level,
       health?.preferred_training_type,
@@ -21,11 +23,17 @@ export const useProfileCompletion = (profile: UserProfile | null) => {
       health?.preferred_session_duration
     ];
 
-    const completedFields = trainingFields.filter(field =>
-      field !== undefined && field !== null && field !== ''
-    ).length;
+    // Compter les champs complétés (non vides, non null, non undefined)
+    const completedFields = trainingFields.filter(field => {
+      if (field === undefined || field === null) return false;
+      if (typeof field === 'string' && field.trim() === '') return false;
+      if (typeof field === 'number' && field === 0) return false;
+      return true;
+    }).length;
 
-    const percentage = Math.round((completedFields / trainingFields.length) * 100);
+    const percentage = trainingFields.length > 0
+      ? Math.round((completedFields / trainingFields.length) * 100)
+      : 0;
 
     return {
       percentage,

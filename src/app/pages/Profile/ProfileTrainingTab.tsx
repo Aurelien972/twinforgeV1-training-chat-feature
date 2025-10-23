@@ -11,6 +11,7 @@ import MeasurableGoalsSection from '../../../ui/components/training/feedback/Mea
 import { useProfileTrainingForm } from './hooks/useProfileTrainingForm';
 import { useProfileCompletion } from './hooks/useProfileCompletion';
 import { useUserStore } from '../../../system/store/userStore';
+import { ProgressBar } from './components/ProfileIdentityComponents';
 
 const ProfileTrainingTab: React.FC = () => {
   const performanceConfig = useProfilePerformance();
@@ -25,6 +26,14 @@ const ProfileTrainingTab: React.FC = () => {
     handleSave
   } = useProfileTrainingForm();
 
+  // Debug: Log profile health data
+  React.useEffect(() => {
+    console.log('[ProfileTrainingTab] Profile:', profile);
+    console.log('[ProfileTrainingTab] Profile.health:', (profile as any)?.health);
+    console.log('[ProfileTrainingTab] Form Data:', formData);
+    console.log('[ProfileTrainingTab] Completion:', completion);
+  }, [profile, formData, completion]);
+
   return (
     <ConditionalMotionSlide
       performanceConfig={performanceConfig}
@@ -32,52 +41,14 @@ const ProfileTrainingTab: React.FC = () => {
       distance={20}
       className="space-y-6 profile-section"
     >
-      {/* Header avec progression */}
-      <GlassCard
-        className="p-6"
-        style={{
-          background: `
-            radial-gradient(circle at 30% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
-            var(--glass-opacity)
-          `,
-          borderColor: 'rgba(6, 182, 212, 0.3)'
-        }}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-full flex items-center justify-center"
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                border: '2px solid rgba(6, 182, 212, 0.5)'
-              }}
-            >
-              <SpatialIcon Icon={ICONS.Dumbbell} size={24} style={{ color: '#06B6D4' }} />
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-xl">Profil Sportif</h3>
-              <p className="text-white/60 text-sm mt-1">
-                Configuration de vos préférences d'entraînement
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-white/50 text-xs mb-1">Profil complété</p>
-            <p className="text-2xl font-bold text-cyan-400">{completion.percentage}%</p>
-          </div>
-        </div>
-
-        {/* Barre de progression */}
-        <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className="h-full transition-all duration-500 ease-out"
-            style={{
-              width: `${completion.percentage}%`,
-              background: 'linear-gradient(90deg, #06B6D4 0%, #3B82F6 100%)'
-            }}
-          />
-        </div>
-      </GlassCard>
+      {/* Header avec progression - Style standard */}
+      <ProgressBar
+        percentage={completion.percentage}
+        title="Profil Sportif"
+        subtitle="Configuration de vos préférences d'entraînement"
+        color="#06B6D4"
+        icon="Dumbbell"
+      />
 
       {/* Formulaire Profil Sportif */}
       <GlassCard

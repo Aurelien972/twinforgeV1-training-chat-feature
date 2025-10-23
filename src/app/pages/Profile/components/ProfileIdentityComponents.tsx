@@ -14,12 +14,13 @@ import { calculateBMI, calculateWeightDifference, getBMICategory, calculateBMIVa
 /**
  * Enhanced Progress Bar Component - VisionOS 26 Style
  */
-export const ProgressBar: React.FC<{ 
-  percentage: number; 
-  title: string; 
+export const ProgressBar: React.FC<{
+  percentage: number;
+  title: string;
   subtitle?: string;
   color?: string;
-}> = ({ percentage, title, subtitle, color = '#60A5FA' }) => {
+  icon?: keyof typeof ICONS;
+}> = ({ percentage, title, subtitle, color = '#60A5FA', icon = 'User' }) => {
   return (
     <GlassCard className="p-6 mb-6" style={{
       background: `
@@ -42,7 +43,7 @@ export const ProgressBar: React.FC<{
                 boxShadow: `0 0 20px color-mix(in srgb, ${color} 30%, transparent)`
               }}
             >
-            <SpatialIcon Icon={ICONS.User} size={20} style={{ color }} variant="pure" />
+            <SpatialIcon Icon={ICONS[icon]} size={20} style={{ color }} variant="pure" />
             </div>
             <div>
               <div className="text-xl">{title}</div>
