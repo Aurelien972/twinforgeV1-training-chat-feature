@@ -138,7 +138,36 @@ function hasValidValue(profile: any, fieldKey: string): boolean {
   if (fieldKey === 'nutrition.allergies') {
     const hasAllergies = profile?.nutrition?.allergies && Array.isArray(profile.nutrition.allergies) && profile.nutrition.allergies.length > 0;
     const noKnownAllergies = profile?.nutrition?.noKnownAllergies === true;
-    return hasAllergies || noKnownAllergies;
+    const noAllergiesV2 = profile?.health?.no_allergies === true;
+    return hasAllergies || noKnownAllergies || noAllergiesV2;
+  }
+
+  // Special case for medical conditions - if user declared no conditions, consider it valid
+  if (fieldKey === 'health.medical_history.conditions') {
+    const hasConditions = profile?.health?.medical_history?.conditions && Array.isArray(profile.health.medical_history.conditions) && profile.health.medical_history.conditions.length > 0;
+    const noConditions = profile?.health?.no_medical_conditions === true;
+    return hasConditions || noConditions;
+  }
+
+  // Special case for medications - if user declared no medications, consider it valid
+  if (fieldKey === 'health.medical_history.medications') {
+    const hasMedications = profile?.health?.medical_history?.medications && Array.isArray(profile.health.medical_history.medications) && profile.health.medical_history.medications.length > 0;
+    const noMedications = profile?.health?.no_medications === true;
+    return hasMedications || noMedications;
+  }
+
+  // Special case for physical limitations - if user declared no limitations, consider it valid
+  if (fieldKey === 'health.physical_limitations' || fieldKey === 'health.physicalLimitations') {
+    const hasLimitations = profile?.health?.physical_limitations && Array.isArray(profile.health.physical_limitations) && profile.health.physical_limitations.length > 0;
+    const noLimitations = profile?.health?.no_physical_limitations === true;
+    return hasLimitations || noLimitations;
+  }
+
+  // Special case for dietary constraints - if user declared no constraints, consider it valid
+  if (fieldKey === 'constraints') {
+    const hasConstraints = profile?.constraints && Object.keys(profile.constraints).length > 0;
+    const noConstraints = profile?.health?.no_dietary_constraints === true;
+    return hasConstraints || noConstraints;
   }
   
   const keys = fieldKey.split('.');

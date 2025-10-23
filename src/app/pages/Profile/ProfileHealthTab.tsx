@@ -27,7 +27,7 @@ import { useCountryHealthData } from '../HealthProfile/hooks/useCountryHealthDat
  * Gestion complète des données de santé avec design VisionOS 26
  */
 const ProfileHealthTab: React.FC = () => {
-  const { profile } = useUserStore();
+  const { profile, updateProfile } = useUserStore();
   const { form, actions, state } = useProfileHealthForm();
   const { register, handleSubmit, errors, isDirty, watchedValues, setValue } = form;
   const { saveBasicHealthSection, saveMedicalSection, saveConstraintsSection, onSubmit } = actions;
@@ -40,6 +40,17 @@ const ProfileHealthTab: React.FC = () => {
   const [newPhysicalLimitation, setNewPhysicalLimitation] = React.useState('');
   const [hasDeclaredNoConstraints, setHasDeclaredNoConstraints] = React.useState(false);
   const [hasDeclaredNoLimitations, setHasDeclaredNoLimitations] = React.useState(false);
+  const [constraintsDirty, setConstraintsDirty] = React.useState(false);
+  const [limitationsDirty, setLimitationsDirty] = React.useState(false);
+
+  // Initialize from profile
+  React.useEffect(() => {
+    const healthV2 = (profile as any)?.health;
+    if (healthV2) {
+      setHasDeclaredNoConstraints(healthV2.no_dietary_constraints || false);
+      setHasDeclaredNoLimitations(healthV2.no_physical_limitations || false);
+    }
+  }, [profile]);
 
   // Calculate completion percentage - memoized
   const completionPercentage = useMemo(
@@ -143,8 +154,10 @@ const ProfileHealthTab: React.FC = () => {
                   type="checkbox"
                   checked={hasDeclaredNoConstraints}
                   onChange={(e) => {
-                    setHasDeclaredNoConstraints(e.target.checked);
-                    if (e.target.checked) {
+                    const newValue = e.target.checked;
+                    setHasDeclaredNoConstraints(newValue);
+                    setConstraintsDirty(true);
+                    if (newValue) {
                       setValue('constraints', [], { shouldDirty: true });
                     }
                   }}
@@ -198,9 +211,22 @@ const ProfileHealthTab: React.FC = () => {
           </div>
 
           <SectionSaveButton
-            isDirty={hasConstraintsChanges}
+            isDirty={hasConstraintsChanges || constraintsDirty}
             isSaving={sectionSaving === 'constraints'}
-            onSave={saveConstraintsSection}
+            onSave={async () => {
+              await saveConstraintsSection();
+              // Also save the no_dietary_constraints flag
+              const currentHealth = (profile as any)?.health || {};
+              await updateProfile({
+                health: {
+                  ...currentHealth,
+                  version: '2.0' as const,
+                  no_dietary_constraints: hasDeclaredNoConstraints
+                },
+                updated_at: new Date().toISOString()
+              });
+              setConstraintsDirty(false);
+            }}
             sectionName="Contraintes"
           />
         </GlassCard>
@@ -267,11 +293,27 @@ const ProfileHealthTab: React.FC = () => {
           setNewPhysicalLimitation={setNewPhysicalLimitation}
           onAddPhysicalLimitation={addPhysicalLimitation}
           onRemovePhysicalLimitation={removePhysicalLimitation}
-          onDeclareNoLimitations={() => setHasDeclaredNoLimitations(!hasDeclaredNoLimitations)}
+          onDeclareNoLimitations={() => {
+            setHasDeclaredNoLimitations(!hasDeclaredNoLimitations);
+            setLimitationsDirty(true);
+          }}
           hasDeclaredNoLimitations={hasDeclaredNoLimitations}
-          onSave={saveMedicalSection}
+          onSave={async () => {
+            await saveMedicalSection();
+            // Also save the no_physical_limitations flag
+            const currentHealth = (profile as any)?.health || {};
+            await updateProfile({
+              health: {
+                ...currentHealth,
+                version: '2.0' as const,
+                no_physical_limitations: hasDeclaredNoLimitations
+              },
+              updated_at: new Date().toISOString()
+            });
+            setLimitationsDirty(false);
+          }}
           isSaving={sectionSaving === 'medical'}
-          isDirty={hasConstraintsChanges}
+          isDirty={hasMedicalChanges || limitationsDirty}
         />
 
         {/* Global Save Action */}

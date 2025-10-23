@@ -170,6 +170,7 @@ export function calculateFastingCompletion(profile: UserProfile | null): number 
 /**
  * Complétion de l'onglet Santé
  * Supports both V1 (basic) and V2 (enriched) schemas
+ * Takes into account "everything is fine" declarations
  */
 export function calculateHealthCompletion(profile: UserProfile | null): number {
   if (!profile) return 0;
@@ -181,25 +182,60 @@ export function calculateHealthCompletion(profile: UserProfile | null): number {
   }
 
   if (health.version === '2.0') {
-    const v2Fields = [
-      'health.basic.bloodType',
-      'health.medical_history.conditions',
-      'health.medical_history.medications',
-      'health.medical_history.family_history',
-      'health.vital_signs.blood_pressure_systolic',
-      'health.vital_signs.resting_heart_rate',
-      'health.lifestyle.smoking_status',
-      'health.lifestyle.alcohol_frequency',
-      'health.lifestyle.sleep_hours_avg',
-      'health.lifestyle.stress_level',
-      'health.lifestyle.physical_activity_level',
-      'health.vaccinations.up_to_date',
-      'health.physical_limitations',
-      'health.last_checkup_date',
+    // Check for "everything is fine" declarations
+    const hasDeclaredNoConditions = health.no_medical_conditions === true;
+    const hasDeclaredNoMedications = health.no_medications === true;
+    const hasDeclaredNoAllergies = health.no_allergies === true;
+    const hasDeclaredNoLimitations = health.no_physical_limitations === true;
+    const hasDeclaredNoConstraints = health.no_dietary_constraints === true;
+
+    const fields = [
+      {
+        key: 'health.medical_history.conditions',
+        alternativeCheck: () => hasDeclaredNoConditions
+      },
+      {
+        key: 'health.medical_history.medications',
+        alternativeCheck: () => hasDeclaredNoMedications
+      },
+      {
+        key: 'health.medical_history.allergies',
+        alternativeCheck: () => hasDeclaredNoAllergies
+      },
+      {
+        key: 'health.physical_limitations',
+        alternativeCheck: () => hasDeclaredNoLimitations
+      },
+      // Standard fields without alternatives
+      { key: 'health.basic.bloodType' },
+      { key: 'health.medical_history.family_history' },
+      { key: 'health.vital_signs.blood_pressure_systolic' },
+      { key: 'health.vital_signs.resting_heart_rate' },
+      { key: 'health.lifestyle.smoking_status' },
+      { key: 'health.lifestyle.alcohol_frequency' },
+      { key: 'health.lifestyle.sleep_hours_avg' },
+      { key: 'health.lifestyle.stress_level' },
+      { key: 'health.lifestyle.physical_activity_level' },
+      { key: 'health.vaccinations.up_to_date' },
+      { key: 'health.last_checkup_date' },
     ];
 
-    const completedFields = v2Fields.filter((field) => hasValidValue(profile, field));
-    return Math.round((completedFields.length / v2Fields.length) * 100);
+    let completedCount = 0;
+    for (const field of fields) {
+      // Check if field has value OR alternative check passes
+      if (hasValidValue(profile, field.key) || (field.alternativeCheck && field.alternativeCheck())) {
+        completedCount++;
+      }
+    }
+
+    // Also check dietary constraints from profile root
+    const constraints = (profile as any).constraints;
+    if ((constraints && Object.keys(constraints).length > 0) || hasDeclaredNoConstraints) {
+      completedCount++;
+    }
+
+    // Add 1 to total for constraints field
+    return Math.round((completedCount / (fields.length + 1)) * 100);
   }
 
   const v1Fields = [
