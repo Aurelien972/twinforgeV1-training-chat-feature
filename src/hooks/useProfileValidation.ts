@@ -43,13 +43,14 @@ export function useProfileValidation(): ProfileValidationState {
     let isMounted = true;
 
     const validateProfile = async () => {
-      // Extract userId from profile
-      const userId = (profile as any)?.user_id;
+      // Extract userId from profile (check both userId and id properties)
+      const userId = (profile as any)?.userId || (profile as any)?.id;
 
       logger.info('PROFILE_VALIDATION_HOOK', 'Starting validation', {
         hasUserId: !!userId,
         hasProfile: !!profile,
-        userId
+        userId,
+        profileKeys: profile ? Object.keys(profile).slice(0, 10) : []
       });
 
       if (!userId || !profile) {
