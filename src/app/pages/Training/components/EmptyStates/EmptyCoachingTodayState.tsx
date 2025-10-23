@@ -27,7 +27,7 @@ const EmptyCoachingTodayState: React.FC<EmptyCoachingTodayStateProps> = ({
     if (onStartTraining) {
       onStartTraining();
     } else {
-      navigate('/training');
+      navigate('/training/pipeline');
     }
   };
 

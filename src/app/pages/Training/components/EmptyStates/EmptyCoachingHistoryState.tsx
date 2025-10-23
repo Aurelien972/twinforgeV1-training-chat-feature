@@ -27,7 +27,7 @@ const EmptyCoachingHistoryState: React.FC<EmptyCoachingHistoryStateProps> = ({
     if (onStartSession) {
       onStartSession();
     } else {
-      navigate('/training#aujourd hui');
+      navigate('/training/pipeline');
     }
   };
 

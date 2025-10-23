@@ -7,12 +7,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTrainingCoachStore } from '../../../system/store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../../../system/store/unifiedCoachStore';
 import { trainingCoachNotificationService } from '../../../system/services/trainingCoachNotificationService';
 import { Haptics } from '../../../utils/haptics';
 import SpatialIcon from '../../icons/SpatialIcon';
 import { ICONS } from '../../icons/registry';
-import '../../../styles/components/training-coach-notification.css';
+import '../../../styles/components/training/training-coach-notification.css';
 
 const NOTIFICATION_TYPE_ICONS: Record<string, keyof typeof ICONS> = {
   motivation: 'Flame',
@@ -30,7 +30,7 @@ interface TrainingCoachNotificationBubbleProps {
 }
 
 const TrainingCoachNotificationBubble: React.FC<TrainingCoachNotificationBubbleProps> = ({ chatButtonRef, isStep1 = false, hidden = false }) => {
-  const { currentNotification, hideNotification } = useTrainingCoachStore();
+  const { currentNotification, hideNotification } = useUnifiedCoachStore();
   const notificationRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1025 : false);
 

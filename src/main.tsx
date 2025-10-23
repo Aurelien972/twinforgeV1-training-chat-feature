@@ -44,6 +44,7 @@ const MealsPage = lazy(() => import('./app/pages/Meals/MealsPage'));
 const MealScanFlowPage = lazy(() => import('./app/pages/Meals/MealScanFlowPage'));
 const FridgePage = lazy(() => import('./app/pages/FridgePage'));
 const TrainingPage = lazy(() => import('./app/pages/TrainingPage'));
+const TrainingPipelinePage = lazy(() => import('./app/pages/Training/Pipeline/TrainingPipelinePage'));
 const SettingsPage = lazy(() => import('./app/pages/SettingsPage'));
 const NotificationsPage = lazy(() => import('./app/pages/NotificationsPage'));
 const BodyScanPage = lazy(() => import('./app/pages/BodyScanPage'));
@@ -187,6 +188,10 @@ const router = createBrowserRouter([
       {
         path: "training",
         element: <Suspense fallback={<LoadingFallback />}><TrainingPage /></Suspense>
+      },
+      {
+        path: "training/pipeline",
+        element: <Suspense fallback={<LoadingFallback />}><TrainingPipelinePage /></Suspense>
       },
       {
         path: "settings",

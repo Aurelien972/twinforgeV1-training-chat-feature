@@ -3,7 +3,7 @@
  * Service for managing notifications during Step 5 (Avancer)
  */
 
-import { useTrainingCoachStore } from '../store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../store/unifiedCoachStore';
 import { getStep5Message, type Step5NotificationId } from '../../config/step5CoachMessages';
 import { Haptics } from '../../utils/haptics';
 import logger from '../../lib/utils/logger';
@@ -54,7 +54,7 @@ class Step5NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().showNotification(
+    useUnifiedCoachStore.getState().showNotification(
       id as any,
       message,
       type,
@@ -82,7 +82,7 @@ class Step5NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().queueNotification(
+    useUnifiedCoachStore.getState().queueNotification(
       id as any,
       message,
       type,
@@ -181,7 +181,7 @@ class Step5NotificationService {
         color = '#10B981';
       }
 
-      useTrainingCoachStore.getState().showNotification(
+      useUnifiedCoachStore.getState().showNotification(
         'step5-wearable-recovery-guidance' as any,
         message,
         type,
@@ -250,7 +250,7 @@ class Step5NotificationService {
       if (insights.length > 0) {
         const message = `📊 Analyse de vos métriques:\n\n${insights.join('\n• ')}`;
 
-        useTrainingCoachStore.getState().showNotification(
+        useUnifiedCoachStore.getState().showNotification(
           'step5-wearable-metrics-insights' as any,
           message,
           'tip',
@@ -287,7 +287,7 @@ class Step5NotificationService {
    * Cleanup
    */
   cleanup() {
-    useTrainingCoachStore.getState().clearQueue();
+    useUnifiedCoachStore.getState().clearQueue();
     logger.info('STEP5_NOTIFICATION_SERVICE', 'Service cleaned up');
   }
 }
