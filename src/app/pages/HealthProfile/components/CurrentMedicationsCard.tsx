@@ -15,6 +15,8 @@ interface CurrentMedicationsCardProps {
   setNewMedication: (value: string) => void;
   onAddMedication: () => void;
   onRemoveMedication: (index: number) => void;
+  onDeclareNoMedications?: () => void;
+  hasDeclaredNoMedications?: boolean;
   onSave?: () => void;
   isSaving?: boolean;
   isDirty?: boolean;
@@ -39,6 +41,8 @@ export const CurrentMedicationsCard: React.FC<CurrentMedicationsCardProps> = ({
   setNewMedication,
   onAddMedication,
   onRemoveMedication,
+  onDeclareNoMedications,
+  hasDeclaredNoMedications,
   onSave,
   isSaving,
   isDirty,
@@ -97,11 +101,45 @@ export const CurrentMedicationsCard: React.FC<CurrentMedicationsCardProps> = ({
           )}
         </div>
 
-        {/* Medications Input with Suggestions */}
-        <div className="relative mb-4">
-          <label className="block text-white/90 text-sm font-medium mb-3">
-            Ajouter un médicament
+        {/* No Medications Checkbox */}
+        <div className="mb-4">
+          <label className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors">
+            <input
+              type="checkbox"
+              checked={hasDeclaredNoMedications || false}
+              onChange={(e) => {
+                if (onDeclareNoMedications) {
+                  if (e.target.checked) {
+                    onDeclareNoMedications();
+                  } else {
+                    onDeclareNoMedications();
+                  }
+                }
+              }}
+              className="sr-only"
+            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              hasDeclaredNoMedications
+                ? 'border-green-400 bg-green-500'
+                : 'border-white/30'
+            }`}>
+              {hasDeclaredNoMedications && (
+                <SpatialIcon Icon={ICONS.Check} size={12} className="text-white" />
+              )}
+            </div>
+            <div>
+              <div className="text-white font-medium">Je ne prends aucun médicament actuellement</div>
+              <div className="text-white/60 text-sm">Cochez si vous ne prenez actuellement aucun traitement ni supplément</div>
+            </div>
           </label>
+        </div>
+
+        {/* Medications Input with Suggestions - Only show if not declared no medications */}
+        {!hasDeclaredNoMedications && (
+          <div className="relative mb-4">
+            <label className="block text-white/90 text-sm font-medium mb-3">
+              Ajouter un médicament
+            </label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <input
@@ -128,8 +166,8 @@ export const CurrentMedicationsCard: React.FC<CurrentMedicationsCardProps> = ({
             </button>
           </div>
 
-          {/* Suggestions Dropdown */}
-          {showSuggestions && newMedication.length > 0 && filteredSuggestions.length > 0 && (
+            {/* Suggestions Dropdown */}
+            {showSuggestions && newMedication.length > 0 && filteredSuggestions.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -147,13 +185,14 @@ export const CurrentMedicationsCard: React.FC<CurrentMedicationsCardProps> = ({
                     {medication}
                   </button>
                 ))}
-              </div>
-            </motion.div>
-          )}
-        </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Medications List */}
-        {medications.length > 0 && (
+        {!hasDeclaredNoMedications && medications.length > 0 && (
           <div className="space-y-2">
             {medications.map((medication, index) => (
               <motion.div
@@ -179,11 +218,22 @@ export const CurrentMedicationsCard: React.FC<CurrentMedicationsCardProps> = ({
           </div>
         )}
 
-        {medications.length === 0 && (
+        {medications.length === 0 && !hasDeclaredNoMedications && (
           <div className="text-center py-6 text-white/50 text-sm">
             <SpatialIcon Icon={ICONS.Pill} size={32} className="mx-auto mb-2 opacity-50" />
             <p>Aucun médicament ajouté</p>
             <p className="text-xs mt-1">Incluez les traitements et suppléments réguliers</p>
+          </div>
+        )}
+
+        {/* Positive Confirmation for No Medications */}
+        {hasDeclaredNoMedications && (
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-3">
+              <SpatialIcon Icon={ICONS.CheckCircle} size={32} className="text-green-400" />
+            </div>
+            <p className="text-white font-medium">Aucun médicament déclaré</p>
+            <p className="text-white/60 text-sm mt-1">Vous avez confirmé ne prendre aucun traitement actuellement</p>
           </div>
         )}
 

@@ -103,11 +103,45 @@ export const MedicalConditionsCard: React.FC<MedicalConditionsCardProps> = ({
         </div>
 
 
-        {/* Conditions Input with Suggestions */}
-        <div className="relative mb-4">
-          <label className="block text-white/90 text-sm font-medium mb-3">
-            Ajouter une condition médicale
+        {/* No Conditions Checkbox */}
+        <div className="mb-4">
+          <label className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors">
+            <input
+              type="checkbox"
+              checked={hasDeclaredNoConditions || false}
+              onChange={(e) => {
+                if (onDeclareNoConditions) {
+                  if (e.target.checked) {
+                    onDeclareNoConditions();
+                  } else {
+                    onDeclareNoConditions();
+                  }
+                }
+              }}
+              className="sr-only"
+            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              hasDeclaredNoConditions
+                ? 'border-green-400 bg-green-500'
+                : 'border-white/30'
+            }`}>
+              {hasDeclaredNoConditions && (
+                <SpatialIcon Icon={ICONS.Check} size={12} className="text-white" />
+              )}
+            </div>
+            <div>
+              <div className="text-white font-medium">Je n'ai aucune condition médicale</div>
+              <div className="text-white/60 text-sm">Cochez si vous n'avez aucune maladie chronique ou condition actuelle</div>
+            </div>
           </label>
+        </div>
+
+        {/* Conditions Input with Suggestions - Only show if not declared no conditions */}
+        {!hasDeclaredNoConditions && (
+          <div className="relative mb-4">
+            <label className="block text-white/90 text-sm font-medium mb-3">
+              Ajouter une condition médicale
+            </label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <input
@@ -134,8 +168,8 @@ export const MedicalConditionsCard: React.FC<MedicalConditionsCardProps> = ({
             </button>
           </div>
 
-          {/* Suggestions Dropdown */}
-          {showSuggestions && newCondition.length > 0 && filteredSuggestions.length > 0 && (
+            {/* Suggestions Dropdown */}
+            {showSuggestions && newCondition.length > 0 && filteredSuggestions.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -153,13 +187,14 @@ export const MedicalConditionsCard: React.FC<MedicalConditionsCardProps> = ({
                     {condition}
                   </button>
                 ))}
-              </div>
-            </motion.div>
-          )}
-        </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Conditions List */}
-        {conditions.length > 0 && (
+        {!hasDeclaredNoConditions && conditions.length > 0 && (
           <div className="space-y-2">
             {conditions.map((condition, index) => (
               <motion.div
@@ -189,6 +224,17 @@ export const MedicalConditionsCard: React.FC<MedicalConditionsCardProps> = ({
           <div className="text-center py-6 text-white/50 text-sm">
             <SpatialIcon Icon={ICONS.AlertCircle} size={32} className="mx-auto mb-2 opacity-50" />
             <p>Aucune condition médicale ajoutée</p>
+          </div>
+        )}
+
+        {/* Positive Confirmation for No Conditions */}
+        {hasDeclaredNoConditions && (
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-3">
+              <SpatialIcon Icon={ICONS.CheckCircle} size={32} className="text-green-400" />
+            </div>
+            <p className="text-white font-medium">Aucune condition médicale déclarée</p>
+            <p className="text-white/60 text-sm mt-1">Vous avez confirmé ne pas avoir de maladie chronique</p>
           </div>
         )}
 

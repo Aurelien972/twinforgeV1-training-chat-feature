@@ -163,6 +163,11 @@ export interface HealthProfileV2 {
   last_checkup_date?: string;
   next_checkup_due?: string;
   declaredNoIssues?: boolean;
+  no_medical_conditions?: boolean;
+  no_medications?: boolean;
+  no_allergies?: boolean;
+  no_physical_limitations?: boolean;
+  no_dietary_constraints?: boolean;
   emergency_contact?: {
     name: string;
     phone: string;
