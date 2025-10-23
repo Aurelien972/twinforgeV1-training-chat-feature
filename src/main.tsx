@@ -40,15 +40,23 @@ const Home = lazy(() => import('./app/pages/Home'));
 const Profile = lazy(() => import('./app/pages/Profile'));
 const ActivityPage = lazy(() => import('./app/pages/ActivityPage'));
 const FastingPage = lazy(() => import('./app/pages/Fasting/FastingPage'));
-// Placeholder pages removed for optimization
 const TrainingPage = lazy(() => import('./app/pages/TrainingPage'));
 const TrainingPipelinePage = lazy(() => import('./app/pages/Training/Pipeline/TrainingPipelinePage'));
 const SettingsPage = lazy(() => import('./app/pages/SettingsPage'));
 const NotificationsPage = lazy(() => import('./app/pages/NotificationsPage'));
-// Body scan and avatar placeholder pages removed
 const ActivityInputPage = lazy(() => import('./app/pages/Activity/ActivityInputPage'));
 const FastingInputPage = lazy(() => import('./app/pages/Fasting/FastingInputPage'));
 const DevCachePage = lazy(() => import('./app/pages/DevCachePage'));
+
+// Placeholder pages - minimal implementations
+const AvatarPage = lazy(() => import('./app/pages/Avatar/AvatarPage'));
+const BodyScanPage = lazy(() => import('./app/pages/BodyScan/BodyScanPage'));
+const FridgePage = lazy(() => import('./app/pages/FridgePage'));
+const FridgeScanPage = lazy(() => import('./app/pages/FridgeScanPage'));
+const MealsPage = lazy(() => import('./app/pages/MealsPage'));
+const MealScanFlowPage = lazy(() => import('./app/pages/MealScanFlowPage'));
+const VitalPage = lazy(() => import('./app/pages/VitalPage'));
+const FaceScanPage = lazy(() => import('./app/pages/FaceScanPage'));
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -146,7 +154,14 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Suspense fallback={<LoadingFallback />}><Profile /></Suspense>
       },
-      // Meals routes removed - placeholder feature
+      {
+        path: "meals",
+        element: <Suspense fallback={<LoadingFallback />}><MealsPage /></Suspense>
+      },
+      {
+        path: "meals/scan",
+        element: <Suspense fallback={<LoadingFallback />}><MealScanFlowPage /></Suspense>
+      },
       {
         path: "activity",
         element: <Suspense fallback={<LoadingFallback />}><ActivityPage /></Suspense>
@@ -163,7 +178,14 @@ const router = createBrowserRouter([
         path: "fasting/input",
         element: <Suspense fallback={<LoadingFallback />}><FastingInputPage /></Suspense>
       },
-      // Fridge routes removed - placeholder feature
+      {
+        path: "fridge",
+        element: <Suspense fallback={<LoadingFallback />}><FridgePage /></Suspense>
+      },
+      {
+        path: "fridge/scan",
+        element: <Suspense fallback={<LoadingFallback />}><FridgeScanPage /></Suspense>
+      },
       {
         path: "training",
         element: <Suspense fallback={<LoadingFallback />}><TrainingPage /></Suspense>
@@ -180,12 +202,26 @@ const router = createBrowserRouter([
         path: "notifications",
         element: <Suspense fallback={<LoadingFallback />}><NotificationsPage /></Suspense>
       },
-      // Avatar, body-scan, vital routes removed - placeholder features
+      {
+        path: "avatar",
+        element: <Suspense fallback={<LoadingFallback />}><AvatarPage /></Suspense>
+      },
+      {
+        path: "body-scan",
+        element: <Suspense fallback={<LoadingFallback />}><BodyScanPage /></Suspense>
+      },
+      {
+        path: "vital",
+        element: <Suspense fallback={<LoadingFallback />}><VitalPage /></Suspense>
+      },
+      {
+        path: "face-scan",
+        element: <Suspense fallback={<LoadingFallback />}><FaceScanPage /></Suspense>
+      },
       {
         path: "dev/cache",
         element: <Suspense fallback={<LoadingFallback />}><DevCachePage /></Suspense>
-      },
-      // Logo gallery route removed
+      }
     ]
   }
 ]);
