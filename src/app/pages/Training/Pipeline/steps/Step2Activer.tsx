@@ -704,7 +704,7 @@ const Step2Activer: React.FC = () => {
 
         const tabMessages = Object.entries(missingByTab).map(([tab, fields]) => {
           const tabName = tab === 'identity' ? 'Identité' :
-                         tab === 'training' ? 'Training' :
+                         tab === 'training' ? 'Training (Préférences)' :
                          tab === 'health' ? 'Santé' : 'Lieux';
           return `${tabName}: ${fields.join(', ')}`;
         }).join('\n');
@@ -716,11 +716,20 @@ const Step2Activer: React.FC = () => {
           duration: 8000,
         });
 
-        // Optionally redirect to profile
+        // Smart navigation to the correct profile tab
         setTimeout(() => {
           const shouldRedirect = confirm('Voulez-vous compléter votre profil maintenant ?');
           if (shouldRedirect) {
-            navigate('/profile');
+            // Navigate to the first missing tab with priority: identity > training > health
+            const primaryTab = validation.missingTabs[0];
+            const tabUrls: Record<string, string> = {
+              'identity': '/profile?tab=identity',
+              'training': '/profile?tab=preferences',
+              'health': '/profile?tab=health',
+              'locations': '/profile?tab=preferences'
+            };
+            const targetUrl = tabUrls[primaryTab] || '/profile';
+            navigate(targetUrl);
           }
         }, 1000);
 

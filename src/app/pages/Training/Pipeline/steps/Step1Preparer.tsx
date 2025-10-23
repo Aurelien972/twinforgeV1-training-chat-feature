@@ -26,6 +26,8 @@ import { useChatButtonRef } from '../../../../../system/context/ChatButtonContex
 import { useTrainingLocations } from '../../../../../hooks/useTrainingLocations';
 import { useUserStore } from '../../../../../system/store/userStore';
 import type { AgentType } from '../../../../../domain/ai/trainingAiTypes';
+import { useProfileValidation } from '../../../../../hooks/useProfileValidation';
+import Step1ProfileIncompleteEmptyState from '../components/Step1ProfileIncompleteEmptyState';
 
 const Step1Preparer: React.FC = () => {
   const { setPreparerData, goToNextStep } = useTrainingPipeline();
@@ -33,6 +35,7 @@ const Step1Preparer: React.FC = () => {
   const { chatButtonRef } = useChatButtonRef();
   const { locations } = useTrainingLocations();
   const { profile } = useUserStore();
+  const profileValidation = useProfileValidation();
 
   const initialTime = profile?.preferences?.workout?.preferredDuration || DEFAULT_SESSION_DURATION;
   const [availableTime, setAvailableTime] = useState(initialTime);
@@ -266,17 +269,20 @@ const Step1Preparer: React.FC = () => {
 
   const canContinue = selectedLocation !== null;
 
+  // Show empty state if profile is incomplete
+  const showEmptyState = !profileValidation.isValidating && !profileValidation.isValid;
+
   return (
     <>
       <TrainingCoachNotificationBubble
         chatButtonRef={chatButtonRef}
         isStep1={true}
-        hidden={canContinue}
+        hidden={canContinue || showEmptyState}
       />
 
       {/* Floating Generate Button - Appears after location selection */}
       <FloatingGenerateButton
-        visible={canContinue}
+        visible={canContinue && !showEmptyState}
         onClick={handleContinue}
         disabled={!canContinue}
         stepColor={stepColor}
@@ -284,6 +290,14 @@ const Step1Preparer: React.FC = () => {
       />
 
       <StepContainer>
+      {/* Profile Incomplete Empty State */}
+      {showEmptyState && (
+        <Step1ProfileIncompleteEmptyState validationState={profileValidation} />
+      )}
+
+      {/* Regular form - only show when profile is complete */}
+      {!showEmptyState && (
+        <>
       {/* Time Available - Position 1 */}
       <GlassCard
         className="space-y-4"
@@ -608,6 +622,8 @@ const Step1Preparer: React.FC = () => {
 
       {/* Spacer for bottom padding */}
       <div className="mb-32" ref={continueButtonRef} />
+        </>
+      )}
       </StepContainer>
     </>
   );
