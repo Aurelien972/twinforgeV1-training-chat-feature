@@ -98,11 +98,7 @@
 @import './components/profile/face-shape-controls.css';
 @import './components/profile/settings-components.css';
 
-/* Nutrition */
-@import './components/nutrition/fasting-cta-3d.css';
-@import './components/nutrition/meal-scan-results.css';
-@import './components/nutrition/fridge-scan-animations.css';
-@import './components/nutrition/fridge-scan-styles.css';
+/* Skeletons */
 @import '../ui/components/skeletons/skeletons.css';
 
 /* =========================================
@@ -129,8 +125,7 @@
 @import './pipeline/forge-pipeline-variables.css';
 @import './pipeline/forge-pipeline-gpu-optimized.css';
 @import './pipeline/forge-pipeline-steps-grid.css';
-@import './pipeline/forge-immersive-analysis.css';
-@import './pipeline/forge-photo-capture.css';
+/* Photo capture and immersive analysis CSS removed - placeholder features */
 
 /* =========================================
    PHASE 8.5: PROFILE PERFORMANCE OPTIMIZATIONS
@@ -145,8 +140,7 @@
 /* Activity Module - Forge Énergétique */
 @import '../app/pages/Activity/styles/index.css';
 
-/* Avatar Module - Forge Corporelle & Faciale */
-@import '../app/pages/Avatar/styles/index.css';
+/* Avatar styles removed - placeholder feature */
 
 /* =========================================
    PHASE 10: EFFETS ET UTILITAIRES
