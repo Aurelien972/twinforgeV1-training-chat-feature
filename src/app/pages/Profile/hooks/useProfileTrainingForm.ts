@@ -58,34 +58,53 @@ export const useProfileTrainingForm = () => {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!profile?.user_id) return;
+    if (!profile?.user_id) {
+      console.error('[useProfileTrainingForm] No user_id found in profile');
+      return;
+    }
 
     try {
       setIsSaving(true);
 
+      console.log('[useProfileTrainingForm] Starting save', {
+        userId: profile.user_id,
+        formData,
+        currentHealth: profile.health
+      });
+
       // Mettre à jour le profil avec les nouvelles données training
       const updatedHealth = {
         ...(profile.health || {}),
-        fitness_level: formData.fitness_level,
-        preferred_training_type: formData.preferred_training_type,
-        sessions_per_week: formData.sessions_per_week,
-        preferred_session_duration: formData.preferred_session_duration
+        fitness_level: formData.fitness_level || null,
+        preferred_training_type: formData.preferred_training_type || null,
+        sessions_per_week: formData.sessions_per_week || null,
+        preferred_session_duration: formData.preferred_session_duration || null
       };
 
-      const { error } = await supabase
+      console.log('[useProfileTrainingForm] Updating health object', updatedHealth);
+
+      const { data, error } = await supabase
         .from('user_profile')
         .update({
           health: updatedHealth,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', profile.user_id);
+        .eq('user_id', profile.user_id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useProfileTrainingForm] Supabase error:', error);
+        throw error;
+      }
 
-      // Mettre à jour le store local
+      console.log('[useProfileTrainingForm] Save successful', { data });
+
+      // Mettre à jour le store local avec les données retournées par Supabase
       setProfile({
         ...profile,
-        health: updatedHealth
+        health: data.health,
+        updated_at: data.updated_at
       });
 
       setOriginalData(formData);
@@ -98,11 +117,11 @@ export const useProfileTrainingForm = () => {
         duration: 3000
       });
     } catch (err) {
-      console.error('Error saving training profile:', err);
+      console.error('[useProfileTrainingForm] Error saving training profile:', err);
       showToast({
         type: 'error',
         title: 'Erreur',
-        message: 'Impossible d\'enregistrer vos préférences',
+        message: err instanceof Error ? err.message : 'Impossible d\'enregistrer vos préférences',
         duration: 4000
       });
     } finally {

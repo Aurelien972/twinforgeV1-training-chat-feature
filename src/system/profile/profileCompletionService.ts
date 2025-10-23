@@ -625,16 +625,16 @@ export function calculateTrainingCompletion(profile: UserProfile | null): Profil
       priority: 'high'
     },
     {
-      key: 'trainingPreferences.experienceLevel',
-      label: 'Niveau d\'expérience',
+      key: 'health.fitness_level',
+      label: 'Niveau de forme physique',
       description: 'Pour adapter la complexité des exercices',
       profileTab: 'identity',
       priority: 'high'
     },
     {
-      key: 'trainingPreferences.availableEquipment',
-      label: 'Équipement disponible',
-      description: 'Pour générer des séances réalisables',
+      key: 'health.preferred_training_type',
+      label: 'Type d\'entraînement préféré',
+      description: 'Pour personnaliser vos séances',
       profileTab: 'identity',
       priority: 'high'
     }

@@ -108,7 +108,11 @@ export async function validateProfileForTraining(
   // 3. Training Tab - Profil Sportif (REQUIRED)
   // Check both locations: profile.health (new structure) and profile.preferences.workout (legacy)
   const fitnessLevel = profile?.health?.fitness_level || profile?.preferences?.workout?.fitnessLevel;
-  if (!fitnessLevel || fitnessLevel === '') {
+
+  // Valid fitness levels: sedentary, beginner, novice, intermediate, advanced, expert, elite, professional, athlete, champion
+  const validFitnessLevels = ['sedentary', 'beginner', 'novice', 'intermediate', 'advanced', 'expert', 'elite', 'professional', 'athlete', 'champion'];
+
+  if (!fitnessLevel || fitnessLevel === '' || !validFitnessLevels.includes(fitnessLevel)) {
     missingFields.push({
       field: 'health.fitness_level',
       label: 'Niveau de forme physique',
@@ -120,7 +124,22 @@ export async function validateProfileForTraining(
   }
 
   const preferredTrainingType = profile?.health?.preferred_training_type || profile?.preferences?.workout?.type;
-  if (!preferredTrainingType || preferredTrainingType === '') {
+
+  // Valid training types from all categories
+  const validTrainingTypes = [
+    // Force & Powerbuilding
+    'strength', 'powerlifting', 'bodybuilding', 'strongman',
+    // Endurance
+    'running', 'cycling', 'swimming', 'triathlon', 'cardio',
+    // Functional & CrossTraining
+    'crossfit', 'hiit', 'functional', 'circuit',
+    // Calisthenics & Street
+    'calisthenics', 'street-workout',
+    // Fitness Competitions
+    'hyrox', 'deka-fit', 'deka-mile', 'deka-strong'
+  ];
+
+  if (!preferredTrainingType || preferredTrainingType === '' || !validTrainingTypes.includes(preferredTrainingType)) {
     missingFields.push({
       field: 'health.preferred_training_type',
       label: 'Type d\'entraînement préféré',
@@ -155,26 +174,36 @@ export async function validateProfileForTraining(
     missingTabs.add('training');
   }
 
-  // 4. Training Tab - Lieux d'Entraînement (REQUIRED - at least 1 location)
+  // 4. Training Tab - Lieux d'Entraînement (REQUIRED - at least 1 location with equipment)
   try {
     const { data: locations, error } = await supabase
       .from('training_locations')
-      .select('id')
+      .select('id, equipment:training_location_equipment(equipment_name)')
       .eq('user_id', userId);
 
     if (error) {
       logger.error('PROFILE_VALIDATION', 'Error fetching training locations', { error });
     }
 
-    if (!locations || locations.length === 0) {
+    // Check if there's at least one location WITH equipment
+    const hasLocationWithEquipment = locations && locations.length > 0 &&
+      locations.some(loc => loc.equipment && Array.isArray(loc.equipment) && loc.equipment.length > 0);
+
+    if (!hasLocationWithEquipment) {
       missingFields.push({
         field: 'training_locations',
-        label: 'Lieux d\'entraînement',
+        label: 'Lieux d\'entraînement avec équipement',
         tab: 'training',
-        section: 'Mes Lieux d\'Entraînement',
+        section: 'Mes Équipements',
         required: true
       });
       missingTabs.add('training');
+
+      logger.info('PROFILE_VALIDATION', 'Missing training location with equipment', {
+        userId,
+        locationsCount: locations?.length || 0,
+        hasLocationWithEquipment
+      });
     }
   } catch (error) {
     logger.error('PROFILE_VALIDATION', 'Exception checking training locations', { error });

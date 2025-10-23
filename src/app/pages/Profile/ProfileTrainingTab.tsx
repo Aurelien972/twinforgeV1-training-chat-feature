@@ -105,10 +105,16 @@ const ProfileTrainingTab: React.FC = () => {
               }}
             >
               <option value="" style={{ background: '#1a1a1a', color: '#fff' }}>Sélectionnez votre niveau</option>
-              <option value="beginner" style={{ background: '#1a1a1a', color: '#fff' }}>Débutant - Je commence tout juste</option>
-              <option value="intermediate" style={{ background: '#1a1a1a', color: '#fff' }}>Intermédiaire - Je m'entraîne régulièrement</option>
-              <option value="advanced" style={{ background: '#1a1a1a', color: '#fff' }}>Avancé - J'ai plusieurs années d'expérience</option>
-              <option value="elite" style={{ background: '#1a1a1a', color: '#fff' }}>Élite - Je suis un athlète confirmé</option>
+              <option value="sedentary" style={{ background: '#1a1a1a', color: '#fff' }}>Sédentaire - Peu ou pas d'activité physique</option>
+              <option value="beginner" style={{ background: '#1a1a1a', color: '#fff' }}>Débutant - Début du parcours fitness</option>
+              <option value="novice" style={{ background: '#1a1a1a', color: '#fff' }}>Novice - 3-6 mois d'entraînement régulier</option>
+              <option value="intermediate" style={{ background: '#1a1a1a', color: '#fff' }}>Intermédiaire - 6-12 mois d'expérience</option>
+              <option value="advanced" style={{ background: '#1a1a1a', color: '#fff' }}>Avancé - 1-2 ans d'entraînement sérieux</option>
+              <option value="expert" style={{ background: '#1a1a1a', color: '#fff' }}>Expert - 2-4 ans de pratique intensive</option>
+              <option value="elite" style={{ background: '#1a1a1a', color: '#fff' }}>Élite - 4-6 ans de haut niveau</option>
+              <option value="professional" style={{ background: '#1a1a1a', color: '#fff' }}>Professionnel - Athlète professionnel</option>
+              <option value="athlete" style={{ background: '#1a1a1a', color: '#fff' }}>Athlète Confirmé - Compétiteur de haut niveau</option>
+              <option value="champion" style={{ background: '#1a1a1a', color: '#fff' }}>Champion - Niveau champion/compétition internationale</option>
             </select>
           </div>
 
@@ -134,11 +140,40 @@ const ProfileTrainingTab: React.FC = () => {
               }}
             >
               <option value="" style={{ background: '#1a1a1a', color: '#fff' }}>Sélectionnez un type</option>
-              <option value="force" style={{ background: '#1a1a1a', color: '#fff' }}>Force - Développé couché, squat, deadlift</option>
-              <option value="endurance" style={{ background: '#1a1a1a', color: '#fff' }}>Endurance - Course, vélo, natation</option>
-              <option value="functional" style={{ background: '#1a1a1a', color: '#fff' }}>Functional - CrossFit, WODs, métabolique</option>
-              <option value="calisthenics" style={{ background: '#1a1a1a', color: '#fff' }}>Calisthenics - Poids du corps, street workout</option>
-              <option value="competitions" style={{ background: '#1a1a1a', color: '#fff' }}>Compétitions - Circuits, défis</option>
+
+              <optgroup label="Force & Powerbuilding" style={{ background: '#1a1a1a', color: '#3B82F6', fontWeight: 'bold' }}>
+                <option value="strength" style={{ background: '#1a1a1a', color: '#fff' }}>Musculation</option>
+                <option value="powerlifting" style={{ background: '#1a1a1a', color: '#fff' }}>Powerlifting</option>
+                <option value="bodybuilding" style={{ background: '#1a1a1a', color: '#fff' }}>Bodybuilding</option>
+                <option value="strongman" style={{ background: '#1a1a1a', color: '#fff' }}>Strongman</option>
+              </optgroup>
+
+              <optgroup label="Endurance" style={{ background: '#1a1a1a', color: '#22C55E', fontWeight: 'bold' }}>
+                <option value="running" style={{ background: '#1a1a1a', color: '#fff' }}>Course à pied</option>
+                <option value="cycling" style={{ background: '#1a1a1a', color: '#fff' }}>Cyclisme</option>
+                <option value="swimming" style={{ background: '#1a1a1a', color: '#fff' }}>Natation</option>
+                <option value="triathlon" style={{ background: '#1a1a1a', color: '#fff' }}>Triathlon</option>
+                <option value="cardio" style={{ background: '#1a1a1a', color: '#fff' }}>Cardio général</option>
+              </optgroup>
+
+              <optgroup label="Functional & CrossTraining" style={{ background: '#1a1a1a', color: '#DC2626', fontWeight: 'bold' }}>
+                <option value="crossfit" style={{ background: '#1a1a1a', color: '#fff' }}>CrossFit</option>
+                <option value="hiit" style={{ background: '#1a1a1a', color: '#fff' }}>HIIT</option>
+                <option value="functional" style={{ background: '#1a1a1a', color: '#fff' }}>Functional Training</option>
+                <option value="circuit" style={{ background: '#1a1a1a', color: '#fff' }}>Circuit Training</option>
+              </optgroup>
+
+              <optgroup label="Calisthenics & Street" style={{ background: '#1a1a1a', color: '#06B6D4', fontWeight: 'bold' }}>
+                <option value="calisthenics" style={{ background: '#1a1a1a', color: '#fff' }}>Calisthenics</option>
+                <option value="street-workout" style={{ background: '#1a1a1a', color: '#fff' }}>Street Workout</option>
+              </optgroup>
+
+              <optgroup label="Fitness Competitions" style={{ background: '#1a1a1a', color: '#F59E0B', fontWeight: 'bold' }}>
+                <option value="hyrox" style={{ background: '#1a1a1a', color: '#fff' }}>HYROX</option>
+                <option value="deka-fit" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA FIT</option>
+                <option value="deka-mile" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA MILE</option>
+                <option value="deka-strong" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA STRONG</option>
+              </optgroup>
             </select>
           </div>
 
