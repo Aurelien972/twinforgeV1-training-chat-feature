@@ -3,7 +3,7 @@
  * Service principal pour gérer les notifications contextuelles du coach pendant la Step 3
  */
 
-import { useTrainingCoachStore } from '../store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../store/unifiedCoachStore';
 import { getCoachMessage } from '../../config/trainingCoachMessages';
 import { supabase } from '../supabase/client';
 import { Haptics } from '../../utils/haptics';
@@ -185,7 +185,7 @@ class TrainingCoachNotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().showNotification(
+    useUnifiedCoachStore.getState().showNotification(
       id,
       message,
       type,
@@ -233,7 +233,7 @@ class TrainingCoachNotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().queueNotification(
+    useUnifiedCoachStore.getState().queueNotification(
       id,
       message,
       type,
@@ -434,7 +434,7 @@ class TrainingCoachNotificationService {
   }
 
   reset() {
-    useTrainingCoachStore.getState().reset();
+    useUnifiedCoachStore.getState().reset();
     this.sessionId = null;
     this.userId = null;
     this._isInitialized = false;
@@ -443,7 +443,7 @@ class TrainingCoachNotificationService {
   }
 
   cleanup() {
-    useTrainingCoachStore.getState().clearQueue();
+    useUnifiedCoachStore.getState().clearQueue();
     logger.info('TRAINING_COACH_SERVICE', 'Service cleaned up');
   }
   /**
@@ -498,7 +498,7 @@ class TrainingCoachNotificationService {
         color = '#3B82F6';
       }
 
-      useTrainingCoachStore.getState().showNotification(
+      useUnifiedCoachStore.getState().showNotification(
         `step3-hr-zone-${currentZone}` as any,
         message,
         type,

@@ -113,7 +113,7 @@ export const QUICK_ACTION_SECTIONS: QuickActionSection[] = [
         label: 'Coach Training',
         subtitle: 'Live Training',
         icon: 'Dumbbell',
-        route: '/training',
+        route: '/training/pipeline',
         color: '#18E3FF', // Cyan - harmonisé avec Forge Corporelle
         available: true,
         description: 'Accéder à la pipeline de training avec coaching en direct'

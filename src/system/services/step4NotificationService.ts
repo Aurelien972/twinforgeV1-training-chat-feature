@@ -3,7 +3,7 @@
  * Service pour gérer les notifications contextuelles pendant la phase d'analyse (Step 4)
  */
 
-import { useTrainingCoachStore } from '../store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../store/unifiedCoachStore';
 import { getStep4Message, type Step4NotificationId } from '../../config/step4CoachMessages';
 import { Haptics } from '../../utils/haptics';
 import logger from '../../lib/utils/logger';
@@ -52,7 +52,7 @@ class Step4NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().showNotification(
+    useUnifiedCoachStore.getState().showNotification(
       id as any,
       message,
       type,
@@ -77,7 +77,7 @@ class Step4NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().queueNotification(
+    useUnifiedCoachStore.getState().queueNotification(
       id as any,
       message,
       type,
@@ -165,7 +165,7 @@ class Step4NotificationService {
         badge = '✅ Zone Contrôle';
       }
 
-      useTrainingCoachStore.getState().showNotification(
+      useUnifiedCoachStore.getState().showNotification(
         'step4-zone-compliance-achievement' as any,
         `${badge}\n\n${message}`,
         'success',
@@ -204,7 +204,7 @@ class Step4NotificationService {
 
       const message = `📊 Données wearable complètes ! Score d'effort de ${effortScore}/100 avec qualité ${dataQuality === 'excellent' ? 'excellente' : 'bonne'}. Vos métriques permettent une analyse précise de votre performance.`;
 
-      useTrainingCoachStore.getState().showNotification(
+      useUnifiedCoachStore.getState().showNotification(
         'step4-wearable-data-achievement' as any,
         message,
         'success',
@@ -232,7 +232,7 @@ class Step4NotificationService {
   }
 
   cleanup() {
-    useTrainingCoachStore.getState().clearQueue();
+    useUnifiedCoachStore.getState().clearQueue();
     logger.info('STEP4_NOTIFICATION_SERVICE', 'Service cleaned up');
   }
 }

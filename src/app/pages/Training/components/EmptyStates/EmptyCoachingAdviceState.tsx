@@ -27,7 +27,7 @@ const EmptyCoachingAdviceState: React.FC<EmptyCoachingAdviceStateProps> = ({
     if (onRequestAdvice) {
       onRequestAdvice();
     } else {
-      navigate('/training#aujourd hui');
+      navigate('/training/pipeline');
     }
   };
 

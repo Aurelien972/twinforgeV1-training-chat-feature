@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import GlassCard from '../../../cards/GlassCard';
-import '../../../../styles/components/exercise-card-skeleton.css';
+import '../../../../styles/components/training/exercise-card-skeleton.css';
 
 interface BadgesCardSkeletonProps {
   stepColor: string;

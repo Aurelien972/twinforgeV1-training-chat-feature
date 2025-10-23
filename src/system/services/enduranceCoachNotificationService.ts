@@ -3,7 +3,7 @@
  * Manages contextual notifications during endurance training sessions
  */
 
-import { useTrainingCoachStore } from '../store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../store/unifiedCoachStore';
 import type { TrainingNotificationContext } from '../../domain/trainingCoachNotification';
 import logger from '../../lib/utils/logger';
 
@@ -31,7 +31,7 @@ export class EnduranceCoachNotificationService {
   private pushNotification(message: string, context?: TrainingNotificationContext, priority: 'high' | 'medium' | 'low' = 'medium'): void {
     if (!this.sessionId) return;
 
-    useTrainingCoachStore.getState().showNotification(
+    useUnifiedCoachStore.getState().showNotification(
       'step3-new-exercise',
       message,
       'motivation',

@@ -3,7 +3,7 @@
  * Service pour gérer les notifications contextuelles pendant la phase de préparation (Step 1)
  */
 
-import { useTrainingCoachStore } from '../store/trainingCoachStore';
+import { useUnifiedCoachStore } from '../store/unifiedCoachStore';
 import { getStep1Message, type Step1NotificationId } from '../../config/step1CoachMessages';
 import { Haptics } from '../../utils/haptics';
 import logger from '../../lib/utils/logger';
@@ -74,7 +74,7 @@ class Step1NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().showNotification(
+    useUnifiedCoachStore.getState().showNotification(
       id as any,
       message,
       type,
@@ -99,7 +99,7 @@ class Step1NotificationService {
     const priority = NOTIFICATION_PRIORITIES[id];
     const color = NOTIFICATION_COLORS[type];
 
-    useTrainingCoachStore.getState().queueNotification(
+    useUnifiedCoachStore.getState().queueNotification(
       id as any,
       message,
       type,
@@ -200,7 +200,7 @@ class Step1NotificationService {
         const hrvText = recoveryMetrics.hrv ? ` Votre HRV est à ${Math.round(recoveryMetrics.hrv)} ms,` : '';
         const message = `🌙${hrvText} une séance modérée est recommandée aujourd'hui. Écoutez votre corps et privilégiez la qualité sur la quantité.`;
 
-        useTrainingCoachStore.getState().showNotification(
+        useUnifiedCoachStore.getState().showNotification(
           'step1-wearable-low-recovery' as any,
           message,
           'tip',
@@ -220,7 +220,7 @@ class Step1NotificationService {
         // Optional: positive notification for excellent recovery
         const message = `💪 Excellente récupération détectée ! Vous êtes prêt pour une séance intense.`;
 
-        useTrainingCoachStore.getState().showNotification(
+        useUnifiedCoachStore.getState().showNotification(
           'step1-wearable-excellent-recovery' as any,
           message,
           'motivation',
@@ -250,8 +250,8 @@ class Step1NotificationService {
 
   stopNotifications() {
     this.notificationsStopped = true;
-    useTrainingCoachStore.getState().clearQueue();
-    useTrainingCoachStore.getState().hideNotification();
+    useUnifiedCoachStore.getState().clearQueue();
+    useUnifiedCoachStore.getState().hideNotification();
     logger.info('STEP1_NOTIFICATION_SERVICE', 'Notifications stopped');
   }
 
@@ -261,7 +261,7 @@ class Step1NotificationService {
   }
 
   cleanup() {
-    useTrainingCoachStore.getState().clearQueue();
+    useUnifiedCoachStore.getState().clearQueue();
     this.notificationsStopped = false;
     logger.info('STEP1_NOTIFICATION_SERVICE', 'Service cleaned up');
   }

@@ -27,7 +27,7 @@ const EmptyCoachingProgressionState: React.FC<EmptyCoachingProgressionStateProps
     if (onStartTracking) {
       onStartTracking();
     } else {
-      navigate('/training#aujourd hui');
+      navigate('/training/pipeline');
     }
   };
 
