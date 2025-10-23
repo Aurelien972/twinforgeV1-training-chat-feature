@@ -26,7 +26,7 @@ export interface ProfileValidationState {
  * Provides real-time validation status and missing fields organized by tab
  */
 export function useProfileValidation(): ProfileValidationState {
-  const { profile, userId } = useUserStore();
+  const { profile } = useUserStore();
   const [state, setState] = useState<ProfileValidationState>({
     isValidating: true,
     validation: null,
@@ -43,6 +43,9 @@ export function useProfileValidation(): ProfileValidationState {
     let isMounted = true;
 
     const validateProfile = async () => {
+      // Extract userId from profile
+      const userId = (profile as any)?.user_id;
+
       logger.info('PROFILE_VALIDATION_HOOK', 'Starting validation', {
         hasUserId: !!userId,
         hasProfile: !!profile,
@@ -142,7 +145,7 @@ export function useProfileValidation(): ProfileValidationState {
     return () => {
       isMounted = false;
     };
-  }, [userId, profile]);
+  }, [profile]);
 
   return state;
 }
