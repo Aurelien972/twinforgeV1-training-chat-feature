@@ -157,7 +157,7 @@ export function useProfileValidation(): ProfileValidationState {
 export function getProfileTabUrl(tab: 'identity' | 'training' | 'health'): string {
   const tabMap = {
     identity: '/profile?tab=identity',
-    training: '/profile?tab=preferences',
+    training: '/profile?tab=training',
     health: '/profile?tab=health'
   };
   return tabMap[tab];

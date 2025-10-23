@@ -89,7 +89,7 @@ const Step1ProfileIncompleteEmptyState: React.FC<Step1ProfileIncompleteEmptyStat
       >
         {/* Main Hero Card */}
         <GlassCard
-          className="p-10 text-center space-y-8"
+          className="px-10 py-16 text-center space-y-10"
           style={{
             background: `
               radial-gradient(circle at 50% 20%, color-mix(in srgb, ${STEP1_COLOR} 15%, transparent) 0%, transparent 60%),
@@ -184,12 +184,12 @@ const Step1ProfileIncompleteEmptyState: React.FC<Step1ProfileIncompleteEmptyStat
             transition={{ delay: 0.4 }}
           >
             <h2
-              className="text-4xl font-bold text-white mb-3"
+              className="text-4xl font-bold text-white mb-4"
               style={{ letterSpacing: '-0.02em' }}
             >
               Completez votre profil
             </h2>
-            <p className="text-xl text-white/80 mb-2">
+            <p className="text-xl text-white/80 mb-3">
               Quelques informations sont necessaires pour generer votre training personnalise
             </p>
             <p className="text-white/60">
@@ -203,7 +203,7 @@ const Step1ProfileIncompleteEmptyState: React.FC<Step1ProfileIncompleteEmptyStat
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="pt-4"
+              className="pt-6"
             >
               <motion.button
                 onClick={handleNavigateToPrimary}
