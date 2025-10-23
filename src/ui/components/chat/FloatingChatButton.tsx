@@ -18,8 +18,8 @@ import ContextualTooltip from '../ContextualTooltip';
 import ChatNotificationBubble from './ChatNotificationBubble';
 import { unifiedNotificationService } from '../../../system/services/unifiedNotificationService';
 import logger from '../../../lib/utils/logger';
-import '../../../styles/components/floating-chat-button.css';
-import '../../../styles/components/floating-chat-button-step2.css';
+import '../../../styles/components/buttons/floating-chat-button.css';
+import '../../../styles/components/buttons/floating-chat-button-step2.css';
 
 interface FloatingChatButtonProps {
   className?: string;

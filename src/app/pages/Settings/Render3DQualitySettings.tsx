@@ -6,7 +6,7 @@ import { ICONS } from '../../../ui/icons/registry';
 import { useToast } from '../../../ui/components/ToastProvider';
 import { useUserStore } from '../../../system/store/userStore';
 import { useRender3DQualityStore, type Render3DQuality } from '../../../system/store/render3DQualityStore';
-import { detectDeviceCapabilities } from '../../../lib/3d/performance/mobileDetection';
+import { detectDeviceCapabilitiesEnhanced as detectDeviceCapabilities } from '../../../lib/device/deviceCapabilities';
 
 interface QualityOption {
   id: Render3DQuality;

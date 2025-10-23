@@ -49,8 +49,6 @@ const NotificationsPage = lazy(() => import('./app/pages/NotificationsPage'));
 const BodyScanPage = lazy(() => import('./app/pages/BodyScanPage'));
 const AvatarPage = lazy(() => import('./app/pages/Avatar/AvatarPage'));
 const BodyScan = lazy(() => import('./app/pages/BodyScan'));
-const BodyScanCelebrationWithHeader = lazy(() => import('./app/pages/BodyScan/BodyScanCelebrationWithHeader'));
-const BodyScanReviewWithHeader = lazy(() => import('./app/pages/BodyScan/BodyScanReviewWithHeader'));
 const ActivityInputPage = lazy(() => import('./app/pages/Activity/ActivityInputPage'));
 const FastingInputPage = lazy(() => import('./app/pages/Fasting/FastingInputPage'));
 const FridgeScanPage = lazy(() => import('./app/pages/FridgeScanPage'));
@@ -205,14 +203,6 @@ const router = createBrowserRouter([
       {
         path: "body-scan",
         element: <Suspense fallback={<LoadingFallback />}><BodyScan /></Suspense>
-      },
-      {
-        path: "body-scan/celebration",
-        element: <Suspense fallback={<LoadingFallback />}><BodyScanCelebrationWithHeader /></Suspense>
-      },
-      {
-        path: "body-scan/review",
-        element: <Suspense fallback={<LoadingFallback />}><BodyScanReviewWithHeader /></Suspense>
       },
       {
         path: "vital",

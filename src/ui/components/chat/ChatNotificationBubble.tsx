@@ -12,7 +12,7 @@ import { Haptics } from '../../../utils/haptics';
 import { unifiedNotificationService, type NotificationId } from '../../../system/services/unifiedNotificationService';
 import SpatialIcon from '../../icons/SpatialIcon';
 import { ICONS } from '../../icons/registry';
-import '../../../styles/components/chat-notification-bubble.css';
+import '../../../styles/components/chat/chat-notification-bubble.css';
 
 interface ChatNotificationBubbleProps {
   buttonRef?: React.RefObject<HTMLButtonElement>;
