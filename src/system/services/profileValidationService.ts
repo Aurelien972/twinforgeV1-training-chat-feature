@@ -181,20 +181,67 @@ export async function validateProfileForTraining(
   }
 
   // 5. Health Tab - Conditions & Médicaments (REQUIRED - must be explicitly declared)
-  // User must either have data OR explicitly declare no issues
-  const hasHealthConditions = profile?.health?.conditions && Array.isArray(profile.health.conditions);
-  const hasMedications = profile?.health?.medications && Array.isArray(profile.health.medications);
-  const hasPhysicalLimitations = profile?.health?.physicalLimitations && Array.isArray(profile.health.physicalLimitations);
-  const hasDeclaredNoIssues = profile?.health?.declaredNoIssues === true;
+  // User must either have data OR explicitly declare no issues using the new V2 schema flags
+  const health = profile?.health || {};
+  const medicalHistory = health.medical_history || {};
 
-  if (!hasHealthConditions && !hasMedications && !hasPhysicalLimitations && !hasDeclaredNoIssues) {
-    missingFields.push({
-      field: 'health.declaredNoIssues',
-      label: 'Déclaration de santé',
-      tab: 'health',
-      section: 'Conditions & Médicaments',
-      required: true
-    });
+  // Check if user has provided data OR declared "everything is fine"
+  const hasHealthConditions = (medicalHistory.conditions && Array.isArray(medicalHistory.conditions) && medicalHistory.conditions.length > 0) || health.no_medical_conditions === true;
+  const hasMedications = (medicalHistory.medications && Array.isArray(medicalHistory.medications) && medicalHistory.medications.length > 0) || health.no_medications === true;
+  const hasAllergies = (medicalHistory.allergies && Array.isArray(medicalHistory.allergies) && medicalHistory.allergies.length > 0) || health.no_allergies === true;
+  const hasPhysicalLimitations = (health.physical_limitations && Array.isArray(health.physical_limitations) && health.physical_limitations.length > 0) || health.no_physical_limitations === true;
+  const hasConstraints = (profile?.constraints && Object.keys(profile.constraints).length > 0) || health.no_dietary_constraints === true;
+
+  // All health fields must be explicitly addressed (either with data or "no issues" declaration)
+  const healthComplete = hasHealthConditions && hasMedications && hasAllergies && hasPhysicalLimitations && hasConstraints;
+
+  if (!healthComplete) {
+    // Add specific missing fields
+    if (!hasHealthConditions) {
+      missingFields.push({
+        field: 'health.medical_history.conditions',
+        label: 'Conditions médicales (ou déclarer aucune)',
+        tab: 'health',
+        section: 'Conditions Médicales',
+        required: true
+      });
+    }
+    if (!hasMedications) {
+      missingFields.push({
+        field: 'health.medical_history.medications',
+        label: 'Médicaments (ou déclarer aucun)',
+        tab: 'health',
+        section: 'Médicaments Actuels',
+        required: true
+      });
+    }
+    if (!hasAllergies) {
+      missingFields.push({
+        field: 'health.medical_history.allergies',
+        label: 'Allergies (ou déclarer aucune)',
+        tab: 'health',
+        section: 'Allergies',
+        required: true
+      });
+    }
+    if (!hasPhysicalLimitations) {
+      missingFields.push({
+        field: 'health.physical_limitations',
+        label: 'Blessures et limitations (ou déclarer aucune)',
+        tab: 'health',
+        section: 'Blessures et Limitations',
+        required: true
+      });
+    }
+    if (!hasConstraints) {
+      missingFields.push({
+        field: 'constraints',
+        label: 'Contraintes alimentaires (ou déclarer aucune)',
+        tab: 'health',
+        section: 'Contraintes Alimentaires',
+        required: true
+      });
+    }
     missingTabs.add('health');
   }
 
