@@ -48,9 +48,13 @@ export interface DetectionResult {
 /**
  * Analyse une photo pour détecter les équipements avec GPT-5-mini
  * Wrapper avec retry automatique
+ * @param photoPath - Storage path in training-locations bucket (userId/locationId/photo-xxx.jpg)
+ * @param photoId - Database photo record ID
+ * @param locationId - Location ID
+ * @param locationType - Type of location (home, gym, outdoor)
  */
 export async function detectEquipmentInPhoto(
-  photoUrl: string,
+  photoPath: string,
   photoId: string,
   locationId: string,
   locationType: LocationType
@@ -67,7 +71,7 @@ export async function detectEquipmentInPhoto(
       });
 
       const result = await detectEquipmentInPhotoSingleAttempt(
-        photoUrl,
+        photoPath,
         photoId,
         locationId,
         locationType,
@@ -124,9 +128,10 @@ export async function detectEquipmentInPhoto(
 
 /**
  * Tentative unique de détection d'équipements (sans retry)
+ * @param photoPath - Storage path (not URL) in training-locations bucket
  */
 async function detectEquipmentInPhotoSingleAttempt(
-  photoUrl: string,
+  photoPath: string,
   photoId: string,
   locationId: string,
   locationType: LocationType,
@@ -140,7 +145,7 @@ async function detectEquipmentInPhotoSingleAttempt(
       photoId,
       locationId,
       locationType,
-      photoUrl: photoUrl.substring(0, 100) + '...',
+      photoPath,
       timeoutMs: REQUEST_TIMEOUT_MS,
       attemptNumber
     });
@@ -176,7 +181,7 @@ async function detectEquipmentInPhotoSingleAttempt(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        photoUrl,
+        photoPath,
         photoId,
         locationId,
         locationType

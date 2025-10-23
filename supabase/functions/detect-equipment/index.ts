@@ -15,7 +15,7 @@ const corsHeaders = {
 };
 
 interface DetectionRequest {
-  photoUrl: string;
+  photoPath: string;
   photoId: string;
   locationId: string;
   locationType: "home" | "gym" | "outdoor";
@@ -366,36 +366,40 @@ ${equipmentListFr.map((name, idx) => `${idx + 1}. ${name}`).join('\n')}
 Réponds UNIQUEMENT en JSON: {"detections": [...]}`;
 }
 
-async function downloadImage(url: string, retryCount = 0): Promise<string> {
+/**
+ * Download image from private Supabase storage bucket
+ * Uses service role key to access private training-locations bucket
+ */
+async function downloadImageFromStorage(
+  supabase: any,
+  storagePath: string,
+  retryCount = 0
+): Promise<string> {
   const MAX_RETRIES = 3;
-  const TIMEOUT_MS = 30000;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    console.log(`⬇️  Downloading from storage: ${storagePath}`);
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Supabase-Edge-Function/1.0' }
-    });
+    // Download file from private bucket using service role
+    const { data, error } = await supabase.storage
+      .from('training-locations')
+      .download(storagePath);
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    if (error) {
+      throw new Error(`Storage download error: ${error.message}`);
     }
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.startsWith('image/')) {
-      throw new Error(`Invalid content type: ${contentType}`);
+    if (!data) {
+      throw new Error('No data returned from storage');
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    // Convert Blob to ArrayBuffer then to base64
+    const arrayBuffer = await data.arrayBuffer();
     if (arrayBuffer.byteLength === 0) {
       throw new Error('Empty image data received');
     }
 
-    console.log(`✓ Image downloaded: ${(arrayBuffer.byteLength / 1024).toFixed(1)} KB`);
+    console.log(`✓ Image downloaded from storage: ${(arrayBuffer.byteLength / 1024).toFixed(1)} KB`);
 
     const base64 = btoa(
       new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
@@ -404,16 +408,16 @@ async function downloadImage(url: string, retryCount = 0): Promise<string> {
     return `data:image/jpeg;base64,${base64}`;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`✗ Download error (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, errorMessage);
+    console.error(`✗ Storage download error (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, errorMessage);
 
     if (retryCount < MAX_RETRIES) {
       const delay = (retryCount + 1) * 1000;
       console.log(`⏳ Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return downloadImage(url, retryCount + 1);
+      return downloadImageFromStorage(supabase, storagePath, retryCount + 1);
     }
 
-    throw new Error(`Failed to download image after ${MAX_RETRIES + 1} attempts: ${errorMessage}`);
+    throw new Error(`Failed to download image from storage after ${MAX_RETRIES + 1} attempts: ${errorMessage}`);
   }
 }
 
@@ -838,14 +842,15 @@ Deno.serve(async (req: Request) => {
 
     const requestData: DetectionRequest = await req.json();
 
-    if (!requestData.photoUrl || !requestData.photoId || !requestData.locationId) {
-      throw new Error("Missing required fields: photoUrl, photoId, locationId");
+    if (!requestData.photoPath || !requestData.photoId || !requestData.locationId) {
+      throw new Error("Missing required fields: photoPath, photoId, locationId");
     }
 
     console.log("\n🚀 ===== EQUIPMENT DETECTION STARTED =====");
     console.log(`📷 Photo ID: ${requestData.photoId}`);
     console.log(`📍 Location: ${requestData.locationId} (${requestData.locationType})`);
     console.log(`📚 Catalog: ${getTotalEquipmentCount()} equipment types`);
+    console.log(`🗂️ Storage Path: ${requestData.photoPath}`);
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -896,8 +901,8 @@ Deno.serve(async (req: Request) => {
         started_at: new Date().toISOString()
       });
 
-    console.log("⬇️  Downloading image...");
-    const imageBase64 = await downloadImage(requestData.photoUrl);
+    console.log("⬇️  Downloading image from private storage...");
+    const imageBase64 = await downloadImageFromStorage(supabase, requestData.photoPath);
 
     console.log(`🔍 Starting ${DETECTION_MODEL} analysis...`);
     const detections = await analyzeImageWithGPT5Mini(

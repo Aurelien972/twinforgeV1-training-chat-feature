@@ -5,6 +5,7 @@
 
 import { supabase } from '../supabase/client';
 import logger from '../../lib/utils/logger';
+import { getSignedUrl, PRIVATE_BUCKETS } from '../../lib/storage/signedUrlService';
 import type {
   TrainingLocation,
   TrainingLocationWithDetails,
@@ -100,6 +101,38 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.85): Promi
 }
 
 /**
+ * Helper: Convert storage paths to signed URLs for photos
+ */
+async function enrichPhotosWithSignedUrls(photos: LocationPhoto[]): Promise<LocationPhoto[]> {
+  const enrichedPhotos = await Promise.all(
+    photos.map(async (photo) => {
+      // If photo_url is already a full URL (legacy), return as-is
+      if (photo.photo_url.startsWith('http')) {
+        return photo;
+      }
+
+      // Generate signed URL from storage path
+      const signedUrl = await getSignedUrl(PRIVATE_BUCKETS.TRAINING_LOCATIONS, photo.photo_url);
+
+      if (!signedUrl) {
+        logger.warn('TRAINING_LOCATION_SERVICE', 'Failed to generate signed URL for photo', {
+          photoId: photo.id,
+          storagePath: photo.photo_url
+        });
+        return photo;
+      }
+
+      return {
+        ...photo,
+        photo_url: signedUrl
+      };
+    })
+  );
+
+  return enrichedPhotos;
+}
+
+/**
  * Récupère tous les lieux d'un utilisateur avec leurs détails
  */
 export async function fetchUserLocations(userId: string): Promise<TrainingLocationWithDetails[]> {
@@ -142,10 +175,13 @@ export async function fetchUserLocations(userId: string): Promise<TrainingLocati
       throw photosError;
     }
 
+    // Enrich photos with signed URLs
+    const enrichedPhotos = photos ? await enrichPhotosWithSignedUrls(photos) : [];
+
     const locationsWithDetails: TrainingLocationWithDetails[] = locations.map((location) => ({
       ...location,
       equipment: (equipment || []).filter((eq) => eq.location_id === location.id),
-      photos: (photos || []).filter((ph) => ph.location_id === location.id)
+      photos: enrichedPhotos.filter((ph) => ph.location_id === location.id)
     }));
 
     logger.info('TRAINING_LOCATION_SERVICE', 'Locations fetched successfully', {
@@ -438,31 +474,26 @@ async function uploadSinglePhoto(
 
     const actualPath = uploadData.path;
 
-    const {
-      data: { publicUrl }
-    } = supabase.storage.from('training-locations').getPublicUrl(actualPath);
-
-    logger.info('TRAINING_LOCATION_SERVICE', 'Photo uploaded, verifying URL', {
-      publicUrl,
+    logger.info('TRAINING_LOCATION_SERVICE', 'Photo uploaded to storage', {
       requestedPath: filename,
       actualPath: actualPath
     });
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Generate signed URL for private bucket (1 hour expiry)
+    const signedUrl = await getSignedUrl(PRIVATE_BUCKETS.TRAINING_LOCATIONS, actualPath);
 
-    const urlCheck = await fetch(publicUrl, { method: 'HEAD' }).catch(() => null);
-    if (!urlCheck || !urlCheck.ok) {
-      logger.error('TRAINING_LOCATION_SERVICE', 'Public URL not accessible after upload', {
-        publicUrl,
-        status: urlCheck?.status,
+    if (!signedUrl) {
+      logger.error('TRAINING_LOCATION_SERVICE', 'Failed to generate signed URL after upload', {
         actualPath
       });
-
-      throw new Error(`Photo uploaded but URL not accessible: ${publicUrl}`);
+      // Cleanup uploaded file
+      await supabase.storage.from('training-locations').remove([actualPath]);
+      throw new Error('Failed to generate signed URL for uploaded photo');
     }
 
-    logger.info('TRAINING_LOCATION_SERVICE', 'Photo URL verified successfully', {
-      publicUrl
+    logger.info('TRAINING_LOCATION_SERVICE', 'Signed URL generated successfully', {
+      actualPath,
+      urlLength: signedUrl.length
     });
 
     onProgress?.({
@@ -475,7 +506,7 @@ async function uploadSinglePhoto(
       .from('training_location_photos')
       .insert({
         location_id: locationId,
-        photo_url: publicUrl,
+        photo_url: actualPath,
         photo_order: photoIndex
       })
       .select()
@@ -494,7 +525,7 @@ async function uploadSinglePhoto(
 
     logger.info('TRAINING_LOCATION_SERVICE', 'Photo upload completed', {
       photoId: photoRecord.id,
-      photoUrl: publicUrl
+      storagePath: actualPath
     });
 
     return photoRecord;
@@ -590,12 +621,14 @@ export async function uploadLocationPhotos(
 
 /**
  * Supprime une photo spécifique
+ * @param photoId - Photo record ID
+ * @param photoPath - Storage path (userId/locationId/photo-xxx.jpg)
  */
-export async function deleteLocationPhoto(photoId: string, photoUrl: string): Promise<void> {
+export async function deleteLocationPhoto(photoId: string, photoPath: string): Promise<void> {
   try {
     logger.info('TRAINING_LOCATION_SERVICE', 'Deleting location photo', { photoId });
 
-    await deleteLocationPhotoFile(photoUrl);
+    await deleteLocationPhotoFile(photoPath);
 
     const { error } = await supabase.from('training_location_photos').delete().eq('id', photoId);
 
@@ -615,14 +648,23 @@ export async function deleteLocationPhoto(photoId: string, photoUrl: string): Pr
 
 /**
  * Supprime le fichier physique d'une photo
+ * @param photoPath - Storage path or legacy public URL
  */
-async function deleteLocationPhotoFile(photoUrl: string): Promise<void> {
+async function deleteLocationPhotoFile(photoPath: string): Promise<void> {
   try {
-    const urlParts = photoUrl.split('/training-locations/');
-    if (urlParts.length !== 2) {
-      return;
+    // Handle both legacy public URLs and new storage paths
+    let filePath: string;
+    if (photoPath.includes('/training-locations/')) {
+      // Legacy public URL format
+      const urlParts = photoPath.split('/training-locations/');
+      if (urlParts.length !== 2) {
+        return;
+      }
+      filePath = urlParts[1];
+    } else {
+      // New storage path format (userId/locationId/photo-xxx.jpg)
+      filePath = photoPath;
     }
-    const filePath = urlParts[1];
 
     const { error } = await supabase.storage.from('training-locations').remove([filePath]);
 
@@ -634,7 +676,7 @@ async function deleteLocationPhotoFile(photoUrl: string): Promise<void> {
     }
   } catch (error) {
     logger.warn('TRAINING_LOCATION_SERVICE', 'Error deleting photo file', {
-      photoUrl,
+      photoPath,
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -773,10 +815,13 @@ export async function getSelectedLocation(
       });
     }
 
+    // Enrich photos with signed URLs
+    const enrichedPhotos = photos ? await enrichPhotosWithSignedUrls(photos) : [];
+
     return {
       ...location,
       equipment: equipment || [],
-      photos: photos || []
+      photos: enrichedPhotos
     };
   } catch (error) {
     logger.error('TRAINING_LOCATION_SERVICE', 'Failed to fetch selected location', {
