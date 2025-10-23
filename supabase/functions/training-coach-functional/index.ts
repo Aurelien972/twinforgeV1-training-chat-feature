@@ -5,6 +5,8 @@
  */
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -194,17 +196,45 @@ Retourne JSON complet.`;
 }
 
 async function generatePrescription(
-  request: FunctionalCoachRequest
+  request: FunctionalCoachRequest,
+  supabase: any,
+  requestId: string
 ): Promise<FunctionalCoachResponse> {
   const startTime = Date.now();
 
   try {
     console.log('[COACH-FUNCTIONAL] Starting prescription generation', {
       userId: request.userId,
+      requestId,
       availableTime: request.preparerContext?.availableTime,
       energyLevel: request.preparerContext?.energyLevel,
       equipmentCount: request.preparerContext?.availableEquipment?.length || 0
     });
+
+    // Pre-check token balance before OpenAI call
+    const estimatedTokens = 100;
+    const tokenCheck = await checkTokenBalance(supabase, request.userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn('[COACH-FUNCTIONAL] Insufficient tokens', {
+        userId: request.userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        requestId
+      });
+
+      return {
+        success: false,
+        error: 'INSUFFICIENT_TOKENS',
+        metadata: {
+          model: 'gpt-5-mini',
+          latencyMs: Date.now() - startTime,
+          currentBalance: tokenCheck.currentBalance,
+          requiredTokens: estimatedTokens,
+          needsUpgrade: !tokenCheck.isSubscribed
+        }
+      };
+    }
 
     // Build prompt
     const userPrompt = buildUserPrompt(request.userContext, request.preparerContext);
@@ -513,10 +543,37 @@ async function generatePrescription(
       durationTarget: prescription.durationTarget
     });
 
+    // Consume tokens after successful OpenAI call
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId: request.userId,
+      edgeFunctionName: 'training-coach-functional',
+      operationType: 'functional-prescription-generation',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: data.usage?.prompt_tokens,
+      openaiOutputTokens: data.usage?.completion_tokens,
+      metadata: {
+        requestId,
+        wodFormat: prescription.wodFormat,
+        locationType: request.preparerContext?.locationName,
+        equipmentCount: request.preparerContext?.availableEquipment?.length || 0,
+        exercisesCount: prescription.exercises?.length || 0,
+        availableTime: request.preparerContext?.availableTime
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error('[COACH-FUNCTIONAL] Token consumption failed but continuing', {
+        error: consumptionResult.error,
+        requestId
+      });
+    }
+
     const latencyMs = Date.now() - startTime;
 
     console.log('[COACH-FUNCTIONAL] Prescription generation completed', {
       latencyMs,
+      tokensConsumed: consumptionResult.consumed || 0,
+      remainingBalance: consumptionResult.remainingBalance || 0,
       success: true
     });
 
@@ -526,6 +583,8 @@ async function generatePrescription(
       metadata: {
         model: 'gpt-5-mini',
         tokensUsed: data.usage?.total_tokens,
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0,
         costUsd: calculateCost(data.usage),
         latencyMs,
         cached: false
@@ -903,8 +962,23 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Initialize Supabase client
+    const supabase = createClient(
+      SUPABASE_URL!,
+      SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Generate unique request ID for idempotency
+    const requestId = crypto.randomUUID();
+
     // Generate prescription
-    const result = await generatePrescription(requestData);
+    const result = await generatePrescription(requestData, supabase, requestId);
 
     return new Response(
       JSON.stringify(result),

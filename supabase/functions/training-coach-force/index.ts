@@ -5,6 +5,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,12 +60,13 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (cachedData && new Date(cachedData.expires_at) > new Date()) {
-      console.log("[COACH-FORCE] [CACHE] Cache hit, returning cached prescription");
+      console.log("[COACH-FORCE] [CACHE] Cache hit, returning cached prescription (NO TOKEN CONSUMPTION)");
       return new Response(JSON.stringify({
         success: true,
         data: cachedData.cached_data,
         metadata: {
           cached: true,
+          tokensConsumed: 0,
           ...(cachedData.metadata || {})
         }
       }), {
@@ -73,6 +75,28 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log("[COACH-FORCE] [CACHE] Cache miss, generating new prescription");
+
+    // TOKEN PRE-CHECK - Estimate tokens needed for prescription generation
+    const estimatedTokens = 100; // GPT-5-mini for force prescription with long prompt
+    const tokenCheck = await checkTokenBalance(supabase, userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn("[COACH-FORCE] Insufficient tokens", {
+        userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        isSubscribed: tokenCheck.isSubscribed
+      });
+
+      return createInsufficientTokensResponse(
+        tokenCheck.currentBalance,
+        estimatedTokens,
+        !tokenCheck.isSubscribed,
+        corsHeaders
+      );
+    }
+
+    console.log("[COACH-FORCE] Token balance sufficient, proceeding with generation");
 
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiApiKey) {
@@ -492,7 +516,8 @@ Génère la prescription complète en JSON.`;
     const openaiData = await openaiResponse.json();
     console.log("[COACH-FORCE] OpenAI response received", {
       hasChoices: !!openaiData.choices,
-      choicesLength: openaiData.choices?.length || 0
+      choicesLength: openaiData.choices?.length || 0,
+      usage: openaiData.usage
     });
 
     const message = openaiData.choices?.[0]?.message;
@@ -502,6 +527,40 @@ Génère la prescription complète en JSON.`;
 
     const prescriptionData = JSON.parse(message.content);
     const responseId = openaiData.id;
+
+    // ATOMIC TOKEN CONSUMPTION - After successful OpenAI response
+    const requestId = crypto.randomUUID();
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-coach-force',
+      operationType: 'force-prescription-generation',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: openaiData.usage?.prompt_tokens,
+      openaiOutputTokens: openaiData.usage?.completion_tokens,
+      metadata: {
+        requestId,
+        locationType,
+        equipmentCount,
+        exercisesCount: prescriptionData.exercises?.length || 0,
+        availableTime: preparerContext.availableTime
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error("[COACH-FORCE] Token consumption failed", {
+        error: consumptionResult.error,
+        userId,
+        requestId
+      });
+      // Note: We still return the prescription even if token consumption failed
+      // This prevents user from losing their generated content
+    } else {
+      console.log("[COACH-FORCE] Tokens consumed successfully", {
+        consumed: consumptionResult.consumed,
+        remainingBalance: consumptionResult.remainingBalance,
+        requestId: consumptionResult.requestId
+      });
+    }
 
     console.log("[COACH-FORCE] Prescription generated successfully", {
       sessionId: prescriptionData.sessionId,
@@ -589,7 +648,9 @@ Génère la prescription complète en JSON.`;
         generated_at: new Date().toISOString(),
         equipment_count: equipmentCount,
         location_type: locationType,
-        cached: false
+        cached: false,
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

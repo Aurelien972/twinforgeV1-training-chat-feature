@@ -5,6 +5,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,8 +37,12 @@ Deno.serve(async (req: Request) => {
     const requestBody: CoachCalisthenicsRequest = await req.json();
     const { userId, userContext, preparerContext } = requestBody;
 
+    // Generate unique request ID for idempotency
+    const requestId = crypto.randomUUID();
+
     console.log("[COACH-CALISTHENICS] Request received", {
       userId,
+      requestId,
       availableTime: preparerContext.availableTime,
       energyLevel: preparerContext.energyLevel,
       equipmentCount: preparerContext.availableEquipment.length,
@@ -65,6 +70,7 @@ Deno.serve(async (req: Request) => {
         data: cachedData.cached_data,
         metadata: {
           cached: true,
+          tokensConsumed: 0,
           ...(cachedData.metadata || {})
         }
       }), {
@@ -73,6 +79,32 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log("[COACH-CALISTHENICS] [CACHE] Cache miss, generating new prescription");
+
+    // Pre-check token balance before OpenAI call
+    const estimatedTokens = 100;
+    const tokenCheck = await checkTokenBalance(supabase, userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn('[COACH-CALISTHENICS] Insufficient tokens', {
+        userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        requestId
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'INSUFFICIENT_TOKENS',
+        metadata: {
+          currentBalance: tokenCheck.currentBalance,
+          requiredTokens: estimatedTokens,
+          needsUpgrade: !tokenCheck.isSubscribed
+        }
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiApiKey) {
@@ -612,6 +644,35 @@ Génère la prescription complète en JSON.`;
       responseId
     });
 
+    // Consume tokens after successful OpenAI call
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-coach-calisthenics',
+      operationType: 'calisthenics-prescription-generation',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: openaiData.usage?.prompt_tokens,
+      openaiOutputTokens: openaiData.usage?.completion_tokens,
+      metadata: {
+        requestId,
+        locationType: preparerContext.locationType,
+        equipmentCount: preparerContext.availableEquipment.length,
+        exercisesCount: prescriptionData.exercises?.length || 0,
+        availableTime: preparerContext.availableTime
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error('[COACH-CALISTHENICS] Token consumption failed but continuing', {
+        error: consumptionResult.error,
+        requestId
+      });
+    }
+
+    console.log('[COACH-CALISTHENICS] Token consumption completed', {
+      tokensConsumed: consumptionResult.consumed || 0,
+      remainingBalance: consumptionResult.remainingBalance || 0
+    });
+
     console.log("[COACH-CALISTHENICS] [CACHE] Caching result...");
     const expiresAt = new Date(Date.now() + 1800 * 1000);
     const cacheEntry = {
@@ -699,6 +760,8 @@ Génère la prescription complète en JSON.`;
         equipment_count: equipmentCount,
         location_type: locationType,
         coach_type: 'calisthenics',
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0,
         cached: false
       }
     }), {

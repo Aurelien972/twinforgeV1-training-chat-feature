@@ -6,6 +6,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -180,7 +181,8 @@ Deno.serve(async (req: Request) => {
         data: cachedData.cached_data,
         metadata: {
           cached: true,
-          latencyMs: totalLatency
+          latencyMs: totalLatency,
+          tokensConsumed: 0
         }
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -192,6 +194,28 @@ Deno.serve(async (req: Request) => {
       cacheKey,
       reason: !cachedData ? 'no_cache_entry' : 'cache_expired'
     });
+
+    // TOKEN PRE-CHECK
+    const estimatedTokens = 100;
+    const tokenCheck = await checkTokenBalance(supabase, userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn(`[COACH-ENDURANCE] [REQ:${requestId}] Insufficient tokens`, {
+        userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        isSubscribed: tokenCheck.isSubscribed
+      });
+
+      return createInsufficientTokensResponse(
+        tokenCheck.currentBalance,
+        estimatedTokens,
+        !tokenCheck.isSubscribed,
+        corsHeaders
+      );
+    }
+
+    console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Token balance sufficient, proceeding with generation`);
 
     console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Checking OpenAI API key`);
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
@@ -422,6 +446,38 @@ Deno.serve(async (req: Request) => {
       throw new Error('No message content in OpenAI response');
     }
 
+    // ATOMIC TOKEN CONSUMPTION
+    const tokenRequestId = crypto.randomUUID();
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-coach-endurance',
+      operationType: 'endurance-prescription-generation',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: openAIData.usage?.prompt_tokens,
+      openaiOutputTokens: openAIData.usage?.completion_tokens,
+      metadata: {
+        requestId,
+        tokenRequestId,
+        discipline,
+        locationType: preparerContext.locationType,
+        availableTime: preparerContext.availableTime
+      }
+    }, tokenRequestId);
+
+    if (!consumptionResult.success) {
+      console.error(`[COACH-ENDURANCE] [REQ:${requestId}] Token consumption failed`, {
+        error: consumptionResult.error,
+        userId,
+        tokenRequestId
+      });
+    } else {
+      console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Tokens consumed successfully`, {
+        consumed: consumptionResult.consumed,
+        remainingBalance: consumptionResult.remainingBalance,
+        tokenRequestId: consumptionResult.requestId
+      });
+    }
+
     console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Message content extracted`, {
       requestId,
       contentLength: messageContent.length,
@@ -610,6 +666,8 @@ Deno.serve(async (req: Request) => {
       metadata: {
         cached: false,
         tokensUsed: openAIData.usage?.total_tokens || 0,
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0,
         costUsd,
         model: "gpt-5-mini",
         latencyMs: totalLatency,

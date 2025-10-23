@@ -6,6 +6,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 /**
  * Détecte le type de coach depuis la prescription de séance
@@ -674,7 +675,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const startTime = Date.now();
-  console.log("[COACH-ANALYZER] Function started", { timestamp: new Date().toISOString() });
+  const requestId = crypto.randomUUID();
+  console.log("[COACH-ANALYZER] Function started", { timestamp: new Date().toISOString(), requestId });
 
   try {
     // Parse request
@@ -738,6 +740,7 @@ Deno.serve(async (req: Request) => {
               reasoningEffort: "medium",
               verbosity: "medium",
               latencyMs,
+              tokensConsumed: 0,
               cached: true
             }
           }),
@@ -753,6 +756,32 @@ Deno.serve(async (req: Request) => {
       }
     }
     console.log("[COACH-ANALYZER] Cache MISS - calling OpenAI");
+
+    // Pre-check token balance before OpenAI call
+    const estimatedTokens = 150; // Analyzer uses more tokens due to analysis complexity
+    const tokenCheck = await checkTokenBalance(supabase, userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn('[COACH-ANALYZER] Insufficient tokens', {
+        userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        requestId
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'INSUFFICIENT_TOKENS',
+        metadata: {
+          currentBalance: tokenCheck.currentBalance,
+          requiredTokens: estimatedTokens,
+          needsUpgrade: !tokenCheck.isSubscribed
+        }
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // 2. Call OpenAI Responses API with GPT-5-mini
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
@@ -1054,6 +1083,36 @@ Génère l'analyse complète en JSON.`;
       responseId
     });
 
+    // Consume tokens after successful OpenAI call
+    const coachType = detectCoachType(sessionPrescription);
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-coach-analyzer',
+      operationType: 'session-analysis',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: openaiData.usage?.prompt_tokens,
+      openaiOutputTokens: openaiData.usage?.completion_tokens,
+      metadata: {
+        requestId,
+        coachType,
+        sessionId: sessionPrescription.sessionId || 'unknown',
+        exercisesCount: sessionPrescription.exercises?.length || 0,
+        hasExerciseBreakdown: !!analysisData.exerciseBreakdown
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error('[COACH-ANALYZER] Token consumption failed but continuing', {
+        error: consumptionResult.error,
+        requestId
+      });
+    }
+
+    console.log('[COACH-ANALYZER] Token consumption completed', {
+      tokensConsumed: consumptionResult.consumed || 0,
+      remainingBalance: consumptionResult.remainingBalance || 0
+    });
+
     // 3. Cache the result
     console.log("[COACH-ANALYZER] Caching result...");
     const expiresAt = new Date(Date.now() + 1800 * 1000); // 30 minutes
@@ -1151,6 +1210,8 @@ Génère l'analyse complète en JSON.`;
         reasoningEffort: "medium",
         verbosity: "medium",
         tokensUsed,
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0,
         costUsd,
         latencyMs,
         responseId,
