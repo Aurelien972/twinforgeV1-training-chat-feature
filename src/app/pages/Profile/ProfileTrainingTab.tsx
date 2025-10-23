@@ -5,6 +5,7 @@ import GlassCard from '../../../ui/cards/GlassCard';
 import SpatialIcon from '../../../ui/icons/SpatialIcon';
 import { ICONS } from '../../../ui/icons/registry';
 import WearableStatusCard from './components/WearableStatusCard';
+import EquipmentManagerCard from '../../../ui/components/training/equipment/organisms/EquipmentManagerCard';
 
 const ProfileTrainingTab: React.FC = () => {
   const performanceConfig = useProfilePerformance();
@@ -17,7 +18,7 @@ const ProfileTrainingTab: React.FC = () => {
       className="space-y-6 profile-section"
     >
       <GlassCard className="p-6">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-6">
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{
@@ -30,22 +31,12 @@ const ProfileTrainingTab: React.FC = () => {
           <div>
             <h3 className="text-white font-semibold text-xl">Profil Sportif</h3>
             <p className="text-white/60 text-sm mt-1">
-              Configuration de vos préférences d'entraînement
+              Gérez vos lieux d'entraînement et équipements
             </p>
           </div>
         </div>
 
-        <div className="text-center py-12">
-          <div className="text-white/40 mb-4">
-            <SpatialIcon Icon={ICONS.Settings} size={48} className="mx-auto mb-4" />
-          </div>
-          <h4 className="text-white/70 text-lg font-medium mb-2">
-            Section en construction
-          </h4>
-          <p className="text-white/50 text-sm max-w-md mx-auto">
-            Les préférences d'entraînement seront bientôt disponibles.
-          </p>
-        </div>
+        <EquipmentManagerCard />
       </GlassCard>
 
       <WearableStatusCard />

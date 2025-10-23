@@ -3,8 +3,12 @@ import { motion } from 'framer-motion';
 import Tabs from '../../ui/tabs/TabsComponent';
 import PageHeader from '../../ui/page/PageHeader';
 import { PLACEHOLDER_PAGES_CONFIG } from '../../config/placeholderPagesConfig';
-import UnderConstructionCard from '../components/UnderConstructionCard';
 import { ICONS } from '../../ui/icons/registry';
+import TrainingTodayTab from './Training/TrainingTodayTab';
+import TrainingAdviceTab from './Training/TrainingAdviceTab';
+import TrainingHistoryTab from './Training/TrainingHistoryTab';
+import TrainingProgressTab from './Training/TrainingProgressTab';
+import TrainingRecordsTab from './Training/TrainingRecordsTab';
 
 const TrainingPage: React.FC = () => {
   const config = PLACEHOLDER_PAGES_CONFIG.training;
@@ -45,15 +49,25 @@ const TrainingPage: React.FC = () => {
           ))}
         </Tabs.List>
 
-        {config.tabs.map((tab) => (
-          <Tabs.Panel key={tab.value} value={tab.value}>
-            <UnderConstructionCard
-              title={tab.label}
-              description={tab.description}
-              features={tab.features}
-            />
-          </Tabs.Panel>
-        ))}
+        <Tabs.Panel value="aujourd hui">
+          <TrainingTodayTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="conseils">
+          <TrainingAdviceTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="progression">
+          <TrainingProgressTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="records">
+          <TrainingRecordsTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="historique">
+          <TrainingHistoryTab />
+        </Tabs.Panel>
       </Tabs>
     </motion.div>
   );
