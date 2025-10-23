@@ -89,6 +89,7 @@ interface UnifiedCoachState {
 
   // Notification
   currentNotification: ChatNotification | null;
+  notificationQueue: ChatNotification[];
 
   // Actions - Panel
   openPanel: (mode?: ChatMode) => void;
@@ -141,6 +142,8 @@ interface UnifiedCoachState {
   // Actions - Notification
   showNotification: (notification: Omit<ChatNotification, 'isVisible'>) => void;
   hideNotification: () => void;
+  queueNotification: (notification: Omit<ChatNotification, 'isVisible'>) => void;
+  clearQueue: () => void;
 
   // Actions - Voice Only Mode (deprecated)
   enterVoiceOnlyMode: () => void;
@@ -366,6 +369,7 @@ export const useUnifiedCoachStore = create<UnifiedCoachState>()(
       errorMessage: '',
 
       currentNotification: null,
+      notificationQueue: [],
 
       // Panel actions
       openPanel: (mode?: ChatMode) => {
@@ -699,6 +703,36 @@ export const useUnifiedCoachStore = create<UnifiedCoachState>()(
 
           logger.debug('UNIFIED_COACH', 'Notification hidden', {
             notificationId: currentNotification.id,
+            timestamp: new Date().toISOString()
+          });
+        }
+      },
+
+      queueNotification: (notification: Omit<ChatNotification, 'isVisible'>) => {
+        const fullNotification: ChatNotification = {
+          ...notification,
+          isVisible: false
+        };
+
+        set((state) => ({
+          notificationQueue: [...state.notificationQueue, fullNotification]
+        }));
+
+        logger.debug('UNIFIED_COACH', 'Notification queued', {
+          notificationId: notification.id,
+          queueLength: get().notificationQueue.length + 1,
+          timestamp: new Date().toISOString()
+        });
+      },
+
+      clearQueue: () => {
+        const queueLength = get().notificationQueue.length;
+
+        set({ notificationQueue: [] });
+
+        if (queueLength > 0) {
+          logger.debug('UNIFIED_COACH', 'Notification queue cleared', {
+            clearedCount: queueLength,
             timestamp: new Date().toISOString()
           });
         }
