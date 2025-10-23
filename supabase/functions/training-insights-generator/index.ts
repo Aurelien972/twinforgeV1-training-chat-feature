@@ -5,6 +5,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,14 +26,21 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const requestId = crypto.randomUUID();
     const requestBody: InsightsRequest = await req.json();
     const { userId } = requestBody;
 
-    console.log("[INSIGHTS-GENERATOR] Request received", { userId });
+    console.log("[INSIGHTS-GENERATOR] Request received", { userId, requestId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const tokenCheckResult = await checkTokenBalance(supabase, userId, 150);
+    if (!tokenCheckResult.hasEnoughTokens) {
+      console.log("[INSIGHTS-GENERATOR] Insufficient tokens", { userId, required: 150, available: tokenCheckResult.currentBalance });
+      return createInsufficientTokensResponse(tokenCheckResult.currentBalance, 150, corsHeaders);
+    }
 
     const { data: profile, error: profileError } = await supabase
       .from("user_profile")
@@ -90,7 +98,8 @@ Deno.serve(async (req: Request) => {
           success: true,
           insights: starterInsights,
           sessionsAnalyzed: 0,
-          isStarter: true
+          isStarter: true,
+          tokensConsumed: 0
         }),
         {
           status: 200,
@@ -143,10 +152,36 @@ Deno.serve(async (req: Request) => {
     const analysisText = openaiData.choices[0].message.content;
     const analysisResult = JSON.parse(analysisText);
 
+    const usage = openaiData.usage;
+    const inputTokens = usage?.prompt_tokens || 0;
+    const outputTokens = usage?.completion_tokens || 0;
+
     console.log("[INSIGHTS-GENERATOR] Analysis generated successfully", {
       userId,
-      recommendationsCount: analysisResult.recommendations?.length || 0
+      recommendationsCount: analysisResult.recommendations?.length || 0,
+      inputTokens,
+      outputTokens
     });
+
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-insights-generator',
+      operationType: 'insights-analysis',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: inputTokens,
+      openaiOutputTokens: outputTokens,
+      metadata: {
+        requestId,
+        sessionsAnalyzed: sessions.length,
+        mainDiscipline,
+        fitnessLevel,
+        recommendationsCount: analysisResult.recommendations?.length || 0
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error("[INSIGHTS-GENERATOR] Token consumption failed", consumptionResult.error);
+    }
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
@@ -172,7 +207,9 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         insights: analysisResult,
-        sessionsAnalyzed: sessions.length
+        sessionsAnalyzed: sessions.length,
+        tokensConsumed: inputTokens + outputTokens,
+        newBalance: consumptionResult.newBalance
       }),
       {
         status: 200,

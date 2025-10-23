@@ -4,6 +4,8 @@
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,6 +65,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const startTime = Date.now();
+  const requestId = crypto.randomUUID();
 
   try {
     const body: RegenerateRequest = await req.json();
@@ -83,6 +86,16 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const tokenCheckResult = await checkTokenBalance(supabase, userId, 100);
+    if (!tokenCheckResult.hasEnoughTokens) {
+      console.log("[EXERCISE-REGENERATE] Insufficient tokens", { userId, required: 100, available: tokenCheckResult.currentBalance });
+      return createInsufficientTokensResponse(tokenCheckResult.currentBalance, 100, corsHeaders);
     }
 
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
@@ -164,6 +177,30 @@ Génère un nouvel exercice DIFFÉRENT avec ses paramètres et 3 alternatives.`;
     const openaiData = await openaiResponse.json();
     const generatedExercise = JSON.parse(openaiData.choices[0].message.content);
 
+    const usage = openaiData.usage;
+    const inputTokens = usage?.prompt_tokens || 0;
+    const outputTokens = usage?.completion_tokens || 0;
+
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-exercise-regenerate',
+      operationType: 'exercise-regeneration',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: inputTokens,
+      openaiOutputTokens: outputTokens,
+      metadata: {
+        requestId,
+        currentExercise: currentExercise.name,
+        muscleGroup: currentExercise.muscleGroup,
+        category: currentExercise.category,
+        regeneratedExercise: generatedExercise.name
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error("[EXERCISE-REGENERATE] Token consumption failed", consumptionResult.error);
+    }
+
     const response: RegenerateResponse = {
       success: true,
       data: {
@@ -181,10 +218,11 @@ Génère un nouvel exercice DIFFÉRENT avec ses paramètres et 3 alternatives.`;
         }
       },
       metadata: {
-        tokensUsed: openaiData.usage?.total_tokens,
-        costUsd: (openaiData.usage?.total_tokens || 0) * 0.0000015,
+        tokensUsed: inputTokens + outputTokens,
+        costUsd: (inputTokens + outputTokens) * 0.0000015,
         latencyMs: Date.now() - startTime,
-        model: "gpt-5-mini"
+        model: "gpt-5-mini",
+        newBalance: consumptionResult.newBalance
       }
     };
 

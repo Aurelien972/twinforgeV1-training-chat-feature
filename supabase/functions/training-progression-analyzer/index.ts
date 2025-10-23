@@ -6,6 +6,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,10 +35,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const requestId = crypto.randomUUID();
     const requestBody: ProgressionRequest = await req.json();
     const { userId, period } = requestBody;
 
-    console.log("[PROGRESSION-ANALYZER] Request received", { userId, period });
+    console.log("[PROGRESSION-ANALYZER] Request received", { userId, period, requestId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -62,12 +64,19 @@ Deno.serve(async (req: Request) => {
           insights: existingInsights.content,
           cached: true,
           generatedAt: existingInsights.generated_at,
+          tokensConsumed: 0
         }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    const tokenCheckResult = await checkTokenBalance(supabase, userId, 120);
+    if (!tokenCheckResult.hasEnoughTokens) {
+      console.log("[PROGRESSION-ANALYZER] Insufficient tokens", { userId, required: 120, available: tokenCheckResult.currentBalance });
+      return createInsufficientTokensResponse(tokenCheckResult.currentBalance, 120, corsHeaders);
     }
 
     // Fetch training sessions for the period
@@ -112,7 +121,8 @@ Deno.serve(async (req: Request) => {
           success: true,
           insights: starterInsights,
           sessionsAnalyzed: sessions.length,
-          isStarter: true
+          isStarter: true,
+          tokensConsumed: 0
         }),
         {
           status: 200,
@@ -194,6 +204,10 @@ Sois précis, factuel, motivant. Utilise des chiffres concrets. JSON uniquement,
     const openaiData = await openaiResponse.json();
     const analysisText = openaiData.choices[0].message.content;
 
+    const usage = openaiData.usage;
+    const inputTokens = usage?.prompt_tokens || 0;
+    const outputTokens = usage?.completion_tokens || 0;
+
     // Parse JSON response
     let insights;
     try {
@@ -201,6 +215,25 @@ Sois précis, factuel, motivant. Utilise des chiffres concrets. JSON uniquement,
     } catch (e) {
       console.error("[PROGRESSION-ANALYZER] Failed to parse AI response", analysisText);
       throw new Error("Failed to parse AI response");
+    }
+
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-progression-analyzer',
+      operationType: 'progression-analysis',
+      openaiModel: 'gpt-5-mini',
+      openaiInputTokens: inputTokens,
+      openaiOutputTokens: outputTokens,
+      metadata: {
+        requestId,
+        period,
+        sessionsAnalyzed: sessions.length,
+        weeksCovered: weeks
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error("[PROGRESSION-ANALYZER] Token consumption failed", consumptionResult.error);
     }
 
     // Store insights in database
@@ -232,7 +265,9 @@ Sois précis, factuel, motivant. Utilise des chiffres concrets. JSON uniquement,
         success: true,
         insights,
         sessionsAnalyzed: sessions.length,
-        cached: false
+        cached: false,
+        tokensConsumed: inputTokens + outputTokens,
+        newBalance: consumptionResult.newBalance
       }),
       {
         status: 200,

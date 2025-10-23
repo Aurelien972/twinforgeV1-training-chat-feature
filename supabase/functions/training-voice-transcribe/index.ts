@@ -4,6 +4,8 @@
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +28,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const requestId = crypto.randomUUID();
+
     // Get OpenAI API key from environment
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiApiKey) {
@@ -35,11 +39,26 @@ Deno.serve(async (req: Request) => {
     // Parse multipart form data
     const formData = await req.formData();
     const audioFile = formData.get("file");
+    const userId = formData.get("userId") as string;
     const model = formData.get("model") || "whisper-1";
     const language = formData.get("language") || "fr";
 
     if (!audioFile || !(audioFile instanceof File)) {
       throw new Error("No audio file provided");
+    }
+
+    if (!userId) {
+      throw new Error("userId is required");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const tokenCheckResult = await checkTokenBalance(supabase, userId, 80);
+    if (!tokenCheckResult.hasEnoughTokens) {
+      console.log("[VOICE-TRANSCRIBE] Insufficient tokens", { userId, required: 80, available: tokenCheckResult.currentBalance });
+      return createInsufficientTokensResponse(tokenCheckResult.currentBalance, 80, corsHeaders);
     }
 
     console.log("Transcribing audio file", {
@@ -80,11 +99,37 @@ Deno.serve(async (req: Request) => {
 
     const result = await response.json();
 
+    const audioDurationSeconds = result.duration || 0;
+    const estimatedTokens = Math.ceil(audioDurationSeconds * 0.6);
+
     console.log("Transcription successful", {
       text: result.text,
       language: result.language,
       duration,
+      audioDuration: audioDurationSeconds,
+      estimatedTokens
     });
+
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'training-voice-transcribe',
+      operationType: 'audio-transcription',
+      openaiModel: 'whisper-1',
+      openaiInputTokens: estimatedTokens,
+      openaiOutputTokens: 0,
+      metadata: {
+        requestId,
+        audioFileName: audioFile.name,
+        audioSizeBytes: audioFile.size,
+        audioDurationSeconds,
+        language: result.language,
+        textLength: result.text?.length || 0
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error("[VOICE-TRANSCRIBE] Token consumption failed", consumptionResult.error);
+    }
 
     const transcriptionData: TranscriptionResponse = {
       text: result.text,
@@ -96,6 +141,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         data: transcriptionData,
+        tokensConsumed: estimatedTokens,
+        newBalance: consumptionResult.newBalance
       }),
       {
         status: 200,

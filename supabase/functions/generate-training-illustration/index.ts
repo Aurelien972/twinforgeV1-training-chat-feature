@@ -6,6 +6,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
 import { generateForceDiptychPrompt, type DiptychPromptParams } from "./diptychPromptGenerator.ts";
 import { generateEndurancePrompt, type EndurancePromptParams } from "./endurancePromptGenerator.ts";
 import { generateFunctionalPrompt, type FunctionalPromptParams } from "./functionalPromptGenerator.ts";
@@ -90,7 +91,7 @@ Deno.serve(async (req: Request) => {
   try {
     const request: GenerationRequest = await req.json();
 
-    const requestId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const requestId = crypto.randomUUID();
 
     console.log(`[GPT-IMAGE-1][${requestId}] Request received`, {
       type: request.type,
@@ -150,6 +151,7 @@ Deno.serve(async (req: Request) => {
             thumbnailUrl: existing.thumbnail_url,
             source: existing.generation_source,
             cost: 0.0,
+            tokensConsumed: 0,
             fromCache: true,
             isDiptych: existing.is_diptych,
             aspectRatio: existing.image_aspect_ratio
@@ -186,6 +188,39 @@ Deno.serve(async (req: Request) => {
       size,
       preview: prompt.substring(0, 150) + '...'
     });
+
+    // Extract userId from request
+    const authHeader = req.headers.get('Authorization');
+    let userId = request.userId || 'anonymous';
+    if (!userId && authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const { data: { user } } = await supabase.auth.getUser(token);
+      userId = user?.id || 'anonymous';
+    }
+
+    // Pre-check token balance before DALL-E call (image generation is expensive)
+    const estimatedTokens = 500; // DALL-E image generation uses many tokens
+    const tokenCheck = await checkTokenBalance(supabase, userId, estimatedTokens);
+
+    if (!tokenCheck.hasEnoughTokens) {
+      console.warn('[GENERATE-ILLUSTRATION] Insufficient tokens', {
+        userId,
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        requestId
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'INSUFFICIENT_TOKENS',
+        currentBalance: tokenCheck.currentBalance,
+        requiredTokens: estimatedTokens,
+        needsUpgrade: !tokenCheck.isSubscribed
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     let imageUrl: string | null = null;
     let generationSource = 'gpt-image-1';
@@ -405,6 +440,40 @@ Deno.serve(async (req: Request) => {
       aspectRatio
     });
 
+    // Consume tokens after successful DALL-E generation
+    // Note: DALL-E doesn't return token usage, so we estimate based on cost
+    const estimatedTokensUsed = generationSource === 'gpt-image-1' ? 500 : 0;
+    const consumptionResult = await consumeTokensAtomic(supabase, {
+      userId,
+      edgeFunctionName: 'generate-training-illustration',
+      operationType: 'image-generation-dalle',
+      openaiModel: 'gpt-image-1',
+      openaiInputTokens: 0, // DALL-E doesn't report token usage
+      openaiOutputTokens: estimatedTokensUsed,
+      metadata: {
+        requestId,
+        discipline,
+        exerciseName: exerciseName || 'session',
+        generationSource,
+        isDiptych,
+        aspectRatio,
+        size,
+        costUsd: generationCost
+      }
+    }, requestId);
+
+    if (!consumptionResult.success) {
+      console.error('[GENERATE-ILLUSTRATION] Token consumption failed but continuing', {
+        error: consumptionResult.error,
+        requestId
+      });
+    }
+
+    console.log('[GENERATE-ILLUSTRATION] Token consumption completed', {
+      tokensConsumed: consumptionResult.consumed || 0,
+      remainingBalance: consumptionResult.remainingBalance || 0
+    });
+
     return new Response(JSON.stringify({
       success: true,
       data: {
@@ -412,6 +481,8 @@ Deno.serve(async (req: Request) => {
         imageUrl,
         source: generationSource,
         cost: generationCost,
+        tokensConsumed: consumptionResult.consumed || 0,
+        remainingBalance: consumptionResult.remainingBalance || 0,
         isDiptych,
         aspectRatio
       }
