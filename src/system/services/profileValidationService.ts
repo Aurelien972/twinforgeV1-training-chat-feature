@@ -106,9 +106,11 @@ export async function validateProfileForTraining(
   }
 
   // 3. Training Tab - Profil Sportif (REQUIRED)
-  if (!profile?.preferences?.workout?.fitnessLevel || profile.preferences.workout.fitnessLevel === '') {
+  // Check both locations: profile.health (new structure) and profile.preferences.workout (legacy)
+  const fitnessLevel = profile?.health?.fitness_level || profile?.preferences?.workout?.fitnessLevel;
+  if (!fitnessLevel || fitnessLevel === '') {
     missingFields.push({
-      field: 'preferences.workout.fitnessLevel',
+      field: 'health.fitness_level',
       label: 'Niveau de forme physique',
       tab: 'training',
       section: 'Profil Sportif',
@@ -117,9 +119,10 @@ export async function validateProfileForTraining(
     missingTabs.add('training');
   }
 
-  if (!profile?.preferences?.workout?.type || profile.preferences.workout.type === '') {
+  const preferredTrainingType = profile?.health?.preferred_training_type || profile?.preferences?.workout?.type;
+  if (!preferredTrainingType || preferredTrainingType === '') {
     missingFields.push({
-      field: 'preferences.workout.type',
+      field: 'health.preferred_training_type',
       label: 'Type d\'entraînement préféré',
       tab: 'training',
       section: 'Profil Sportif',
@@ -128,9 +131,10 @@ export async function validateProfileForTraining(
     missingTabs.add('training');
   }
 
-  if (!profile?.preferences?.workout?.sessionsPerWeek || profile.preferences.workout.sessionsPerWeek <= 0) {
+  const sessionsPerWeek = profile?.health?.sessions_per_week || profile?.preferences?.workout?.sessionsPerWeek;
+  if (!sessionsPerWeek || sessionsPerWeek <= 0) {
     missingFields.push({
-      field: 'preferences.workout.sessionsPerWeek',
+      field: 'health.sessions_per_week',
       label: 'Séances par semaine',
       tab: 'training',
       section: 'Profil Sportif',
@@ -139,9 +143,10 @@ export async function validateProfileForTraining(
     missingTabs.add('training');
   }
 
-  if (!profile?.preferences?.workout?.preferredDuration || profile.preferences.workout.preferredDuration <= 0) {
+  const preferredDuration = profile?.health?.preferred_session_duration || profile?.preferences?.workout?.preferredDuration;
+  if (!preferredDuration || preferredDuration <= 0) {
     missingFields.push({
-      field: 'preferences.workout.preferredDuration',
+      field: 'health.preferred_session_duration',
       label: 'Durée préférée par séance',
       tab: 'training',
       section: 'Profil Sportif',

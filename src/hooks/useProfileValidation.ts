@@ -43,7 +43,17 @@ export function useProfileValidation(): ProfileValidationState {
     let isMounted = true;
 
     const validateProfile = async () => {
+      logger.info('PROFILE_VALIDATION_HOOK', 'Starting validation', {
+        hasUserId: !!userId,
+        hasProfile: !!profile,
+        userId
+      });
+
       if (!userId || !profile) {
+        logger.warn('PROFILE_VALIDATION_HOOK', 'Missing userId or profile', {
+          hasUserId: !!userId,
+          hasProfile: !!profile
+        });
         if (isMounted) {
           setState({
             isValidating: false,

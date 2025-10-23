@@ -272,6 +272,21 @@ const Step1Preparer: React.FC = () => {
   // Show empty state if profile is incomplete
   const showEmptyState = !profileValidation.isValidating && !profileValidation.isValid;
 
+  // Debug logging
+  useEffect(() => {
+    logger.info('STEP_1_PREPARER', 'Profile validation state', {
+      isValidating: profileValidation.isValidating,
+      isValid: profileValidation.isValid,
+      showEmptyState,
+      primaryMissingTab: profileValidation.primaryMissingTab,
+      missingCounts: {
+        identity: profileValidation.missingFieldsByTab.identity.length,
+        training: profileValidation.missingFieldsByTab.training.length,
+        health: profileValidation.missingFieldsByTab.health.length
+      }
+    });
+  }, [profileValidation, showEmptyState]);
+
   return (
     <>
       <TrainingCoachNotificationBubble
