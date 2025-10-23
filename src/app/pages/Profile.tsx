@@ -98,8 +98,14 @@ const Profile: React.FC = () => {
   // Derive activeTab from URL search params or hash
   const activeTab = React.useMemo(() => {
     const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-    if (tabParam && ['identity', 'nutrition', 'health', 'fasting', 'training', 'geo', 'avatar'].includes(tabParam)) {
+    let tabParam = searchParams.get('tab');
+
+    // Map 'training' to 'preferences' for backward compatibility
+    if (tabParam === 'training') {
+      tabParam = 'preferences';
+    }
+
+    if (tabParam && ['identity', 'nutrition', 'health', 'fasting', 'preferences', 'geo', 'avatar'].includes(tabParam)) {
       return tabParam;
     }
     const hash = location.hash.replace('#', '');
