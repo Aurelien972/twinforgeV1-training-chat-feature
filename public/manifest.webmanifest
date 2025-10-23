@@ -1,0 +1,75 @@
+{
+  "name": "TwinForge",
+  "short_name": "TwinForge",
+  "description": "Votre forge personnelle pour optimiser votre bien-être. Scannez vos repas, suivez votre activité, gérez votre jeûne et analysez votre corps avec TwinForge.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0E17",
+  "theme_color": "#3D13B3",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr",
+  "categories": ["health", "fitness", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/icon-1024.svg",
+      "sizes": "1024x1024",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scanner un Repas",
+      "short_name": "Scanner",
+      "description": "Analyser un repas avec l'IA TwinForge",
+      "url": "/meals/scan",
+      "icons": [
+        {
+          "src": "/pwa-icons/icon-192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Mon Profil",
+      "short_name": "Profil",
+      "description": "Gérer votre profil TwinForge",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/pwa-icons/icon-192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

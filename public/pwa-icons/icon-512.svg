@@ -1,0 +1,80 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle cosmic background with 3D depth -->
+  <defs>
+    <!-- Main gradient for the T -->
+    <linearGradient id="tGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F7931E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FDC830;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 3D shadow gradient -->
+    <linearGradient id="shadowGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B3519;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#4A1F0F;stop-opacity:0.8" />
+    </linearGradient>
+
+    <!-- Highlight gradient for 3D effect -->
+    <linearGradient id="highlightGradient512" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.4" />
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </linearGradient>
+
+    <!-- Radial glow for depth -->
+    <radialGradient id="glowGradient512" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#F7931E;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#FDC830;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Background cosmic gradient -->
+    <radialGradient id="bgGradient512" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#1A1F2E;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0F1419;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0E17;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- Subtle cosmic accent -->
+    <radialGradient id="accentGradient512" cx="70%" cy="70%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:0.08" />
+      <stop offset="100%" style="stop-color:#0B0E17;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bgGradient512)" rx="112"/>
+  <rect width="512" height="512" fill="url(#accentGradient512)" rx="112"/>
+
+  <!-- Glow behind the T -->
+  <ellipse cx="256" cy="266" rx="210" ry="225" fill="url(#glowGradient512)" opacity="0.6"/>
+
+  <!-- 3D Shadow layer (offset down-right) -->
+  <g transform="translate(10, 10)">
+    <path d="M 130 130 L 382 130 L 382 192 L 288 192 L 288 430 L 224 430 L 224 192 L 130 192 Z"
+          fill="url(#shadowGradient512)"
+          opacity="0.5"/>
+  </g>
+
+  <!-- Main T with gradient -->
+  <path d="M 130 130 L 382 130 L 382 192 L 288 192 L 288 430 L 224 430 L 224 192 L 130 192 Z"
+        fill="url(#tGradient512)"
+        stroke="none"/>
+
+  <!-- 3D Highlight on top-left edge -->
+  <path d="M 130 130 L 382 130 L 382 192 L 288 192 L 288 430 L 224 430 L 224 192 L 130 192 Z"
+        fill="url(#highlightGradient512)"
+        opacity="0.4"/>
+
+  <!-- Top highlight stroke for extra depth -->
+  <line x1="130" y1="130" x2="382" y2="130"
+        stroke="rgba(255,255,255,0.3)"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Left vertical highlight -->
+  <line x1="224" y1="192" x2="224" y2="430"
+        stroke="rgba(255,255,255,0.2)"
+        stroke-width="3"
+        stroke-linecap="round"/>
+</svg>

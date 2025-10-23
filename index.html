@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Favicon TwinForge with 3D Gradient T -->
+    <link rel="icon" type="image/svg+xml" href="/favicon-new.svg" />
+    <link rel="apple-touch-icon" href="/pwa-icons/icon-192.svg" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Viewport & iOS focus -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Permissions Policy for microphone access -->
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=()" />
+
+    <title>TwinForge</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUSjIg1_i6t8kCHKm459W1hyyTh89Y.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUSjIg1_i6t8kCHKm459WRhyyTh89Y.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" />
+
+    <!-- ===== Option 2: Halo Crucible Rings (body-safe) ===== -->
+    <style>
+      :root{
+        --forge-void:#0B0E17; --forge-deep:#0F1419; --forge-medium:#1A1F2E;
+        --ember:#FF6B35; --cyan:#18E3FF; --primary:#3D13B3;
+      }
+
+      /* Body scrollable, aucune interception d’events par le fond */
+      body.bg-halo-crucible{ position:static !important; overflow-x:hidden; }
+
+      /* Calque fixe derrière l’UI (click-through) */
+      body.bg-halo-crucible::before{
+        content:""; position:fixed; inset:0; z-index:-2; pointer-events:none; opacity:.98;
+
+        /* Anneaux + balayage conique + base */
+        background-image:
+          /* grand halo froid côté header droit */
+          radial-gradient(600px 600px at 82% 14%,
+            color-mix(in srgb, var(--cyan) 22%, transparent) 8%,
+            color-mix(in srgb, var(--cyan) 8%, transparent) 20%,
+            transparent 45%),
+          /* halo chaud discret côté sidebar */
+          radial-gradient(520px 520px at 16% 72%,
+            color-mix(in srgb, var(--ember) 18%, transparent) 6%,
+            color-mix(in srgb, var(--ember) 7%, transparent) 18%,
+            transparent 44%),
+          /* balayage “plasma” (angle animé) */
+          conic-gradient(from var(--sweep) at 50% 50%,
+            transparent 0deg, rgba(255,255,255,.04) 40deg, transparent 80deg,
+            transparent 180deg, rgba(255,255,255,.035) 220deg, transparent 280deg),
+          /* vignette */
+          linear-gradient(180deg, rgba(0,0,0,.28), transparent 30%, transparent 70%, rgba(0,0,0,.42)),
+          /* base cosmique */
+          radial-gradient(circle at 50% 50%, var(--forge-medium) 0%, var(--forge-deep) 45%, var(--forge-void) 100%);
+
+        background-blend-mode: screen, screen, soft-light, normal, normal;
+        background-size: auto, auto, 100% 100%, auto, auto;
+
+        /* Animations DÉSACTIVÉES : fond 100% statique */
+        animation: none !important;
+      }
+
+      /* Propriété CSS animable pour l’angle du conic-gradient */
+      @property --sweep{
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: 0deg;
+      }
+
+      @keyframes crucible-sweep{ to{ --sweep: 0deg; } }
+
+      @keyframes crucible-breathe{
+        0%,100%{ background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+        50%{     background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+      }
+
+      /* Mobile : halos plus compacts, sweep plus lent */
+      @media (max-width:768px){
+        body.bg-halo-crucible::before{
+          background-image:
+            radial-gradient(440px 440px at 82% 16%,
+              color-mix(in srgb, var(--cyan) 22%, transparent) 8%,
+              color-mix(in srgb, var(--cyan) 8%, transparent) 20%,
+              transparent 44%),
+            radial-gradient(420px 420px at 18% 78%,
+              color-mix(in srgb, var(--ember) 18%, transparent) 6%,
+              color-mix(in srgb, var(--ember) 7%, transparent) 18%,
+              transparent 42%),
+            conic-gradient(from var(--sweep) at 50% 50%,
+              transparent 0deg, rgba(255,255,255,.04) 40deg, transparent 80deg,
+              transparent 180deg, rgba(255,255,255,.035) 220deg, transparent 280deg),
+            linear-gradient(180deg, rgba(0,0,0,.28), transparent 32%, transparent 70%, rgba(0,0,0,.42)),
+            radial-gradient(circle at 50% 50%, var(--forge-medium) 0%, var(--forge-deep) 45%, var(--forge-void) 100%);
+          animation: none !important;
+        }
+      }
+
+      /* Accessibilité */
+      @media (prefers-reduced-motion:reduce){
+        body.bg-halo-crucible::before{ animation:none; }
+      }
+
+      /* Particules : toujours sous l’UI */
+      .cosmic-forge-particles{
+        position:fixed; inset:0; z-index:-3; pointer-events:none;
+        width:100vw; height:100vh;
+      }
+    </style>
+    <!-- ===== Fin Option 2 ===== -->
+  </head>
+
+  <!-- Active l’option 2 sur le body -->
+  <body class="bg-halo-crucible">
+    <!-- Particules de l'Enclume Cosmique -->
+    <div class="cosmic-forge-particles">
+      <!-- 16 particules (desktop). Tablet/Mobile filtrées via CSS -->
+      <div class="forge-particle forge-particle--1"></div>
+      <div class="forge-particle forge-particle--2"></div>
+      <div class="forge-particle forge-particle--3"></div>
+      <div class="forge-particle forge-particle--4"></div>
+      <div class="forge-particle forge-particle--5"></div>
+      <div class="forge-particle forge-particle--6"></div>
+      <div class="forge-particle forge-particle--7"></div>
+      <div class="forge-particle forge-particle--8"></div>
+      <div class="forge-particle forge-particle--9"></div>
+      <div class="forge-particle forge-particle--10"></div>
+      <div class="forge-particle forge-particle--11"></div>
+      <div class="forge-particle forge-particle--12"></div>
+      <div class="forge-particle forge-particle--13"></div>
+      <div class="forge-particle forge-particle--14"></div>
+      <div class="forge-particle forge-particle--15"></div>
+      <div class="forge-particle forge-particle--16"></div>
+    </div>
+
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <div id="recipe-modal-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Anti-FOUC + DVH + Device Handshake -->
+    <script>
+      (function () {
+        const html = document.documentElement;
+        html.style.setProperty('--initial-opacity', '0');
+
+        function setDVH() {
+          html.style.setProperty('--dvh', innerHeight * 0.01 + 'px');
+        }
+        setDVH();
+        addEventListener('resize', setDVH, { passive: true });
+
+        addEventListener('DOMContentLoaded', () =>
+          requestAnimationFrame(() => {
+            html.style.setProperty('--initial-opacity', '1');
+          })
+        );
+
+        html.dataset.device =
+          /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0 ? 'mobile' : 'desktop';
+        html.dataset.preferredMotion =
+          matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full';
+      })();
+    </script>
+
+    <!-- Randomisation homogène (suite au ratio d’or) + variations naturelles -->
+    <script>
+      (function () {
+        const PHI = 0.618033988749895;
+        const $ = (sel) => Array.from(document.querySelectorAll(sel));
+
+        function deviceBaseSpeed() {
+          const w = window.innerWidth;
+          if (w <= 768) return 30;      // mobile
+          if (w <= 1024) return 25;     // tablette
+          return 20;                    // desktop
+        }
+
+        function randomizeParticles() {
+          const particles = $('.forge-particle');
+          const baseSpeed = deviceBaseSpeed();
+
+          particles.forEach((p, i) => {
+            const base = (i * PHI) % 1;
+            const jitter = (Math.random() - 0.5) * 0.04;
+            const startX01 = (base + jitter + 1) % 1;
+
+            const duration = baseSpeed * (0.9 + Math.random() * 0.4);
+            const delay = Math.random() * duration;
+
+            const drift = () => {
+              const direction = Math.random() < 0.5 ? -1 : 1;
+              const amplitude = 20 + Math.random() * 60;
+              return direction * amplitude;
+            };
+
+            const size = 1.3 + Math.random() * 1.7;
+            const basePosition = (startX01 * 100).toFixed(2) + 'vw';
+
+            p.style.setProperty('--x0', basePosition);
+            p.style.setProperty('--x1', drift().toFixed(1) + 'px');
+            p.style.setProperty('--x2', drift().toFixed(1) + 'px');
+            p.style.setProperty('--x3', drift().toFixed(1) + 'px');
+            p.style.setProperty('--x4', drift().toFixed(1) + 'px');
+
+            p.style.setProperty('--duration', duration.toFixed(2) + 's');
+            p.style.setProperty('--delay', delay.toFixed(2) + 's');
+            p.style.setProperty('--size', size.toFixed(2) + 'px');
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', randomizeParticles);
+        } else {
+          randomizeParticles();
+        }
+
+        setInterval(randomizeParticles, 60000);
+        window.addEventListener('resize', randomizeParticles, { passive: true });
+      })();
+    </script>
+  </body>
+</html>
