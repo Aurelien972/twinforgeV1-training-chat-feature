@@ -231,12 +231,23 @@ export const useTrainingPipeline = create<TrainingPipelineState>()(
 
         if (saveSessionData && userId && currentSessionId && sessionPrescription) {
           try {
+            // CRITICAL: Validate and prepare session data for insertion
+            // Ensure 'type' is always defined (NOT NULL constraint in database)
+            const sessionType = sessionPrescription.type ||
+                               sessionPrescription.discipline ||
+                               sessionPrescription.category ||
+                               get().preparerData?.tempSport ||
+                               'strength';
+
             const sessionData: any = {
               id: currentSessionId,
               user_id: userId,
+              plan_id: null, // Abandoned sessions have no plan association
+              session_index: null, // Not applicable for standalone sessions
+              week_number: null, // Not applicable for standalone sessions
               status: 'abandoned',
-              type: sessionPrescription.type,
-              session_type: sessionPrescription.type,
+              type: sessionType, // REQUIRED: NOT NULL column in database
+              session_type: sessionType, // Duplicate for backwards compatibility
               coach_type: sessionPrescription.discipline === 'cardio' || sessionPrescription.discipline === 'running' || sessionPrescription.discipline === 'cycling' ? 'endurance' : 'force',
               prescription: sessionPrescription,
               context: get().preparerData,
@@ -734,17 +745,24 @@ export const useTrainingPipeline = create<TrainingPipelineState>()(
           const expiresAt = new Date();
           expiresAt.setHours(expiresAt.getHours() + 48);
 
-          // Prepare session data for insertion
+          // CRITICAL: Validate and prepare session data for insertion
+          // Ensure 'type' is always defined (NOT NULL constraint in database)
+          const sessionType = sessionPrescription.type ||
+                             sessionPrescription.discipline ||
+                             sessionPrescription.category ||
+                             preparerData?.tempSport ||
+                             'strength';
+
           const sessionData = {
             id: draftId,
             user_id: userId,
             plan_id: null, // Drafts are standalone, no plan association
             session_index: null, // Not applicable for drafts
             week_number: null, // Not applicable for drafts
-            type: sessionPrescription.type,
+            type: sessionType, // REQUIRED: NOT NULL column in database
             status: 'draft',
             coach_type: 'force', // Default coach type
-            session_type: sessionPrescription.type,
+            session_type: sessionType, // Duplicate for backwards compatibility
             context: preparerData, // Store complete preparer context
             duration_target_min: sessionPrescription.durationTarget || 45,
             equipment_needed: preparerData.availableEquipment || [],

@@ -33,12 +33,19 @@ class SessionPersistenceService {
         coachType
       });
 
+      // CRITICAL: Ensure 'type' is always defined (NOT NULL constraint)
+      const sessionType = prescription.type || discipline || 'strength';
+
       const sessionData = {
         id: sessionId,
         user_id: userId,
+        plan_id: null, // Standalone sessions have no plan association
+        session_index: null, // Not applicable for standalone sessions
+        week_number: null, // Not applicable for standalone sessions
+        type: sessionType, // REQUIRED: NOT NULL column in database
         discipline,
         coach_type: coachType,
-        session_type: prescription.type || discipline,
+        session_type: sessionType, // Duplicate for backwards compatibility
         status: 'completed',
         prescription: prescription,
         duration_target_min: prescription.durationTarget,
@@ -96,12 +103,19 @@ class SessionPersistenceService {
       const discipline = this.extractDiscipline(prescription, preparerContext);
       const coachType = this.determineCoachType(discipline);
 
+      // CRITICAL: Ensure 'type' is always defined (NOT NULL constraint)
+      const sessionType = prescription.type || discipline || 'strength';
+
       const sessionData = {
         id: sessionId,
         user_id: userId,
+        plan_id: null, // Standalone sessions (drafts) have no plan association
+        session_index: null, // Not applicable for standalone sessions
+        week_number: null, // Not applicable for standalone sessions
+        type: sessionType, // REQUIRED: NOT NULL column in database
         discipline,
         coach_type: coachType,
-        session_type: prescription.type || discipline,
+        session_type: sessionType, // Duplicate for backwards compatibility
         status: 'draft',
         prescription: prescription,
         duration_target_min: prescription.durationTarget,
