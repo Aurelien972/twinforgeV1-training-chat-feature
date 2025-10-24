@@ -7,6 +7,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
+import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -59,6 +60,18 @@ interface FunctionalCoachResponse {
 // ============================================================================
 
 const COACH_FUNCTIONAL_SYSTEM_PROMPT = `Tu es un coach IA expert en Functional Training et CrossFit.
+
+# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+
+**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
+- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue
+- NE GÉNÈRE PAS de nouveaux noms d'exercices
+- SÉLECTIONNE les exercices selon: capacités fonctionnelles, équipement disponible, niveau, objectifs
+- UTILISE les substitutions pour scaling (RX, Scaled, Foundations)
+- RESPECTE les métadonnées: difficulté, tempo, RPE typique, notes de sécurité
+
+**SI aucun catalogue n'est fourni**:
+- Génère des exercices selon tes connaissances standards
 
 # Principes
 "Constantly varied, high-intensity, functional movements"
@@ -150,7 +163,7 @@ Validation: wodFormat valide, 3 tiers scaling, timeCapMinutes présent, intensit
 // Helper Functions
 // ============================================================================
 
-function buildUserPrompt(userContext: any, preparerContext: any): string {
+function buildUserPrompt(userContext: any, preparerContext: any, exerciseCatalogSection: string): string {
   // Extract only essential fields to reduce token usage
   const essentialUser = {
     age: userContext.age,
@@ -192,7 +205,8 @@ Exigences:
 4. Safety priority (Olympic lifts, gymnastic)
 5. Warm-up spécifique
 
-Retourne JSON complet.`;
+Retourne JSON complet.
+${exerciseCatalogSection}`.trim();
 }
 
 async function generatePrescription(
@@ -237,7 +251,37 @@ async function generatePrescription(
     }
 
     // Build prompt
-    const userPrompt = buildUserPrompt(request.userContext, request.preparerContext);
+    // Extract exercise catalog from userContext if available
+    const exerciseCatalog = request.userContext?.exerciseCatalog;
+    const hasExerciseCatalog = exerciseCatalog && exerciseCatalog.exercises && exerciseCatalog.exercises.length > 0;
+
+    console.log('[COACH-FUNCTIONAL] Exercise catalog availability', {
+      hasExerciseCatalog,
+      exerciseCount: hasExerciseCatalog ? exerciseCatalog.exercises.length : 0
+    });
+
+    let exerciseCatalogSection = '';
+    if (hasExerciseCatalog) {
+      const userLanguage = exerciseCatalog.language || 'fr';
+      exerciseCatalogSection = `
+
+# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES FUNCTIONAL FITNESS DISPONIBLES' : 'AVAILABLE FUNCTIONAL FITNESS EXERCISE CATALOG'}
+
+${userLanguage === 'fr'
+  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
+Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
+Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+
+${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+
+${userLanguage === 'fr'
+  ? `IMPORTANT: Utilise les substitutions du catalogue pour proposer scaling RX, Scaled, et Foundations.`
+  : `IMPORTANT: Use the catalog substitutions to propose RX, Scaled, and Foundations scaling.`}
+`;
+    }
+
+    const userPrompt = buildUserPrompt(request.userContext, request.preparerContext, exerciseCatalogSection);
 
     console.log('[COACH-FUNCTIONAL] User prompt built', {
       promptLength: userPrompt.length,

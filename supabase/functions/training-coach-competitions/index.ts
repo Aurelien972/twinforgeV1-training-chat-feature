@@ -7,6 +7,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
+import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -38,6 +39,18 @@ interface CompetitionsCoachResponse {
 }
 
 const COACH_COMPETITIONS_SYSTEM_PROMPT = `Coach IA Compétitions Fitness (HYROX, DEKA). Génère des séances adaptées au format choisi.
+
+# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+
+**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
+- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue pour les stations
+- NE GÉNÈRE PAS de nouveaux noms d'exercices
+- SÉLECTIONNE les exercices selon: type de station (cardio/strength/hybrid), équipement, difficulté
+- UTILISE les substitutions si équipement manquant
+- RESPECTE les métadonnées: difficulté, zones d'intensité, notes de sécurité
+
+**SI aucun catalogue n'est fourni**:
+- Génère des exercices selon tes connaissances standards
 
 # Formats
 - HYROX: 8×1km + 8 stations (SkiErg, Traîneau, Burpees, Rameur, Porté fermé, Fentes, Wall Balls)
@@ -86,9 +99,12 @@ const COACH_COMPETITIONS_SYSTEM_PROMPT = `Coach IA Compétitions Fitness (HYROX,
 RÈGLES: Utiliser le tableau "stations". CHAQUE station strength/hybrid DOIT avoir muscleGroups (array 1-3 groupes en français). Inclure stationNumber, stationType, targetTime, transitionTime pour chaque station. Ajouter des substitutions si équipement manquant. TOUT EN FRANÇAIS.
 `;
 
-function buildUserPrompt(userContext: any, preparerContext: any): string {
+function buildUserPrompt(userContext: any, preparerContext: any, exerciseCatalogSection: string): string {
   const competitionType = preparerContext.tempSport || 'hyrox';
-  return `Temps disponible: ${preparerContext.availableTime}min, Énergie: ${preparerContext.energyLevel}/10, Équipement: ${preparerContext.availableEquipment?.slice(0, 5).join(', ') || 'Aucun'}, Format: ${competitionType}. Génère une séance ${competitionType} avec stratégie d'allure, transitions <10s, substitutions si nécessaire. Format JSON requis. TOUT EN FRANÇAIS.`;
+  const hasExerciseCatalog = exerciseCatalogSection.trim().length > 0;
+  return `Temps disponible: ${preparerContext.availableTime}min, Énergie: ${preparerContext.energyLevel}/10, Équipement: ${preparerContext.availableEquipment?.slice(0, 5).join(', ') || 'Aucun'}, Format: ${competitionType}. Génère une séance ${competitionType} avec stratégie d'allure, transitions <10s, substitutions si nécessaire. ${hasExerciseCatalog ? '**UTILISER UNIQUEMENT les exercices du catalogue fourni ci-dessous.**' : ''} Format JSON requis. TOUT EN FRANÇAIS.
+
+${exerciseCatalogSection}`.trim();
 }
 
 async function generatePrescription(
@@ -133,7 +149,37 @@ async function generatePrescription(
       };
     }
 
-    const userPrompt = buildUserPrompt(request.userContext, request.preparerContext);
+    // Extract exercise catalog from userContext if available
+    const exerciseCatalog = request.userContext?.exerciseCatalog;
+    const hasExerciseCatalog = exerciseCatalog && exerciseCatalog.exercises && exerciseCatalog.exercises.length > 0;
+
+    console.log('[COACH-COMPETITIONS] Exercise catalog availability', {
+      hasExerciseCatalog,
+      exerciseCount: hasExerciseCatalog ? exerciseCatalog.exercises.length : 0
+    });
+
+    let exerciseCatalogSection = '';
+    if (hasExerciseCatalog) {
+      const userLanguage = exerciseCatalog.language || 'fr';
+      exerciseCatalogSection = `
+
+# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES COMPETITIONS DISPONIBLES' : 'AVAILABLE COMPETITIONS EXERCISE CATALOG'}
+
+${userLanguage === 'fr'
+  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
+Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
+Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+
+${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+
+${userLanguage === 'fr'
+  ? `IMPORTANT: Utilise les substitutions du catalogue si équipement manquant (ex: SkiErg → Rameur, Sled → Burpees).`
+  : `IMPORTANT: Use catalog substitutions if equipment missing (e.g., SkiErg → Rower, Sled → Burpees).`}
+`;
+    }
+
+    const userPrompt = buildUserPrompt(request.userContext, request.preparerContext, exerciseCatalogSection);
 
     console.log('[COACH-COMPETITIONS] Calling OpenAI API with gpt-5-mini');
 

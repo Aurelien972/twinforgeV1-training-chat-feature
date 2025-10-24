@@ -6,6 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
+import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,6 +115,18 @@ Deno.serve(async (req: Request) => {
     console.log("[COACH-CALISTHENICS] OpenAI API key found");
 
     const systemPrompt = `Tu es un coach IA expert en Calisthenics & Street Workout avec une expertise approfondie en poids du corps, skills avancés et freestyle.
+
+# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+
+**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
+- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue
+- NE GÉNÈRE PAS de nouveaux noms d'exercices
+- SÉLECTIONNE les exercices selon: niveau de compétence, progressions, objectifs de skills
+- UTILISE les progressions (tuck → straddle → full) et régressions fournies dans le catalogue
+- RESPECTE les métadonnées: difficulté, hold time, prérequis, notes de sécurité
+
+**SI aucun catalogue n'est fourni**:
+- Génère des exercices selon tes connaissances standards
 
 # Spécialisation
 
@@ -470,6 +483,36 @@ IMPORTANT:
       trainingContext = "gym avec équipements calisthenics (anneaux, barres, machines assistance)";
     }
 
+    // Extract exercise catalog from userContext if available
+    const exerciseCatalog = userContext?.exerciseCatalog;
+    const hasExerciseCatalog = exerciseCatalog && exerciseCatalog.exercises && exerciseCatalog.exercises.length > 0;
+
+    console.log('[COACH-CALISTHENICS] Exercise catalog availability', {
+      hasExerciseCatalog,
+      exerciseCount: hasExerciseCatalog ? exerciseCatalog.exercises.length : 0
+    });
+
+    let exerciseCatalogSection = '';
+    if (hasExerciseCatalog) {
+      const userLanguage = exerciseCatalog.language || 'fr';
+      exerciseCatalogSection = `
+
+# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES CALISTHENICS DISPONIBLES' : 'AVAILABLE CALISTHENICS EXERCISE CATALOG'}
+
+${userLanguage === 'fr'
+  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
+Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
+Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+
+${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+
+${userLanguage === 'fr'
+  ? `IMPORTANT: Utilise les progressions (tuck → straddle → full) et régressions listées dans le catalogue pour adapter au niveau de l'utilisateur.`
+  : `IMPORTANT: Use the progressions (tuck → straddle → full) and regressions listed in the catalog to adapt to the user's level.`}
+`;
+    }
+
     const userPrompt = `# Contexte Utilisateur
 
 ${JSON.stringify(userContext, null, 2)}
@@ -477,6 +520,7 @@ ${JSON.stringify(userContext, null, 2)}
 # Contexte de Préparation
 
 ${JSON.stringify(preparerContext, null, 2)}
+${exerciseCatalogSection}
 
 # Instructions
 
@@ -488,6 +532,7 @@ Génère une prescription de training Calisthenics & Street Workout totalement p
 - Utiliser UNIQUEMENT ces équipements (${equipmentCount} disponibles): ${equipmentList}
 - Niveau d'énergie: ${preparerContext.energyLevel}/10
 - Éviter ces mouvements: ${avoidMovements}
+${hasExerciseCatalog ? `- **UTILISER UNIQUEMENT les exercices du catalogue fourni ci-dessus (${exerciseCatalog.totalCount} exercices disponibles)**` : ''}
 
 **Objectifs de Personnalisation**:
 - Focus progressions skills adaptées au niveau

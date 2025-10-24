@@ -7,6 +7,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
+import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -257,7 +258,38 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Building prompts`);
     const systemPrompt = buildEnduranceSystemPrompt();
-    const userPrompt = buildUserPrompt(userContext, preparerContext, userAge, fcMax, discipline);
+    // Extract exercise catalog from userContext if available
+    const exerciseCatalog = userContext?.exerciseCatalog;
+    const hasExerciseCatalog = exerciseCatalog && exerciseCatalog.exercises && exerciseCatalog.exercises.length > 0;
+
+    console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Exercise catalog availability`, {
+      requestId,
+      hasExerciseCatalog,
+      exerciseCount: hasExerciseCatalog ? exerciseCatalog.exercises.length : 0
+    });
+
+    let exerciseCatalogSection = '';
+    if (hasExerciseCatalog) {
+      const userLanguage = exerciseCatalog.language || 'fr';
+      exerciseCatalogSection = `
+
+# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES DRILLS/TECHNIQUES DISPONIBLES' : 'AVAILABLE DRILLS/TECHNIQUES CATALOG'}
+
+${userLanguage === 'fr'
+  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE pour les drills et techniques.
+Ne génère PAS de nouveaux noms d'exercices techniques. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG for drills and techniques.
+Do NOT generate new technique exercise names. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+
+${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+
+${userLanguage === 'fr'
+  ? `IMPORTANT: Utilise ces exercices pour les drills techniques, renforcement spécifique, et préparation physique.`
+  : `IMPORTANT: Use these exercises for technical drills, specific strengthening, and physical preparation.`}
+`;
+    }
+
+    const userPrompt = buildUserPrompt(userContext, preparerContext, userAge, fcMax, discipline, exerciseCatalogSection);
     console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Prompts built`, {
       requestId,
       systemPromptLength: systemPrompt.length,
@@ -811,6 +843,18 @@ function determineDiscipline(userContext: any, preparerContext: any): string {
 function buildEnduranceSystemPrompt(): string {
   return `Tu es un coach IA expert en Sports d'Endurance.
 
+# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+
+**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
+- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue pour les drills/techniques
+- NE GÉNÈRE PAS de nouveaux noms d'exercices techniques
+- SÉLECTIONNE les exercices selon: discipline (running, cycling, swimming), niveau, objectifs zones
+- UTILISE les exercices de technique, drills, renforcement spécifique du catalogue
+- RESPECTE les métadonnées: difficulté, zones cardiaques typiques, durée
+
+**SI aucun catalogue n'est fourni**:
+- Génère des exercices selon tes connaissances standards
+
 # Zones d'Entraînement (% FCMax)
 Z1: 50-60% (Récupération)
 Z2: 60-70% (Endurance Fondamentale)
@@ -921,7 +965,8 @@ function buildUserPrompt(
   preparerContext: any,
   userAge: number,
   fcMax: number,
-  discipline: string
+  discipline: string,
+  exerciseCatalogSection: string = ''
 ): string {
   const profile = userContext?.profile || {};
   const recentSessions = userContext?.sessions?.slice(0, 3) || [];
@@ -996,6 +1041,8 @@ ${recentSessions.length > 0
 
 6. **Métriques selon discipline**:
    - Running: pace (min/km), HR, cadence (spm)
+
+${exerciseCatalogSection}
    - Cycling: power (W), HR, cadence (RPM)
    - Swimming: pace (temps/100m), stroke count
 
