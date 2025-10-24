@@ -42,34 +42,74 @@ const ExerciseAnalysisCard: React.FC<ExerciseAnalysisCardProps> = ({
 
   // Find best exercise (lowest RPE with completed status and good technique)
   const findBestExercise = () => {
-    return sessionFeedback.exercises
-      .filter(ex => ex.completed && (ex.technique || 0) >= 7)
-      .sort((a, b) => {
-        const scoreA = (a.rpe || 10) - ((a.technique || 0) * 0.5);
-        const scoreB = (b.rpe || 10) - ((b.technique || 0) * 0.5);
-        return scoreA - scoreB;
-      })[0];
+    // CRITICAL GUARD: Check if exercises array exists and is valid
+    if (!sessionFeedback.exercises || !Array.isArray(sessionFeedback.exercises) || sessionFeedback.exercises.length === 0) {
+      logger.warn('EXERCISE_ANALYSIS_CARD', 'No exercises array for findBestExercise', {
+        hasExercises: !!sessionFeedback.exercises,
+        isArray: Array.isArray(sessionFeedback.exercises),
+        length: sessionFeedback.exercises?.length
+      });
+      return null;
+    }
+
+    const filtered = sessionFeedback.exercises.filter(ex => ex && ex.completed && (ex.technique || 0) >= 7);
+    if (filtered.length === 0) return null;
+
+    return filtered.sort((a, b) => {
+      const scoreA = (a.rpe || 10) - ((a.technique || 0) * 0.5);
+      const scoreB = (b.rpe || 10) - ((b.technique || 0) * 0.5);
+      return scoreA - scoreB;
+    })[0];
   };
 
   // Find hardest exercise (highest RPE)
   const findHardestExercise = () => {
-    return sessionFeedback.exercises
-      .filter(ex => ex.completed)
-      .sort((a, b) => (b.rpe || 0) - (a.rpe || 0))[0];
+    // CRITICAL GUARD: Check if exercises array exists and is valid
+    if (!sessionFeedback.exercises || !Array.isArray(sessionFeedback.exercises) || sessionFeedback.exercises.length === 0) {
+      logger.warn('EXERCISE_ANALYSIS_CARD', 'No exercises array for findHardestExercise');
+      return null;
+    }
+
+    const filtered = sessionFeedback.exercises.filter(ex => ex && ex.completed);
+    if (filtered.length === 0) return null;
+
+    return filtered.sort((a, b) => (b.rpe || 0) - (a.rpe || 0))[0];
   };
 
   // Find exercise with most volume
   const findHighestVolumeExercise = () => {
-    return sessionFeedback.exercises
-      .map(ex => ({
-        ...ex,
-        volume: calculateExerciseVolume(ex.repsActual, ex.loadUsed),
-      }))
-      .sort((a, b) => b.volume - a.volume)[0];
+    // CRITICAL GUARD: Check if exercises array exists and is valid
+    if (!sessionFeedback.exercises || !Array.isArray(sessionFeedback.exercises) || sessionFeedback.exercises.length === 0) {
+      logger.warn('EXERCISE_ANALYSIS_CARD', 'No exercises array for findHighestVolumeExercise');
+      return null;
+    }
+
+    try {
+      const mapped = sessionFeedback.exercises
+        .filter(ex => ex && ex.repsActual && ex.loadUsed)
+        .map(ex => ({
+          ...ex,
+          volume: calculateExerciseVolume(ex.repsActual, ex.loadUsed),
+        }));
+
+      if (mapped.length === 0) return null;
+
+      return mapped.sort((a, b) => b.volume - a.volume)[0];
+    } catch (error) {
+      logger.error('EXERCISE_ANALYSIS_CARD', 'Error calculating volume', {
+        error: error instanceof Error ? error.message : 'Unknown'
+      });
+      return null;
+    }
   };
 
   const getExerciseDetails = (exerciseId: string) => {
-    return sessionPrescription.exercises.find(ex => ex.id === exerciseId);
+    // GUARD: Check prescription exercises exist
+    if (!sessionPrescription.exercises || !Array.isArray(sessionPrescription.exercises)) {
+      logger.warn('EXERCISE_ANALYSIS_CARD', 'No prescription exercises array');
+      return null;
+    }
+    return sessionPrescription.exercises.find(ex => ex && ex.id === exerciseId);
   };
 
   const bestExercise = findBestExercise();
@@ -170,6 +210,57 @@ const ExerciseAnalysisCard: React.FC<ExerciseAnalysisCardProps> = ({
     );
   }
 
+  // Check if we have any exercises to analyze
+  const hasExercises = sessionFeedback.exercises && Array.isArray(sessionFeedback.exercises) && sessionFeedback.exercises.length > 0;
+
+  // If no exercises, show degraded UI with message
+  if (!hasExercises && !isEnduranceSession) {
+    return (
+      <GlassCard
+        className="space-y-4"
+        style={{
+          background: `
+            radial-gradient(circle at 30% 20%, color-mix(in srgb, ${stepColor} 10%, transparent) 0%, transparent 60%),
+            rgba(255, 255, 255, 0.08)
+          `,
+          border: `2px solid color-mix(in srgb, ${stepColor} 20%, transparent)`,
+          boxShadow: `
+            0 4px 16px rgba(0, 0, 0, 0.2),
+            0 0 24px color-mix(in srgb, ${stepColor} 15%, transparent),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1)
+          `,
+        }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{
+              background: `
+                radial-gradient(circle at 30% 30%, color-mix(in srgb, ${stepColor} 35%, transparent) 0%, transparent 60%),
+                rgba(255, 255, 255, 0.12)
+              `,
+              border: `2px solid color-mix(in srgb, ${stepColor} 50%, transparent)`,
+            }}
+          >
+            <SpatialIcon
+              Icon={ICONS.Info}
+              size={24}
+              style={{ color: stepColor }}
+            />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-white">Analyse Par Exercice</h3>
+            <p className="text-white/60 text-sm">Données insuffisantes</p>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-white/70 mb-2">Aucun exercice enregistré pour cette séance</p>
+          <p className="text-white/50 text-sm">L'analyse détaillée sera disponible après avoir complété des exercices</p>
+        </div>
+      </GlassCard>
+    );
+  }
+
   // Force session view (original)
   const analyses = [
     {
@@ -199,7 +290,7 @@ const ExerciseAnalysisCard: React.FC<ExerciseAnalysisCardProps> = ({
       icon: 'Weight' as const,
       emoji: '💎',
     },
-  ];
+  ].filter(analysis => analysis.feedback !== null && analysis.feedback !== undefined);
 
   const handleToggleExpand = (id: string) => {
     setExpandedExercise(expandedExercise === id ? null : id);
@@ -253,9 +344,15 @@ const ExerciseAnalysisCard: React.FC<ExerciseAnalysisCardProps> = ({
       </div>
 
       {/* Exercise Analysis Cards */}
-      <div className="space-y-3">
-        {analyses.map((analysis, index) => {
-          if (!analysis.feedback) return null;
+      {analyses.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-white/70 mb-2">Aucune analyse d'exercice disponible</p>
+          <p className="text-white/50 text-sm">Les exercices n'ont pas été complétés ou les données sont manquantes</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {analyses.map((analysis, index) => {
+            if (!analysis.feedback) return null;
 
           const exerciseDetails = getExerciseDetails(analysis.feedback.exerciseId);
           if (!exerciseDetails) return null;
@@ -511,8 +608,9 @@ const ExerciseAnalysisCard: React.FC<ExerciseAnalysisCardProps> = ({
               </div>
             </motion.div>
           );
-        })}
-      </div>
+          })}
+        </div>
+      )}
     </GlassCard>
   );
 };

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StepContainer from '../components/StepContainer';
 import TrainingButton from '../components/TrainingButton';
 import SessionGuard from '../components/SessionGuard';
+import Step4ErrorBoundary from '../components/Step4ErrorBoundary';
 import { PersonalizedMetricsCard, ExerciseAnalysisCard, SessionBadgesCard, TrainingCoachNotificationBubble, ScoreGlobalCard } from '../../../../../ui/components/training';
 import {
   PersonalizedInsightsCard,
@@ -836,14 +837,16 @@ const Step4AdapterContent: React.FC = () => {
 
 const Step4Adapter: React.FC = () => {
   return (
-    <SessionGuard
-      step="adapter"
-      requiresPrescription={true}
-      requiresSessionStarted={false}
-      requiresFeedback={true}
-    >
-      <Step4AdapterContent />
-    </SessionGuard>
+    <Step4ErrorBoundary>
+      <SessionGuard
+        step="adapter"
+        requiresPrescription={true}
+        requiresSessionStarted={false}
+        requiresFeedback={true}
+      >
+        <Step4AdapterContent />
+      </SessionGuard>
+    </Step4ErrorBoundary>
   );
 };
 

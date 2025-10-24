@@ -12,6 +12,7 @@ import GlassCard from '../../../../../ui/cards/GlassCard';
 import SpatialIcon from '../../../../../ui/icons/SpatialIcon';
 import { ICONS } from '../../../../../ui/icons/registry';
 import TrainingButton from './TrainingButton';
+import { validateSessionFeedback, hasMinimalDataToProceed, getMissingDataDescription } from '../../../../../utils/feedbackValidation';
 
 interface SessionGuardProps {
   children: React.ReactNode;
@@ -88,7 +89,7 @@ const SessionGuard: React.FC<SessionGuardProps> = ({
       }
 
       // Check 5: For adapter/avancer, session feedback is required
-      // CRITICAL: Also check if feedback has valid data structure
+      // CRITICAL: Comprehensive validation of feedback structure and data
       if (requiresFeedback) {
         if (!sessionFeedback) {
           setBlockReason('Séance non complétée');
@@ -97,16 +98,39 @@ const SessionGuard: React.FC<SessionGuardProps> = ({
           return;
         }
 
-        // Additional validation: feedback must have at least durationActual
-        const hasValidFeedbackStructure = sessionFeedback.durationActual !== undefined;
-        if (!hasValidFeedbackStructure) {
-          logger.warn('SESSION_GUARD', 'Feedback exists but invalid structure', {
+        // Validate feedback structure and completeness
+        const validation = validateSessionFeedback(sessionFeedback, sessionPrescription);
+
+        logger.info('SESSION_GUARD', 'Feedback validation result', {
+          step,
+          isValid: validation.isValid,
+          hasMinimalData: validation.hasMinimalData,
+          errorsCount: validation.errors.length,
+          warningsCount: validation.warnings.length,
+          errors: validation.errors,
+          warnings: validation.warnings,
+          missingFields: validation.missingFields
+        });
+
+        // Check if we have at least minimal data to proceed
+        if (!validation.hasMinimalData) {
+          setBlockReason(`Données de séance insuffisantes: ${getMissingDataDescription(validation)}`);
+          setIsAuthorized(false);
+          logger.warn('SESSION_GUARD', 'Access blocked - insufficient feedback data', {
             step,
-            feedbackKeys: Object.keys(sessionFeedback),
-            hasDuration: !!sessionFeedback.durationActual,
-            note: 'Allowing access with warning'
+            validation
           });
-          // Allow access but log warning - the step will handle it
+          return;
+        }
+
+        // If we have minimal data but validation shows warnings, log them
+        if (validation.warnings.length > 0) {
+          logger.warn('SESSION_GUARD', 'Feedback has warnings but allowing access', {
+            step,
+            warnings: validation.warnings,
+            missingFields: validation.missingFields,
+            note: 'Step will handle degraded UI'
+          });
         }
       }
 

@@ -42,9 +42,19 @@ const PersonalizedInsightsCard: React.FC<PersonalizedInsightsCardProps> = ({
   const generateInsights = () => {
     const insights: string[] = [];
 
+    // GUARD: Check if exercises exist and are valid
+    if (!sessionFeedback.exercises || !Array.isArray(sessionFeedback.exercises) || sessionFeedback.exercises.length === 0) {
+      logger.warn('PERSONALIZED_INSIGHTS_CARD', 'No exercises for insights generation');
+      return ['Aucun exercice enregistré pour générer des insights.'];
+    }
+
     // Check if user performed better in first half
     const firstHalfExercises = sessionFeedback.exercises.slice(0, Math.ceil(sessionFeedback.exercises.length / 2));
     const secondHalfExercises = sessionFeedback.exercises.slice(Math.ceil(sessionFeedback.exercises.length / 2));
+
+    if (firstHalfExercises.length === 0 || secondHalfExercises.length === 0) {
+      return ['Séance trop courte pour générer des insights détaillés.'];
+    }
 
     const firstHalfAvgRpe = firstHalfExercises.reduce((sum, ex) => sum + (ex.rpe || 0), 0) / firstHalfExercises.length;
     const secondHalfAvgRpe = secondHalfExercises.reduce((sum, ex) => sum + (ex.rpe || 0), 0) / secondHalfExercises.length;

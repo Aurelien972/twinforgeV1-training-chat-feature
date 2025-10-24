@@ -78,18 +78,32 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
       logger.warn('PERSONALIZED_METRICS_CALC', 'No exercises for work/rest ratio');
       return '1.0';
     }
-    const totalRestTime = sessionPrescription.exercises.reduce((total, ex) => {
-      if (!ex || typeof ex.rest !== 'number' || typeof ex.sets !== 'number') {
-        return total;
-      }
-      return total + (ex.rest * (ex.sets - 1));
-    }, 0);
-    const workTime = sessionFeedback.durationActual - totalRestTime;
-    if (totalRestTime === 0) {
+
+    // GUARD: Check if durationActual exists
+    if (!sessionFeedback.durationActual || typeof sessionFeedback.durationActual !== 'number') {
+      logger.warn('PERSONALIZED_METRICS_CALC', 'No valid durationActual for work/rest ratio');
       return '1.0';
     }
-    const ratio = workTime / totalRestTime;
-    return ratio.toFixed(1);
+
+    try {
+      const totalRestTime = sessionPrescription.exercises.reduce((total, ex) => {
+        if (!ex || typeof ex.rest !== 'number' || typeof ex.sets !== 'number') {
+          return total;
+        }
+        return total + (ex.rest * (ex.sets - 1));
+      }, 0);
+      const workTime = sessionFeedback.durationActual - totalRestTime;
+      if (totalRestTime === 0 || workTime <= 0) {
+        return '1.0';
+      }
+      const ratio = workTime / totalRestTime;
+      return isNaN(ratio) ? '1.0' : ratio.toFixed(1);
+    } catch (error) {
+      logger.error('PERSONALIZED_METRICS_CALC', 'Error calculating work/rest ratio', {
+        error: error instanceof Error ? error.message : 'Unknown'
+      });
+      return '1.0';
+    }
   };
 
   // Estimate calories burned (simplified formula)
@@ -118,9 +132,14 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
 
   // Calculate average intensity (simplified - would need 1RM data in production)
   const calculateAverageIntensity = () => {
-    // Mock calculation - in production would use actual 1RM data
-    const avgRpe = sessionFeedback.overallRpe;
-    return Math.round(50 + (avgRpe * 3.5)); // Rough estimate: RPE 7 ≈ 75% intensity
+    // GUARD: Check if overallRpe exists
+    const avgRpe = sessionFeedback.overallRpe || 7; // Default to 7 if not provided
+    if (typeof avgRpe !== 'number' || isNaN(avgRpe)) {
+      logger.warn('PERSONALIZED_METRICS_CALC', 'Invalid overallRpe for intensity calculation');
+      return 75; // Default reasonable intensity
+    }
+    const intensity = Math.round(50 + (avgRpe * 3.5)); // Rough estimate: RPE 7 ≈ 75% intensity
+    return isNaN(intensity) ? 75 : intensity;
   };
 
   // Calculate time under tension (simplified)
@@ -134,11 +153,18 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
   const getFunctionalMetrics = () => {
     if (!isFunctionalSession) return null;
     const functionalMetrics = (sessionFeedback as any).functionalMetrics;
+
+    // GUARD: Check if functionalMetrics exists and has valid data
+    if (!functionalMetrics || typeof functionalMetrics !== 'object') {
+      logger.warn('PERSONALIZED_METRICS_CALC', 'No valid functionalMetrics');
+      return null;
+    }
+
     return {
       wodFormat: functionalMetrics?.wodFormat || 'AMRAP',
-      roundsCompleted: functionalMetrics?.roundsCompleted || 0,
-      totalReps: functionalMetrics?.totalReps || 0,
-      timeCapReached: functionalMetrics?.timeCapReached || false,
+      roundsCompleted: typeof functionalMetrics.roundsCompleted === 'number' ? functionalMetrics.roundsCompleted : 0,
+      totalReps: typeof functionalMetrics.totalReps === 'number' ? functionalMetrics.totalReps : 0,
+      timeCapReached: !!functionalMetrics.timeCapReached,
       wodName: functionalMetrics?.wodName
     };
   };
@@ -153,8 +179,13 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
   const timeUnderTension = calculateTimeUnderTension();
 
   const formatTime = (seconds: number) => {
+    // GUARD: Check if seconds is valid
+    if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) {
+      logger.warn('PERSONALIZED_METRICS_CALC', 'Invalid seconds for formatTime', { seconds });
+      return '0:00';
+    }
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -164,9 +195,14 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
 
   // Endurance-specific metrics
   const formatDuration = (seconds: number) => {
+    // GUARD: Check if seconds is valid
+    if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) {
+      logger.warn('PERSONALIZED_METRICS_CALC', 'Invalid seconds for formatDuration', { seconds });
+      return '0:00';
+    }
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     if (hours > 0) {
       return `${hours}h${mins.toString().padStart(2, '0')}`;
     }
@@ -176,7 +212,8 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
   if (isFunctionalSession && functionalMetrics) {
     // Functional WOD session view
     const avgRPE = sessionFeedback.overallRpe || 8;
-    const estimatedCalories = Math.round((sessionFeedback.durationActual / 60) * 10 * (1 + avgRPE / 10));
+    const durationMinutes = (sessionFeedback.durationActual || 0) / 60;
+    const estimatedCalories = Math.round(durationMinutes * 10 * (1 + avgRPE / 10));
 
     return (
       <GlassCard
@@ -404,8 +441,9 @@ const PersonalizedMetricsCard: React.FC<PersonalizedMetricsCardProps> = ({
   if (isEnduranceSession) {
     // Endurance session view
     const totalDuration = aiAnalysis?.sessionAnalysis?.volumeAnalysis?.totalVolume || sessionFeedback.durationActual || 0;
-    const avgRPE = aiAnalysis?.sessionAnalysis?.intensityAnalysis?.avgRPE || sessionFeedback.overallRpe || 0;
-    const estimatedCalories = Math.round((totalDuration / 60) * 8 * (1 + avgRPE / 10)); // ~8 cal/min base
+    const avgRPE = aiAnalysis?.sessionAnalysis?.intensityAnalysis?.avgRPE || sessionFeedback.overallRpe || 7;
+    const durationMinutes = totalDuration / 60;
+    const estimatedCalories = Math.round(durationMinutes * 8 * (1 + avgRPE / 10)); // ~8 cal/min base
 
     return (
       <GlassCard

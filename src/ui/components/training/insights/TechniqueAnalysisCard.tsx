@@ -20,6 +20,34 @@ const TechniqueAnalysisCard: React.FC<TechniqueAnalysisCardProps> = ({
   aiAnalysis,
   stepColor,
 }) => {
+  // GUARD: Check if analysis and techniqueAnalysis exist
+  if (!aiAnalysis?.sessionAnalysis?.techniqueAnalysis) {
+    return (
+      <GlassCard
+        className="space-y-4"
+        style={{
+          background: `
+            radial-gradient(circle at 30% 20%, color-mix(in srgb, ${stepColor} 10%, transparent) 0%, transparent 60%),
+            rgba(255, 255, 255, 0.08)
+          `,
+          border: `2px solid color-mix(in srgb, ${stepColor} 20%, transparent)`,
+        }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <SpatialIcon Icon={ICONS.Info} size={24} style={{ color: stepColor }} />
+          <div>
+            <h3 className="text-xl font-semibold text-white">Analyse Technique</h3>
+            <p className="text-white/60 text-sm">Données insuffisantes</p>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-white/70 mb-2">Analyse technique non disponible</p>
+          <p className="text-white/50 text-sm">L'analyse détaillée nécessite plus de données d'exercices</p>
+        </div>
+      </GlassCard>
+    );
+  }
+
   const techniqueAnalysis = aiAnalysis.sessionAnalysis.techniqueAnalysis;
 
   // Calculate technique level
