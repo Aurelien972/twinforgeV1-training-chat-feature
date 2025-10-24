@@ -6,7 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
-import { formatExercisesForAI } from "../_shared/exerciseDatabaseService.ts";
+import { formatExercisesForAI, filterExercisesByContext } from "../_shared/exerciseDatabaseService.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -403,17 +403,35 @@ IMPORTANT:
     let exerciseCatalogSection = "";
     if (hasExerciseCatalog) {
       const userLanguage = exerciseCatalog.language || 'fr';
+
+      // CRITICAL: Filter exercises to prevent timeout (400+ → 60-80 exercises)
+      const filteredExercises = filterExercisesByContext(
+        exerciseCatalog.exercises,
+        {
+          discipline: 'strength',
+          availableEquipment: preparerContext.availableEquipment,
+          userLevel: userContext.profile?.training_level || undefined,
+          maxExercises: 60
+        }
+      );
+
+      console.log("[COACH-FORCE] Exercise catalog filtered", {
+        originalCount: exerciseCatalog.exercises.length,
+        filteredCount: filteredExercises.length,
+        reduction: `${Math.round((1 - filteredExercises.length / exerciseCatalog.exercises.length) * 100)}%`
+      });
+
       exerciseCatalogSection = `
 
 # ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES DISPONIBLES' : 'AVAILABLE EXERCISE CATALOG'}
 
 ${userLanguage === 'fr'
   ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
-Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+Ne génère PAS de nouveaux exercices. Catalogue filtré: ${filteredExercises.length} exercices optimisés pour ce contexte.`
   : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
-Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+Do NOT generate new exercises. Filtered catalog: ${filteredExercises.length} exercises optimized for this context.`}
 
-${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
 ${userLanguage === 'fr'
   ? `IMPORTANT: Pour chaque exercice sélectionné, tu peux utiliser les substitutions et progressions listées dans le catalogue.`

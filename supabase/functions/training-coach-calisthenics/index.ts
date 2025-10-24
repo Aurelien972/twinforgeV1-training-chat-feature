@@ -6,7 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
-import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
+import { formatExercisesForAI, filterExercisesByContext } from '../_shared/exerciseDatabaseService.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -495,17 +495,35 @@ IMPORTANT:
     let exerciseCatalogSection = '';
     if (hasExerciseCatalog) {
       const userLanguage = exerciseCatalog.language || 'fr';
+
+      // CRITICAL: Filter exercises to prevent timeout (400+ → 50-60 exercises)
+      const filteredExercises = filterExercisesByContext(
+        exerciseCatalog.exercises,
+        {
+          discipline: 'calisthenics',
+          availableEquipment: preparerContext.availableEquipment,
+          userLevel: userContext.profile?.training_level || undefined,
+          maxExercises: 50
+        }
+      );
+
+      console.log('[COACH-CALISTHENICS] Exercise catalog filtered', {
+        originalCount: exerciseCatalog.exercises.length,
+        filteredCount: filteredExercises.length,
+        reduction: `${Math.round((1 - filteredExercises.length / exerciseCatalog.exercises.length) * 100)}%`
+      });
+
       exerciseCatalogSection = `
 
 # ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES CALISTHENICS DISPONIBLES' : 'AVAILABLE CALISTHENICS EXERCISE CATALOG'}
 
 ${userLanguage === 'fr'
   ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
-Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+Ne génère PAS de nouveaux exercices. Catalogue filtré: ${filteredExercises.length} exercices optimisés.`
   : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
-Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+Do NOT generate new exercises. Filtered catalog: ${filteredExercises.length} optimized exercises.`}
 
-${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
 ${userLanguage === 'fr'
   ? `IMPORTANT: Utilise les progressions (tuck → straddle → full) et régressions listées dans le catalogue pour adapter au niveau de l'utilisateur.`

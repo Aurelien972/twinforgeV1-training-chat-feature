@@ -38,8 +38,8 @@ interface CircuitBreakerState {
 class CircuitBreaker {
   private states: Map<AgentType, CircuitBreakerState> = new Map();
   private readonly threshold = 5;
-  private readonly timeout = 60000;
-  private readonly halfOpenTimeout = 30000;
+  private readonly timeout = 180000;
+  private readonly halfOpenTimeout = 90000;
 
   async execute<T>(
     agentType: AgentType,
@@ -220,6 +220,24 @@ async function retryWithBackoff<T>(
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 240000): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new TimeoutError(`Request timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    fetch(url, options)
+      .then(response => {
+        clearTimeout(timeoutId);
+        resolve(response);
+      })
+      .catch(error => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
 }
 
 // ============================================================================
@@ -535,7 +553,7 @@ export class TrainingGenerationService {
             hasAnonKey: !!supabaseAnonKey
           });
 
-          const response = await fetch(`${supabaseUrl}/functions/v1/training-context-collector`, {
+          const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/training-context-collector`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -543,7 +561,7 @@ export class TrainingGenerationService {
               'apikey': supabaseAnonKey
             },
             body: JSON.stringify({ userId })
-          });
+          }, 180000);
 
           if (!response.ok) {
             const errorText = await response.text();
@@ -826,7 +844,7 @@ export class TrainingGenerationService {
           });
 
           const fetchStartTime = Date.now();
-          const response = await fetch(`${supabaseUrl}/functions/v1/${edgeFunctionName}`, {
+          const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/${edgeFunctionName}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -834,7 +852,7 @@ export class TrainingGenerationService {
               'apikey': supabaseAnonKey
             },
             body: JSON.stringify(requestBody)
-          });
+          }, 240000);
           const fetchLatency = Date.now() - fetchStartTime;
 
           logger.info('TRAINING_GENERATION', `[REQ:${requestId}] HTTP response received`, {

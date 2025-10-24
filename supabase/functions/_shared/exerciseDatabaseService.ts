@@ -486,6 +486,101 @@ export async function getExerciseSubstitutions(
 }
 
 /**
+ * Filter and prioritize exercises intelligently based on context
+ * CRITICAL: Reduces catalog from 400+ to 50-100 exercises to prevent timeouts
+ */
+export function filterExercisesByContext(
+  exercises: ExerciseCatalogEntry[],
+  context: {
+    discipline: string;
+    availableEquipment: string[];
+    userLevel?: string;
+    maxExercises?: number;
+  }
+): ExerciseCatalogEntry[] {
+  const maxLimit = context.maxExercises || 80;
+
+  console.log("[EXERCISE-FILTER] Starting intelligent filtering", {
+    totalExercises: exercises.length,
+    discipline: context.discipline,
+    equipmentCount: context.availableEquipment.length,
+    maxLimit
+  });
+
+  // Priority scoring system
+  const scoredExercises = exercises.map(ex => {
+    let score = 0;
+
+    // Priority 1: Exact discipline match (highest priority)
+    if (ex.discipline === context.discipline) {
+      score += 100;
+    }
+
+    // Priority 2: Equipment perfect match (critical for feasibility)
+    const requiredEquipment = ex.equipment.filter(eq => eq.is_required);
+    const hasAllRequiredEquipment = requiredEquipment.every(req =>
+      context.availableEquipment.some(avail =>
+        avail.toLowerCase().includes(req.name_fr.toLowerCase()) ||
+        avail.toLowerCase().includes(req.name.toLowerCase())
+      )
+    );
+
+    if (hasAllRequiredEquipment) {
+      score += 50;
+    }
+
+    // Bonus: Bodyweight exercises (always doable)
+    if (requiredEquipment.length === 0 ||
+        ex.equipment.some(eq => eq.name_fr === 'Poids du corps' || eq.name === 'Bodyweight')) {
+      score += 30;
+    }
+
+    // Priority 3: User level match
+    if (context.userLevel) {
+      if (ex.difficulty === context.userLevel) {
+        score += 20;
+      }
+    }
+
+    // Priority 4: Has coaching cues (quality indicator)
+    if (ex.coaching_cues.length > 0) {
+      score += 10;
+    }
+
+    // Priority 5: Has progressions/substitutions (versatility)
+    if (ex.progressions.length > 0 || ex.substitutions.length > 0) {
+      score += 10;
+    }
+
+    // Priority 6: Compound movements (more efficient)
+    const compoundPatterns = ['squat', 'deadlift', 'press', 'row', 'pull'];
+    if (compoundPatterns.some(pattern =>
+      ex.movement_pattern?.toLowerCase().includes(pattern) ||
+      ex.name.toLowerCase().includes(pattern)
+    )) {
+      score += 15;
+    }
+
+    return { exercise: ex, score };
+  });
+
+  // Sort by score descending
+  scoredExercises.sort((a, b) => b.score - a.score);
+
+  // Take top exercises up to limit
+  const filtered = scoredExercises.slice(0, maxLimit).map(item => item.exercise);
+
+  console.log("[EXERCISE-FILTER] Filtering complete", {
+    originalCount: exercises.length,
+    filteredCount: filtered.length,
+    reductionPercent: Math.round((1 - filtered.length / exercises.length) * 100),
+    topScores: scoredExercises.slice(0, 5).map(s => ({ name: s.exercise.name, score: s.score }))
+  });
+
+  return filtered;
+}
+
+/**
  * Format exercise catalog for AI prompt
  */
 export function formatExercisesForAI(

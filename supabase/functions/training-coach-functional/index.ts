@@ -7,7 +7,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
-import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
+import { formatExercisesForAI, filterExercisesByContext } from '../_shared/exerciseDatabaseService.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -263,17 +263,35 @@ async function generatePrescription(
     let exerciseCatalogSection = '';
     if (hasExerciseCatalog) {
       const userLanguage = exerciseCatalog.language || 'fr';
+
+      // CRITICAL: Filter exercises to prevent timeout (400+ → 70-80 exercises)
+      const filteredExercises = filterExercisesByContext(
+        exerciseCatalog.exercises,
+        {
+          discipline: 'functional',
+          availableEquipment: request.preparerContext.availableEquipment,
+          userLevel: request.userContext.profile?.training_level || undefined,
+          maxExercises: 70
+        }
+      );
+
+      console.log('[COACH-FUNCTIONAL] Exercise catalog filtered', {
+        originalCount: exerciseCatalog.exercises.length,
+        filteredCount: filteredExercises.length,
+        reduction: `${Math.round((1 - filteredExercises.length / exerciseCatalog.exercises.length) * 100)}%`
+      });
+
       exerciseCatalogSection = `
 
 # ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES FUNCTIONAL FITNESS DISPONIBLES' : 'AVAILABLE FUNCTIONAL FITNESS EXERCISE CATALOG'}
 
 ${userLanguage === 'fr'
   ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
-Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+Ne génère PAS de nouveaux exercices. Catalogue filtré: ${filteredExercises.length} exercices optimisés.`
   : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
-Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+Do NOT generate new exercises. Filtered catalog: ${filteredExercises.length} optimized exercises.`}
 
-${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
 ${userLanguage === 'fr'
   ? `IMPORTANT: Utilise les substitutions du catalogue pour proposer scaling RX, Scaled, et Foundations.`

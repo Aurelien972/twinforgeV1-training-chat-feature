@@ -7,7 +7,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
-import { formatExercisesForAI } from '../_shared/exerciseDatabaseService.ts';
+import { formatExercisesForAI, filterExercisesByContext } from '../_shared/exerciseDatabaseService.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -271,17 +271,36 @@ Deno.serve(async (req: Request) => {
     let exerciseCatalogSection = '';
     if (hasExerciseCatalog) {
       const userLanguage = exerciseCatalog.language || 'fr';
+
+      // CRITICAL: Filter exercises to prevent timeout (400+ → 40-50 exercises)
+      const filteredExercises = filterExercisesByContext(
+        exerciseCatalog.exercises,
+        {
+          discipline: 'endurance',
+          availableEquipment: preparerContext.availableEquipment,
+          userLevel: userContext.profile?.training_level || undefined,
+          maxExercises: 40
+        }
+      );
+
+      console.log(`[COACH-ENDURANCE] [REQ:${requestId}] Exercise catalog filtered`, {
+        requestId,
+        originalCount: exerciseCatalog.exercises.length,
+        filteredCount: filteredExercises.length,
+        reduction: `${Math.round((1 - filteredExercises.length / exerciseCatalog.exercises.length) * 100)}%`
+      });
+
       exerciseCatalogSection = `
 
 # ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES DRILLS/TECHNIQUES DISPONIBLES' : 'AVAILABLE DRILLS/TECHNIQUES CATALOG'}
 
 ${userLanguage === 'fr'
   ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE pour les drills et techniques.
-Ne génère PAS de nouveaux noms d'exercices techniques. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+Ne génère PAS de nouveaux noms d'exercices techniques. Catalogue filtré: ${filteredExercises.length} exercices optimisés.`
   : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG for drills and techniques.
-Do NOT generate new technique exercise names. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+Do NOT generate new technique exercise names. Filtered catalog: ${filteredExercises.length} optimized exercises.`}
 
-${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
 ${userLanguage === 'fr'
   ? `IMPORTANT: Utilise ces exercices pour les drills techniques, renforcement spécifique, et préparation physique.`

@@ -20,7 +20,7 @@ interface LockEntry {
 
 class GenerationLockService {
   private locks: Map<string, LockEntry> = new Map();
-  private readonly LOCK_TIMEOUT_MS = 150000; // 2.5 minutes (aligned with server timeout)
+  private readonly LOCK_TIMEOUT_MS = 300000; // 5 minutes (aligned with increased server timeout)
   private cleanupIntervalId: NodeJS.Timeout | null = null;
   private readonly MAX_RETRY_ATTEMPTS = 10; // Increased for long-running generations
   private readonly RETRY_DELAY_BASE_MS = 500; // Increased base delay for realistic wait times
@@ -124,8 +124,8 @@ class GenerationLockService {
         const lockAge = Date.now() - result.existingLock.timestamp;
         const remainingTime = this.LOCK_TIMEOUT_MS - lockAge;
 
-        // If lock is recent (< 140s), suggest waiting for completion
-        if (remainingTime > 10000) {
+        // If lock is recent (< 280s), suggest waiting for completion
+        if (remainingTime > 20000) {
           logger.info('GENERATION_LOCK', 'Active lock detected - suggesting wait for completion', {
             type,
             lockAge: Math.floor(lockAge / 1000),
