@@ -204,10 +204,24 @@ export function ExerciseIllustration({
     initialLoadRef.current = false;
 
     const fetchIllustration = async () => {
-      // Apply mount delay to stagger requests in StrictMode
+        // Apply mount delay to stagger requests in StrictMode
       if (mountDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, mountDelay));
         if (!mountedRef.current) return;
+      }
+
+      // CRITICAL: Additional debounce check - if a pending request was created
+      // during our mount delay, reuse it instead of continuing
+      const earlyPendingCheck = illustrationCacheService.getPendingRequest(exerciseName, discipline);
+      if (earlyPendingCheck) {
+        logger.info('EXERCISE_ILLUSTRATION', 'Pending request created during mount delay - reusing', {
+          exerciseName,
+          discipline,
+          componentId: componentIdRef.current
+        });
+        // Trigger re-check by returning early
+        // The useEffect will re-run and catch the pending request
+        return;
       }
 
       // CRITICAL: Check if we should proceed (StrictMode guard)
@@ -322,25 +336,123 @@ export function ExerciseIllustration({
           componentId: componentIdRef.current
         });
 
-        // CRITICAL: Acquire global lock with retry mechanism
+        // CRITICAL: Acquire global lock with retry mechanism (10 attempts with longer delays)
         const lockResult = await generationLockService.acquireLockWithRetry('illustration', {
           exerciseName,
           discipline
-        }, 3);
+        }, 10);
 
         if (!lockResult.success) {
-          logger.warn('EXERCISE_ILLUSTRATION', 'Failed to acquire lock after retries - waiting for completion', {
+          // Check if we should wait for the active generation to complete
+          if (lockResult.shouldWait) {
+            logger.info('EXERCISE_ILLUSTRATION', 'Active generation detected - subscribing to completion', {
+              exerciseName,
+              discipline,
+              existingLockId: lockResult.existingLock?.lockId,
+              componentId: componentIdRef.current
+            });
+
+            // Set generating state and wait for the ongoing generation
+            if (mountedRef.current) {
+              setIsGenerating(true);
+              setLoading(true);
+            }
+
+            // Subscribe to pending request for real-time updates
+            const unsubscribe = illustrationCacheService.subscribeToPendingRequest(
+              exerciseName,
+              discipline,
+              (result) => {
+                if (!mountedRef.current) return;
+
+                if (result) {
+                  logger.info('EXERCISE_ILLUSTRATION', 'Received illustration from subscription', {
+                    exerciseName,
+                    illustrationId: result.illustrationId,
+                    componentId: componentIdRef.current
+                  });
+
+                  setIllustration({
+                    id: result.illustrationId,
+                    imageUrl: result.imageUrl,
+                    thumbnailUrl: result.thumbnailUrl,
+                    matchType: 'exact',
+                    matchScore: 100,
+                    source: result.source
+                  });
+                  setIllustrationIsDiptych(result.isDiptych || false);
+                  setIllustrationAspectRatio(result.aspectRatio || '1:1');
+                  setIsGenerating(false);
+                  setLoading(false);
+                } else {
+                  logger.warn('EXERCISE_ILLUSTRATION', 'Subscription returned null - showing fallback', {
+                    exerciseName,
+                    componentId: componentIdRef.current
+                  });
+                  setError(true);
+                  setIsGenerating(false);
+                  setLoading(false);
+                }
+              }
+            );
+
+            // Store unsubscribe for cleanup
+            if (unsubscribe) {
+              // Clean up subscription on unmount
+              const originalUnmount = () => {
+                if (unsubscribe) unsubscribe();
+              };
+
+              // Set timeout to poll for result if subscription doesn't fire
+              const pollTimeout = setTimeout(async () => {
+                if (!mountedRef.current) return;
+
+                logger.debug('EXERCISE_ILLUSTRATION', 'Polling for illustration after wait', {
+                  exerciseName,
+                  discipline
+                });
+
+                // Check cache again
+                const cached = illustrationCacheService.get(exerciseName, discipline);
+                if (cached && mountedRef.current) {
+                  setIllustration({
+                    id: cached.illustrationId,
+                    imageUrl: cached.imageUrl,
+                    thumbnailUrl: cached.thumbnailUrl,
+                    matchType: 'exact',
+                    matchScore: 100,
+                    source: cached.source
+                  });
+                  setIllustrationIsDiptych(cached.isDiptych || false);
+                  setIllustrationAspectRatio(cached.aspectRatio || '1:1');
+                  setIsGenerating(false);
+                  setLoading(false);
+                }
+              }, 60000); // Poll after 60 seconds
+
+              // Clean up timeout on unmount
+              return () => {
+                clearTimeout(pollTimeout);
+                originalUnmount();
+              };
+            }
+
+            return;
+          }
+
+          logger.warn('EXERCISE_ILLUSTRATION', 'Failed to acquire lock after all retries - showing fallback', {
             exerciseName,
             discipline,
             existingLockId: lockResult.existingLock?.lockId,
             componentId: componentIdRef.current
           });
-          // Set loading state and wait for existing generation
+
+          // No active generation detected, show error state
           if (mountedRef.current) {
-            setIsGenerating(true);
+            setError(true);
+            setIsGenerating(false);
+            setLoading(false);
           }
-          // Don't attempt to generate, just wait for cache to be populated
-          // The pending request check at the start of useEffect will handle it
           return;
         }
 
@@ -607,11 +719,19 @@ export function ExerciseIllustration({
               timestamp: Date.now()
             };
           } catch (error) {
-            // Release lock on error
-            generationLockService.releaseLock('illustration', {
-              exerciseName,
-              discipline
-            });
+            // CRITICAL: Release lock on error
+            if (lockAcquiredRef.current) {
+              generationLockService.releaseLock('illustration', {
+                exerciseName,
+                discipline
+              });
+              lockAcquiredRef.current = false;
+              logger.info('EXERCISE_ILLUSTRATION', 'Lock released after error', {
+                exerciseName,
+                discipline,
+                componentId: componentIdRef.current
+              });
+            }
 
             // Remove placeholder on error
             illustrationCacheService.removePlaceholder(exerciseName, discipline);
@@ -678,6 +798,23 @@ export function ExerciseIllustration({
         }
 
       } catch (err) {
+        // CRITICAL: Release lock on outer catch
+        if (lockAcquiredRef.current) {
+          generationLockService.releaseLock('illustration', {
+            exerciseName,
+            discipline
+          });
+          lockAcquiredRef.current = false;
+          logger.info('EXERCISE_ILLUSTRATION', 'Lock released after outer error', {
+            exerciseName,
+            discipline,
+            componentId: componentIdRef.current
+          });
+        }
+
+        // Remove placeholder on error
+        illustrationCacheService.removePlaceholder(exerciseName, discipline);
+
         if (!mountedRef.current) return;
 
         // Don't log abort errors (user navigated away)
@@ -901,13 +1038,22 @@ export function ExerciseIllustration({
                 <p className="text-white/50 text-sm">
                   {generationElapsed}s écoulées
                 </p>
+                {generationElapsed > 15 && generationElapsed <= 40 && (
+                  <motion.p
+                    className="text-blue-400/70 text-xs mt-3 font-medium"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    Génération en cours par le serveur...
+                  </motion.p>
+                )}
                 {generationElapsed > 40 && generationElapsed <= 80 && (
                   <motion.p
                     className="text-yellow-400/70 text-xs mt-3 font-medium"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    ✨ Génération haute qualité en cours...
+                    Génération haute qualité en cours...
                   </motion.p>
                 )}
                 {generationElapsed > 80 && (
@@ -916,7 +1062,7 @@ export function ExerciseIllustration({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    🎨 Touches finales en cours...
+                    Touches finales en cours...
                   </motion.p>
                 )}
               </motion.div>

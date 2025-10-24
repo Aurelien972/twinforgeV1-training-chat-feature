@@ -20,6 +20,7 @@ interface CacheEntry {
 interface PendingRequest {
   promise: Promise<CacheEntry | null>;
   timestamp: number;
+  subscribers: Set<(result: CacheEntry | null) => void>;
 }
 
 class IllustrationCacheService {
@@ -255,10 +256,51 @@ class IllustrationCacheService {
       discipline,
       ageMs: age,
       ageSeconds: Math.floor(age / 1000),
-      totalPending: this.pendingRequests.size
+      totalPending: this.pendingRequests.size,
+      subscribers: pending.subscribers.size
     });
 
     return pending.promise;
+  }
+
+  /**
+   * Subscribe to a pending request for real-time updates
+   * Returns unsubscribe function
+   */
+  subscribeToPendingRequest(
+    exerciseName: string,
+    discipline: string,
+    callback: (result: CacheEntry | null) => void
+  ): (() => void) | null {
+    const key = this.getCacheKey(exerciseName, discipline);
+    const pending = this.pendingRequests.get(key);
+
+    if (!pending) {
+      logger.debug('ILLUSTRATION_CACHE', 'No pending request to subscribe to', {
+        exerciseName,
+        discipline
+      });
+      return null;
+    }
+
+    // Add subscriber
+    pending.subscribers.add(callback);
+
+    logger.debug('ILLUSTRATION_CACHE', 'Subscribed to pending request', {
+      exerciseName,
+      discipline,
+      totalSubscribers: pending.subscribers.size
+    });
+
+    // Return unsubscribe function
+    return () => {
+      pending.subscribers.delete(callback);
+      logger.debug('ILLUSTRATION_CACHE', 'Unsubscribed from pending request', {
+        exerciseName,
+        discipline,
+        remainingSubscribers: pending.subscribers.size
+      });
+    };
   }
 
   /**
@@ -271,10 +313,12 @@ class IllustrationCacheService {
   ): void {
     const key = this.getCacheKey(exerciseName, discipline);
     const timestamp = Date.now();
+    const subscribers = new Set<(result: CacheEntry | null) => void>();
 
     this.pendingRequests.set(key, {
       promise,
-      timestamp
+      timestamp,
+      subscribers
     });
 
     logger.info('ILLUSTRATION_CACHE', 'Registered pending generation', {
@@ -284,16 +328,71 @@ class IllustrationCacheService {
       timestamp: new Date(timestamp).toISOString()
     });
 
+    // Notify subscribers when promise resolves
+    promise.then(
+      (result) => {
+        // Notify all subscribers of success
+        const pending = this.pendingRequests.get(key);
+        if (pending && pending.subscribers.size > 0) {
+          logger.info('ILLUSTRATION_CACHE', 'Notifying subscribers of completion', {
+            exerciseName,
+            discipline,
+            subscriberCount: pending.subscribers.size,
+            success: !!result
+          });
+
+          pending.subscribers.forEach(callback => {
+            try {
+              callback(result);
+            } catch (error) {
+              logger.error('ILLUSTRATION_CACHE', 'Subscriber callback error', {
+                error: error instanceof Error ? error.message : 'Unknown',
+                exerciseName,
+                discipline
+              });
+            }
+          });
+        }
+      },
+      (error) => {
+        // Notify subscribers of error
+        const pending = this.pendingRequests.get(key);
+        if (pending && pending.subscribers.size > 0) {
+          logger.warn('ILLUSTRATION_CACHE', 'Notifying subscribers of error', {
+            exerciseName,
+            discipline,
+            subscriberCount: pending.subscribers.size,
+            error: error instanceof Error ? error.message : 'Unknown'
+          });
+
+          pending.subscribers.forEach(callback => {
+            try {
+              callback(null);
+            } catch (cbError) {
+              logger.error('ILLUSTRATION_CACHE', 'Subscriber error callback failed', {
+                error: cbError instanceof Error ? cbError.message : 'Unknown'
+              });
+            }
+          });
+        }
+      }
+    );
+
     // Clean up when promise resolves (success or failure)
     promise.finally(() => {
       const duration = Date.now() - timestamp;
+      const pending = this.pendingRequests.get(key);
+      const subscriberCount = pending?.subscribers.size || 0;
+
       this.pendingRequests.delete(key);
+
       logger.info('ILLUSTRATION_CACHE', 'Cleared pending request', {
         exerciseName,
         discipline,
         durationMs: duration,
         durationSeconds: Math.floor(duration / 1000),
-        remainingPending: this.pendingRequests.size
+        remainingPending: this.pendingRequests.size,
+        hadSubscribers: subscriberCount > 0
       });
     });
   }

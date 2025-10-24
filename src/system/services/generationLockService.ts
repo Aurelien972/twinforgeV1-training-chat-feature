@@ -20,10 +20,10 @@ interface LockEntry {
 
 class GenerationLockService {
   private locks: Map<string, LockEntry> = new Map();
-  private readonly LOCK_TIMEOUT_MS = 180000; // 3 minutes
+  private readonly LOCK_TIMEOUT_MS = 150000; // 2.5 minutes (aligned with server timeout)
   private cleanupIntervalId: NodeJS.Timeout | null = null;
-  private readonly MAX_RETRY_ATTEMPTS = 3;
-  private readonly RETRY_DELAY_BASE_MS = 100; // Base delay for exponential backoff
+  private readonly MAX_RETRY_ATTEMPTS = 10; // Increased for long-running generations
+  private readonly RETRY_DELAY_BASE_MS = 500; // Increased base delay for realistic wait times
 
   private generateLockKey(type: LockType, params: Record<string, string | undefined>): string {
     switch (type) {
@@ -104,7 +104,7 @@ class GenerationLockService {
       discipline?: string;
     },
     maxAttempts: number = this.MAX_RETRY_ATTEMPTS
-  ): Promise<{ success: boolean; lockId?: string; existingLock?: LockEntry }> {
+  ): Promise<{ success: boolean; lockId?: string; existingLock?: LockEntry; shouldWait?: boolean }> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const result = this.acquireLock(type, params);
 
@@ -119,6 +119,27 @@ class GenerationLockService {
         return result;
       }
 
+      // Check if existing lock is still valid and active
+      if (result.existingLock) {
+        const lockAge = Date.now() - result.existingLock.timestamp;
+        const remainingTime = this.LOCK_TIMEOUT_MS - lockAge;
+
+        // If lock is recent (< 140s), suggest waiting for completion
+        if (remainingTime > 10000) {
+          logger.info('GENERATION_LOCK', 'Active lock detected - suggesting wait for completion', {
+            type,
+            lockAge: Math.floor(lockAge / 1000),
+            remainingTimeSeconds: Math.floor(remainingTime / 1000),
+            attempt: attempt + 1
+          });
+
+          // On last attempt, return with shouldWait flag
+          if (attempt === maxAttempts - 1) {
+            return { ...result, shouldWait: true };
+          }
+        }
+      }
+
       // If this is the last attempt, return failure
       if (attempt === maxAttempts - 1) {
         logger.warn('GENERATION_LOCK', 'Failed to acquire lock after all retries', {
@@ -130,7 +151,8 @@ class GenerationLockService {
       }
 
       // Calculate exponential backoff delay with jitter
-      const baseDelay = this.RETRY_DELAY_BASE_MS * Math.pow(2, attempt);
+      // Cap at 8 seconds to avoid excessively long waits
+      const baseDelay = Math.min(this.RETRY_DELAY_BASE_MS * Math.pow(1.5, attempt), 8000);
       const jitter = Math.random() * baseDelay * 0.3; // Add 0-30% jitter
       const delay = baseDelay + jitter;
 
