@@ -30,7 +30,7 @@ export interface ContextCollectorResponse {
 export interface TrainingSession {
   id: string;
   user_id: string;
-  prescription_data: any;
+  prescription: any;
   created_at: string;
   completed_at?: string;
 }

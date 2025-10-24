@@ -72,7 +72,7 @@ export function analyzeMuscleGroups(sessions: any[]): Record<string, MuscleGroup
   const muscleGroupMap: Record<string, MuscleGroupData> = {};
 
   sessions.forEach(session => {
-    const sessionData = session.prescription_data || {};
+    const sessionData = session.prescription || {};
     const exercises = sessionData.exercises || [];
     const sessionDate = session.created_at;
 

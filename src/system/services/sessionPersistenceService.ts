@@ -40,7 +40,7 @@ class SessionPersistenceService {
         coach_type: coachType,
         session_type: prescription.type || discipline,
         status: 'completed',
-        prescription_data: prescription,
+        prescription: prescription,
         duration_target_min: prescription.durationTarget,
         duration_actual_min: feedback?.totalDuration || prescription.durationTarget,
         exercises_total: prescription.exercises?.length || prescription.mainWorkout?.length || 0,
@@ -103,7 +103,7 @@ class SessionPersistenceService {
         coach_type: coachType,
         session_type: prescription.type || discipline,
         status: 'draft',
-        prescription_data: prescription,
+        prescription: prescription,
         duration_target_min: prescription.durationTarget,
         exercises_total: prescription.exercises?.length || prescription.mainWorkout?.length || 0
       };

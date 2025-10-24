@@ -19,7 +19,7 @@ export function analyzeRecentExercises(sessions: any[]): Record<string, Exercise
   const exerciseMap: Record<string, ExerciseData> = {};
 
   sessions.forEach(session => {
-    const sessionData = session.prescription_data || {};
+    const sessionData = session.prescription || {};
     const exercises = sessionData.exercises || [];
     const sessionDate = session.created_at;
 

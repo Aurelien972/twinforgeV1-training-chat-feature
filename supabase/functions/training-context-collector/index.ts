@@ -94,7 +94,7 @@ function analyzeMuscleGroups(sessions: any[]): any {
   };
 
   sessions.forEach(session => {
-    const sessionData = session.prescription_data || {};
+    const sessionData = session.prescription || {};
     const exercises = sessionData.exercises || [];
     const sessionDate = session.created_at;
 
@@ -148,7 +148,7 @@ function analyzeRecentExercises(sessions: any[]): any {
   }> = {};
 
   sessions.forEach(session => {
-    const sessionData = session.prescription_data || {};
+    const sessionData = session.prescription || {};
     const exercises = sessionData.exercises || [];
     const feedback = session.feedback_data?.exercises || [];
 
