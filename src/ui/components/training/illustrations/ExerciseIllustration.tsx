@@ -77,6 +77,18 @@ export function ExerciseIllustration({
       return;
     }
 
+    // CRITICAL: Skip if we already have an exact match loaded
+    // This prevents unnecessary re-fetches when component re-renders
+    if (illustration && illustration.matchType === 'exact' && !initialLoadRef.current) {
+      logger.debug('EXERCISE_ILLUSTRATION', 'Already have exact illustration, skipping fetch', {
+        exerciseName,
+        discipline,
+        illustrationId: illustration.id
+      });
+      return;
+    }
+    initialLoadRef.current = false;
+
     // CRITICAL: Check pending requests FIRST before any other check
     const pendingPromise = illustrationCacheService.getPendingRequest(exerciseName, discipline);
     if (pendingPromise) {

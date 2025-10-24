@@ -12,6 +12,7 @@ import { trainingCoachNotificationService } from '../../../system/services/train
 import { Haptics } from '../../../utils/haptics';
 import SpatialIcon from '../../icons/SpatialIcon';
 import { ICONS } from '../../icons/registry';
+import logger from '../../../lib/utils/logger';
 import '../../../styles/components/training/training-coach-notification.css';
 
 const NOTIFICATION_TYPE_ICONS: Record<string, keyof typeof ICONS> = {
@@ -110,6 +111,11 @@ const TrainingCoachNotificationBubble: React.FC<TrainingCoachNotificationBubbleP
 
     const updatePosition = () => {
       if (chatButtonRef?.current && notificationRef?.current) {
+        logger.debug('TRAINING_COACH_NOTIFICATION', 'Updating position - chatButton ref exists', {
+          hasButton: !!chatButtonRef.current,
+          hasNotification: !!notificationRef.current
+        });
+
         const buttonRect = chatButtonRef.current.getBoundingClientRect();
         const notificationRect = notificationRef.current.getBoundingClientRect();
         const notificationWidth = 320;
@@ -119,10 +125,17 @@ const TrainingCoachNotificationBubble: React.FC<TrainingCoachNotificationBubbleP
         const buttonHeight = buttonRect.height;
         const notificationHeight = notificationRect.height || 56;
 
-        const right = window.innerWidth - buttonRect.left + gap;
+        const right = window.innerWidth - buttonRect.left + 24; // Increased gap from 16px to 24px
         const buttonCenterY = buttonRect.top + (buttonHeight / 2);
         // Ajout de 2px pour un alignement horizontal parfait
         const notificationTop = buttonCenterY - (notificationHeight / 2) + 2;
+
+        logger.debug('TRAINING_COACH_NOTIFICATION', 'Desktop positioning calculated', {
+          buttonRect: { left: buttonRect.left, top: buttonRect.top, width: buttonWidth, height: buttonHeight },
+          notificationRect: { width: notificationWidth, height: notificationHeight },
+          calculated: { right, top: notificationTop },
+          gap: 24
+        });
 
         setPositionStyles({
           position: 'fixed',

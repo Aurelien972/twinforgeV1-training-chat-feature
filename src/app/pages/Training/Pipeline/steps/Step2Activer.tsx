@@ -597,13 +597,20 @@ const Step2Activer: React.FC = () => {
     if (currentSessionId && userId && !isServicesInitialized) {
       const initServices = async () => {
         try {
-          logger.info('STEP_2_ACTIVER', 'Initializing notification services early');
+          logger.info('STEP_2_ACTIVER', 'Initializing notification services early', {
+            sessionId: currentSessionId,
+            userId
+          });
           await step2NotificationService.initialize(currentSessionId, userId);
           setIsServicesInitialized(true);
-          logger.info('STEP_2_ACTIVER', 'Notification services initialized successfully');
+          logger.info('STEP_2_ACTIVER', 'Notification services initialized successfully', {
+            canShowNotifications: true
+          });
         } catch (error) {
           logger.error('STEP_2_ACTIVER', 'Failed to initialize notification services', {
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
+            sessionId: currentSessionId,
+            userId
           });
         }
       };

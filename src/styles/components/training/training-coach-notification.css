@@ -16,9 +16,10 @@
   background:
     radial-gradient(circle at 30% 30%, var(--notification-color, rgba(255,255,255,0.16)) 0%, transparent 50%),
     radial-gradient(circle at 70% 70%, var(--notification-color, rgba(255,255,255,0.08)) 0%, transparent 60%),
+    rgba(0, 0, 0, 0.35),
     var(--liquid-pill-bg);
 
-  border: 2px solid color-mix(in srgb, var(--notification-color, rgba(255,255,255,0.22)) 40%, transparent);
+  border: 2px solid color-mix(in srgb, var(--notification-color, rgba(255,255,255,0.35)) 50%, transparent);
 
   backdrop-filter: blur(var(--liquid-pill-blur)) saturate(var(--liquid-pill-saturate));
   -webkit-backdrop-filter: blur(var(--liquid-pill-blur)) saturate(var(--liquid-pill-saturate));
@@ -26,7 +27,8 @@
   box-shadow:
     var(--liquid-pill-shadow),
     0 0 24px color-mix(in srgb, var(--notification-color, rgba(0, 0, 0, 0.15)) 20%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    0 0 12px color-mix(in srgb, var(--notification-color, rgba(255, 255, 255, 0.2)) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
   isolation: isolate;
   transform: translateZ(0);
@@ -106,11 +108,14 @@
   z-index: 1;
 
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 650;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.95);
+  color: #FFFFFF;
 
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(0, 0, 0, 0.8);
 
   display: flex;
   align-items: center;
