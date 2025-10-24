@@ -13,6 +13,7 @@ import { illustrationCacheService } from '../../../../system/services/illustrati
 import { generationLockService } from '../../../../system/services/generationLockService';
 import { env } from '../../../../system/env';
 import logger from '../../../../lib/utils/logger';
+import { useUserStore } from '../../../../system/store/userStore';
 
 export interface ExerciseIllustrationProps {
   exerciseName: string;
@@ -43,6 +44,7 @@ export function ExerciseIllustration({
   onClick,
   className = ''
 }: ExerciseIllustrationProps) {
+  const { user } = useUserStore();
   const [illustration, setIllustration] = useState<IllustrationMatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -359,6 +361,7 @@ export function ExerciseIllustration({
               muscleGroups,
               equipment,
               movementPattern,
+              userId: user?.id,
               style: 'technical',
               viewAngle: 'front'
             }),

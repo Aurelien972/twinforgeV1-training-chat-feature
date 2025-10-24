@@ -71,6 +71,7 @@ interface GenerationRequest {
   muscleGroups?: string[];
   equipment?: string[];
   movementPattern?: string;
+  userId?: string;
 }
 
 interface GenerationResult {
@@ -189,14 +190,65 @@ Deno.serve(async (req: Request) => {
       preview: prompt.substring(0, 150) + '...'
     });
 
-    // Extract userId from request
+    // Extract userId from request body (primary) or Authorization header (fallback)
     const authHeader = req.headers.get('Authorization');
-    let userId = request.userId || 'anonymous';
+    let userId = request.userId || null;
+
+    // If not provided in body, try to extract from auth token
     if (!userId && authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const { data: { user } } = await supabase.auth.getUser(token);
-      userId = user?.id || 'anonymous';
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+      if (authError) {
+        console.error(`[GPT-IMAGE-1][${requestId}] Auth token validation failed`, {
+          error: authError.message,
+          code: authError.code
+        });
+      }
+
+      userId = user?.id || null;
     }
+
+    // CRITICAL: Reject request if no valid userId found
+    if (!userId) {
+      console.error(`[GPT-IMAGE-1][${requestId}] No valid userId - user must be authenticated`, {
+        hasBodyUserId: !!request.userId,
+        hasAuthHeader: !!authHeader,
+        requestId
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Vous devez être authentifié pour générer des illustrations. Veuillez vous reconnecter.'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate userId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      console.error(`[GPT-IMAGE-1][${requestId}] Invalid userId format - must be UUID`, {
+        userId,
+        requestId
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'INVALID_USER_ID',
+        message: 'Identifiant utilisateur invalide. Veuillez vous reconnecter.'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log(`[GPT-IMAGE-1][${requestId}] User authenticated`, {
+      userId,
+      source: request.userId ? 'request_body' : 'auth_header'
+    });
 
     // Pre-check token balance before DALL-E call (image generation is expensive)
     const estimatedTokens = 500; // DALL-E image generation uses many tokens

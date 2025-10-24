@@ -1495,7 +1495,7 @@ const Step2Activer: React.FC = () => {
         )}
 
         {/* Primary CTA - Lancer la Séance */}
-        {messages.length > 0 && (
+        {sessionPrescription && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2195,7 +2195,7 @@ const Step2Activer: React.FC = () => {
       </AnimatePresence>
 
       {/* Action Buttons - Bottom position */}
-      {messages.length > 0 && (
+      {sessionPrescription && (
         <div className="space-y-4 mt-6 mb-4">
           {/* Primary CTA - Lancer la Séance (Bottom) */}
           <motion.div
