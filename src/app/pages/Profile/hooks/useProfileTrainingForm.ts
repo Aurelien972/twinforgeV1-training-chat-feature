@@ -80,8 +80,12 @@ export const useProfileTrainingForm = () => {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!profile?.user_id) {
-      console.error('[useProfileTrainingForm] No user_id found in profile');
+    const userId = (profile as any)?.userId || (profile as any)?.id;
+    if (!userId) {
+      console.error('[useProfileTrainingForm] No userId found in profile', {
+        hasProfile: !!profile,
+        profileKeys: profile ? Object.keys(profile) : []
+      });
       return;
     }
 
@@ -89,7 +93,7 @@ export const useProfileTrainingForm = () => {
       setIsSaving(true);
 
       console.log('[useProfileTrainingForm] Starting save', {
-        userId: profile.user_id,
+        userId,
         formData,
         currentHealth: profile.health
       });
@@ -111,7 +115,7 @@ export const useProfileTrainingForm = () => {
           health: updatedHealth,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', profile.user_id)
+        .eq('user_id', userId)
         .select()
         .single();
 
