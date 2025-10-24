@@ -1,12 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import {
-  EQUIPMENT_CATALOG,
+  loadEquipmentCatalog,
   getEquipmentListForLocationType,
   getEquipmentIdFromFrenchName,
   getTotalEquipmentCount,
-  ALL_EQUIPMENT_MAP
-} from "./equipment-reference.ts";
+  getEquipmentById
+} from "./equipment-loader.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -209,8 +209,8 @@ Réponds UNIQUEMENT avec JSON valide: {"detections": [...]}`;
   return basePrompt + (locationSpecific[locationType] || '');
 }
 
-function buildUserPrompt(locationType: string): string {
-  const equipmentListFr = getEquipmentListForLocationType(locationType);
+async function buildUserPrompt(locationType: string, supabaseUrl: string, supabaseKey: string): Promise<string> {
+  const equipmentListFr = await getEquipmentListForLocationType(locationType, supabaseUrl, supabaseKey);
 
   const categoryDescriptions: Record<string, string> = {
     gym: `SALLE DE SPORT - Recherche TOUS ces équipements:
@@ -486,10 +486,12 @@ function deduplicateByType(detections: EquipmentDetection[]): EquipmentDetection
 
 async function analyzeImageWithGPT5Mini(
   imageBase64: string,
-  locationType: "home" | "gym" | "outdoor"
+  locationType: "home" | "gym" | "outdoor",
+  supabaseUrl: string,
+  supabaseKey: string
 ): Promise<EquipmentDetection[]> {
   try {
-    const userPrompt = buildUserPrompt(locationType);
+    const userPrompt = await buildUserPrompt(locationType, supabaseUrl, supabaseKey);
 
     console.log(`🤖 Calling ${DETECTION_MODEL} with ${getTotalEquipmentCount()} equipment catalog...`);
     console.log(`📍 Location type: ${locationType}`);
@@ -618,9 +620,9 @@ ${userPrompt}`;
           continue;
         }
 
-        const equipmentItem = ALL_EQUIPMENT_MAP.get(equipmentId);
+        const equipmentItem = getEquipmentById(equipmentId);
         if (!equipmentItem) {
-          console.warn(`⚠️  Equipment ID found but not in map: "${equipmentId}"`);
+          console.warn(`⚠️  Equipment ID found but not in catalog: "${equipmentId}"`);
           continue;
         }
 
@@ -901,13 +903,19 @@ Deno.serve(async (req: Request) => {
         started_at: new Date().toISOString()
       });
 
+    console.log("📚 Loading equipment catalog from Supabase...");
+    await loadEquipmentCatalog(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    console.log(`✅ Equipment catalog loaded: ${getTotalEquipmentCount()} items`);
+
     console.log("⬇️  Downloading image from private storage...");
     const imageBase64 = await downloadImageFromStorage(supabase, requestData.photoPath);
 
     console.log(`🔍 Starting ${DETECTION_MODEL} analysis...`);
     const detections = await analyzeImageWithGPT5Mini(
       imageBase64,
-      requestData.locationType
+      requestData.locationType,
+      SUPABASE_URL!,
+      SUPABASE_SERVICE_ROLE_KEY!
     );
 
     const processingTimeMs = Date.now() - startTime;
