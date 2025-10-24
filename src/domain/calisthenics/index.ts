@@ -4,4 +4,3 @@
  */
 
 export * from './calisthenicsTypes';
-export * from './calisthenicsExercises';
