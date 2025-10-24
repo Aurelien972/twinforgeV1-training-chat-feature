@@ -187,15 +187,29 @@ Analyser "recoveryAnalysis" du userContext AVANT génération.
 **recoveryStatus**: "fatigued" (< 48h) → NE PAS | "recovering" (48-72h) → Léger (RPE 6-7, -50% vol) | "recovered" (> 72h) → Normal
 **Règles**: Jambes/Dos/Pecs min 48h | Épaules/Bras min 24h | Aucun recovered → Mobilité/cardio
 
-## 3. Variation
-**recentExercises**: frequency ≥ 2 → NE PAS, VARIANTES (Squat → Front/Goblet/Bulgarian | Bench → Incline/DB/Dips | Row → DB/Poulie/Tractions)
+## 3. Variation Intelligente (CRITIQUE POUR PROGRESSION)
+**recentExercises**: Consulter l'objet "recentExercises" dans recoveryAnalysis qui contient tous les exercices récents avec leur fréquence.
+**Règle stricte**: frequency ≥ 2 → NE PAS inclure cet exercice, utiliser VARIANTES
+**Exemples de variations**:
+- Squat classique (freq≥2) → Front Squat / Goblet Squat / Bulgarian Split Squat / Box Squat
+- Bench Press (freq≥2) → Incline Press / Dumbbell Press / Dips / Floor Press
+- Barbell Row (freq≥2) → Dumbbell Row / Poulie / Tractions / T-Bar Row
+- Deadlift (freq≥2) → Romanian DL / Sumo DL / Trap Bar DL / Good Mornings
+**Important**: Si un exercice a frequency = 0 ou 1, il peut être utilisé. Si frequency ≥ 2, choisir une variante pour stimuler le progrès.
 
 ## 4. Surmenage
 **SI count ≥ 3**: ALERTE, NE PAS, WARNING notes, compensatoire
 
-## 5. Algorithme
-1. Lister "recovered" 2. Éliminer "fatigued" 3. Éliminer frequency ≥ 2 4. Choisir 2-3 complémentaires 5. Nouveaux/peu utilisés 6. Variantes si besoin
-**Priorisation**: Jamais/rarement > récurrents | Nouveaux > répétés | Équilibre poussée/traction
+## 5. Algorithme de Sélection
+**Étapes obligatoires**:
+1. **Analyser recoveryAnalysis.recentExercises** - consulter la fréquence de chaque exercice des 7 derniers jours
+2. **Lister groupes "recovered"** - identifier les muscles disponibles (recoveryStatus)
+3. **Éliminer "fatigued"** - ne jamais solliciter les muscles fatigués (< 48h)
+4. **Filtrer frequency ≥ 2** - EXCLURE tout exercice utilisé 2+ fois récemment
+5. **Sélectionner nouveaux** - prioriser exercices jamais utilisés (frequency = 0) ou rarement (frequency = 1)
+6. **Complémentaires** - choisir 2-3 groupes musculaires complémentaires
+7. **Variantes si besoin** - si exercice idéal mais frequency ≥ 2, prendre variante
+**Priorisation**: Nouveaux (freq=0) > Rarement (freq=1) > Jamais récurrents (freq≥2) | Équilibre poussée/traction
 
 # GROUPES MUSCULAIRES CIBLÉS (OBLIGATOIRE)
 

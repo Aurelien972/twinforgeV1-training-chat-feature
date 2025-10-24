@@ -25,6 +25,7 @@ import { useProgressiveReveal, type ComponentTiming } from '../../../../../hooks
 import { useTrainingPipeline, STEP_COLORS } from '../../../../../system/store/trainingPipeline';
 import { step4NotificationService } from '../../../../../system/services/step4NotificationService';
 import { sessionAnalysisService, type SessionAnalysisResult } from '../../../../../system/services/sessionAnalysisService';
+import { sessionPersistenceService } from '../../../../../system/services/sessionPersistenceService';
 import { useChatButtonRef } from '../../../../../system/context/ChatButtonContext';
 import logger from '../../../../../lib/utils/logger';
 import { useUserStore } from '../../../../../system/store/userStore';
@@ -385,6 +386,30 @@ const Step4AdapterContent: React.FC = () => {
           latencyMs: metadata.latencyMs,
           overallScore: aiAnalysis.sessionAnalysis.overallPerformance.score
         });
+
+        // Save completed session to database
+        try {
+          await sessionPersistenceService.saveCompletedSession({
+            sessionId: currentSessionId,
+            userId,
+            prescription: sessionPrescription,
+            preparerContext: preparerData,
+            feedback,
+            analysisResult: aiAnalysis
+          });
+
+          logger.info('STEP_4_ADAPTER', 'Session saved successfully to database', {
+            sessionId: currentSessionId,
+            discipline: sessionPrescription.discipline || 'force',
+            hasAnalysis: true
+          });
+        } catch (saveError) {
+          logger.error('STEP_4_ADAPTER', 'Failed to save session to database', {
+            error: saveError instanceof Error ? saveError.message : 'Unknown',
+            sessionId: currentSessionId,
+            note: 'Session continues normally despite save failure'
+          });
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         const isTimeout = errorMessage.includes('timeout');

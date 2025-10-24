@@ -31,6 +31,7 @@ import { trainingCoachNotificationService } from '../../../../../system/services
 import type { TrainingNotificationContext } from '../../../../../domain/trainingCoachNotification';
 import { useChatButtonRef } from '../../../../../system/context/ChatButtonContext';
 import { useUserStore } from '../../../../../system/store/userStore';
+import { sessionPersistenceService } from '../../../../../system/services/sessionPersistenceService';
 import { EnduranceSessionDisplay } from '../../../../../ui/components/training';
 import CompetitionSessionDisplay from '../../../../../ui/components/training/competitions/session/CompetitionSessionDisplay';
 import { getWorkoutItems, getWorkoutItemsCount } from '../../../../../utils/prescriptionNormalizer';
@@ -634,6 +635,22 @@ const Step3SeanceContent: React.FC = () => {
     setShowExerciseCountdown(false);
     finishExercisePreparation();
     startSession();
+
+    // Update session status to 'in_progress' when exercises begin
+    if (currentSessionId) {
+      sessionPersistenceService.updateSessionStatus(currentSessionId, 'in_progress')
+        .then(() => {
+          logger.info('STEP_3_SEANCE', 'Session status updated to in_progress', {
+            sessionId: currentSessionId
+          });
+        })
+        .catch((error) => {
+          logger.error('STEP_3_SEANCE', 'Failed to update session status', {
+            error: error instanceof Error ? error.message : 'Unknown',
+            sessionId: currentSessionId
+          });
+        });
+    }
   };
 
   const handleSetCountdownComplete = () => {

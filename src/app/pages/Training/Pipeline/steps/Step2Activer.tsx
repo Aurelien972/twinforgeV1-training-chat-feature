@@ -31,6 +31,7 @@ import { useChatButtonRef } from '../../../../../system/context/ChatButtonContex
 import { trainingGenerationService } from '../../../../../system/services/ai/trainingGenerationService';
 import { exerciseProgressionService } from '../../../../../system/services/exerciseProgressionService';
 import { validateProfileForTraining } from '../../../../../system/services/profileValidationService';
+import { sessionPersistenceService } from '../../../../../system/services/sessionPersistenceService';
 import { useUserStore } from '../../../../../system/store/userStore';
 import { useToast } from '../../../../../ui/components/ToastProvider';
 import { useNavigate } from 'react-router-dom';
@@ -880,6 +881,28 @@ const Step2Activer: React.FC = () => {
           category: prescription.category
         });
         setSessionPrescription(prescription);
+
+        // Save draft session to database
+        if (currentSessionId && userId) {
+          sessionPersistenceService.saveDraftSession({
+            sessionId: currentSessionId,
+            userId,
+            prescription,
+            preparerContext: preparerData
+          }).then(() => {
+            logger.info('STEP_2_ACTIVER', 'Draft session saved successfully', {
+              sessionId: currentSessionId,
+              discipline: prescription.discipline || prescription.category || 'force'
+            });
+          }).catch((saveError) => {
+            logger.error('STEP_2_ACTIVER', 'Failed to save draft session', {
+              error: saveError instanceof Error ? saveError.message : 'Unknown',
+              sessionId: currentSessionId,
+              note: 'User can continue normally despite save failure'
+            });
+          });
+        }
+
         // Reset progress after a moment to allow completion animation
         setTimeout(() => {
           resetProgress();
