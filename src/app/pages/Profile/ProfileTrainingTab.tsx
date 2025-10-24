@@ -28,11 +28,14 @@ const ProfileTrainingTab: React.FC = () => {
 
   // Debug: Log profile health data
   React.useEffect(() => {
+    console.log('[ProfileTrainingTab] ========== PROFILE UPDATE ==========');
     console.log('[ProfileTrainingTab] Profile:', profile);
     console.log('[ProfileTrainingTab] Profile.health:', (profile as any)?.health);
     console.log('[ProfileTrainingTab] Form Data:', formData);
+    console.log('[ProfileTrainingTab] isDirty:', isDirty);
     console.log('[ProfileTrainingTab] Completion:', completion);
-  }, [profile, formData, completion]);
+    console.log('[ProfileTrainingTab] ========================================');
+  }, [profile, formData, completion, isDirty]);
 
   return (
     <ConditionalMotionSlide
@@ -226,7 +229,7 @@ const ProfileTrainingTab: React.FC = () => {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full py-3 rounded-lg bg-cyan-500/20 border-2 border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/30 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-lg bg-cyan-500/20 border-2 border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/30 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             style={{
               boxShadow: '0 0 20px rgba(6, 182, 212, 0.3)'
             }}

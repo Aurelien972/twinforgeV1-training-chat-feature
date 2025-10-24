@@ -26,29 +26,51 @@ export const useProfileTrainingForm = () => {
     preferred_session_duration: 45
   });
 
-  const [originalData, setOriginalData] = useState<TrainingFormData>({});
+  const [originalData, setOriginalData] = useState<TrainingFormData>({
+    fitness_level: '',
+    preferred_training_type: '',
+    sessions_per_week: 3,
+    preferred_session_duration: 45
+  });
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Charger les données du profil
   useEffect(() => {
-    if (profile?.health) {
+    if (profile && !isInitialized) {
+      console.log('[useProfileTrainingForm] Initializing form data', {
+        hasHealth: !!profile.health,
+        health: profile.health
+      });
+
+      const health = (profile as any).health || {};
       const trainingData: TrainingFormData = {
-        fitness_level: profile.health.fitness_level || '',
-        preferred_training_type: profile.health.preferred_training_type || '',
-        sessions_per_week: profile.health.sessions_per_week || 3,
-        preferred_session_duration: profile.health.preferred_session_duration || 45
+        fitness_level: health.fitness_level || '',
+        preferred_training_type: health.preferred_training_type || '',
+        sessions_per_week: health.sessions_per_week || 3,
+        preferred_session_duration: health.preferred_session_duration || 45
       };
+
+      console.log('[useProfileTrainingForm] Setting form data', trainingData);
       setFormData(trainingData);
       setOriginalData(trainingData);
+      setIsInitialized(true);
     }
-  }, [profile]);
+  }, [profile, isInitialized]);
 
   // Détecter les modifications
   useEffect(() => {
+    if (!isInitialized) return;
+
     const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
+    console.log('[useProfileTrainingForm] Checking for changes', {
+      hasChanges,
+      formData,
+      originalData
+    });
     setIsDirty(hasChanges);
-  }, [formData, originalData]);
+  }, [formData, originalData, isInitialized]);
 
   const handleChange = useCallback((field: keyof TrainingFormData, value: any) => {
     setFormData(prev => ({
