@@ -6,6 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from "../_shared/tokenMiddleware.ts";
+import { formatExercisesForAI } from "../_shared/exerciseDatabaseService.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -106,6 +107,18 @@ Deno.serve(async (req: Request) => {
     console.log("[COACH-FORCE] OpenAI API key found");
 
     const systemPrompt = `Tu es un coach IA expert en Force & Powerbuilding.
+
+# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+
+**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
+- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue
+- NE GÉNÈRE PAS de nouveaux noms d'exercices
+- SÉLECTIONNE les exercices selon: groupes musculaires, équipement disponible, niveau, objectifs
+- UTILISE les substitutions et progressions fournies dans le catalogue
+- RESPECTE les métadonnées: difficulté, tempo, sets/reps typiques, notes de sécurité
+
+**SI aucun catalogue n'est fourni**:
+- Génère des exercices selon tes connaissances standards
 
 # Principes Clés
 
@@ -364,6 +377,36 @@ IMPORTANT:
         : "gym standard";
     }
 
+    // Extract exercise catalog from userContext if available
+    const exerciseCatalog = userContext.exerciseCatalog;
+    const hasExerciseCatalog = exerciseCatalog && exerciseCatalog.exercises && exerciseCatalog.exercises.length > 0;
+
+    console.log("[COACH-FORCE] Exercise catalog availability", {
+      hasExerciseCatalog,
+      exerciseCount: hasExerciseCatalog ? exerciseCatalog.exercises.length : 0
+    });
+
+    let exerciseCatalogSection = "";
+    if (hasExerciseCatalog) {
+      const userLanguage = exerciseCatalog.language || 'fr';
+      exerciseCatalogSection = `
+
+# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES DISPONIBLES' : 'AVAILABLE EXERCISE CATALOG'}
+
+${userLanguage === 'fr'
+  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
+Ne génère PAS de nouveaux exercices. Sélectionne parmi les ${exerciseCatalog.totalCount} exercices ci-dessous.`
+  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
+Do NOT generate new exercises. Select from the ${exerciseCatalog.totalCount} exercises below.`}
+
+${formatExercisesForAI(exerciseCatalog.exercises, userLanguage as 'fr' | 'en')}
+
+${userLanguage === 'fr'
+  ? `IMPORTANT: Pour chaque exercice sélectionné, tu peux utiliser les substitutions et progressions listées dans le catalogue.`
+  : `IMPORTANT: For each selected exercise, you can use the substitutions and progressions listed in the catalog.`}
+`;
+    }
+
     const userPrompt = `# Contexte Utilisateur
 
 ${JSON.stringify(userContext, null, 2)}
@@ -371,6 +414,7 @@ ${JSON.stringify(userContext, null, 2)}
 # Contexte de Préparation
 
 ${JSON.stringify(preparerContext, null, 2)}
+${exerciseCatalogSection}
 
 # Instructions
 
@@ -382,6 +426,7 @@ Génère une prescription de training Force & Powerbuilding totalement personnal
 - Utiliser UNIQUEMENT ces équipements (${equipmentCount} disponibles): ${equipmentList}
 - Niveau d'énergie: ${preparerContext.energyLevel}/10
 - Éviter ces mouvements: ${avoidMovements}
+${hasExerciseCatalog ? `- **UTILISER UNIQUEMENT les exercices du catalogue fourni ci-dessus (${exerciseCatalog.totalCount} exercices disponibles)**` : ''}
 
 **Objectifs de Personnalisation**:
 - Focus sur la progression et la technique
@@ -389,6 +434,7 @@ Génère une prescription de training Force & Powerbuilding totalement personnal
 - Prescrire des charges réalistes basées sur l'historique
 - **IMPORTANT**: Générer un échauffement articulaire court (3-5 min) dans warmup
 - Si wantsShortVersion = true, échauffement minimal (2-3 min, 2-3 mouvements)
+${hasExerciseCatalog ? '- **SÉLECTIONNER les exercices du catalogue en fonction des groupes musculaires ciblés et de l\'équipement disponible**' : ''}
 
 **Utilisation INTELLIGENTE des Équipements**:
 - ANALYSER le contexte: ${trainingContext}

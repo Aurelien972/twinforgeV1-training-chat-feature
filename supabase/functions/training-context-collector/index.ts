@@ -5,6 +5,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
+import { queryExercisesByDiscipline, formatExercisesForAI } from "../_shared/exerciseDatabaseService.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,7 @@ const corsHeaders = {
 };
 
 // Cache schema version - increment when structure changes
-const CACHE_SCHEMA_VERSION = "2.1.0"; // Incremented for recoveryAnalysis addition
+const CACHE_SCHEMA_VERSION = "2.2.0"; // Incremented for exerciseCatalog addition
 
 interface ContextCollectorRequest {
   userId: string;
@@ -530,6 +531,68 @@ Deno.serve(async (req: Request) => {
       hasWearableRecovery: !!userData.wearableRecovery,
       wearableDeviceName: userData.wearableRecovery?.deviceName
     });
+
+    // 9. Query Exercise Catalog from Database
+    console.log("[CONTEXT-COLLECTOR] Querying exercise catalog from database...");
+    let exerciseCatalogData = null;
+    try {
+      // Get user's preferred training types and equipment
+      const trainingTypes = profile?.training_types || [];
+      const userLanguage = profile?.preferred_language || 'fr';
+
+      // Query exercises for each training discipline the user is interested in
+      const catalogPromises = trainingTypes.map((discipline: string) => {
+        const availableEquipment = locations && locations.length > 0
+          ? locations[0].available_equipment || []
+          : [];
+
+        const locationType = locations && locations.length > 0
+          ? locations[0].location_type || 'gym'
+          : 'gym';
+
+        return queryExercisesByDiscipline(supabase, {
+          discipline: discipline.toLowerCase(),
+          availableEquipment,
+          locationType: locationType as any,
+          difficulty: profile?.training_level || undefined,
+          language: userLanguage as 'fr' | 'en',
+          limit: 30 // Limit per discipline
+        });
+      });
+
+      const catalogResults = await Promise.all(catalogPromises);
+
+      // Combine all exercises from different disciplines
+      const allExercises = catalogResults.flatMap(result => result.exercises);
+      const totalExercises = allExercises.length;
+
+      console.log("[CONTEXT-COLLECTOR] Exercise catalog retrieved", {
+        disciplinesQueried: trainingTypes.length,
+        totalExercises,
+        equipmentFiltered: catalogResults.some(r => r.equipmentFiltered)
+      });
+
+      exerciseCatalogData = {
+        exercises: allExercises,
+        totalCount: totalExercises,
+        disciplines: trainingTypes,
+        language: userLanguage,
+        equipmentAvailable: locations && locations.length > 0
+          ? locations[0].available_equipment || []
+          : [],
+        muscleGroupsAvailable: [...new Set(allExercises.flatMap(ex =>
+          ex.muscle_groups.map(mg => mg.name_fr)
+        ))]
+      };
+
+      // Add to userData
+      userData.exerciseCatalog = exerciseCatalogData;
+
+    } catch (exerciseError) {
+      console.error("[CONTEXT-COLLECTOR] Error querying exercise catalog:", exerciseError);
+      // Continue without exercise catalog - fallback to AI generation
+      userData.exerciseCatalog = null;
+    }
 
     // 6. Check cache with validation
     console.log("[CONTEXT-COLLECTOR] [CACHE] Checking cache...");
