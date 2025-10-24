@@ -14,6 +14,7 @@ interface CacheEntry {
   isDiptych?: boolean;
   aspectRatio?: string;
   timestamp: number;
+  isPlaceholder?: boolean; // Indicates generation in progress
 }
 
 interface PendingRequest {
@@ -104,6 +105,18 @@ class IllustrationCacheService {
       return null;
     }
 
+    // If it's a placeholder, don't return it as a valid cache entry
+    if (entry.isPlaceholder) {
+      const age = Date.now() - entry.timestamp;
+      logger.debug('ILLUSTRATION_CACHE', 'Found placeholder - generation in progress', {
+        exerciseName,
+        discipline,
+        ageMs: age,
+        lockId: entry.illustrationId
+      });
+      return null;
+    }
+
     // Check if expired
     const age = Date.now() - entry.timestamp;
     if (age > this.CACHE_TTL_MS) {
@@ -147,7 +160,8 @@ class IllustrationCacheService {
       source,
       isDiptych,
       aspectRatio,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isPlaceholder: false
     });
 
     logger.debug('ILLUSTRATION_CACHE', 'Cache set', {
@@ -162,6 +176,52 @@ class IllustrationCacheService {
       if (firstKey) {
         this.cache.delete(firstKey);
       }
+    }
+  }
+
+  /**
+   * Set a placeholder in cache to indicate generation in progress
+   * This prevents duplicate generations while the first one is running
+   */
+  setPlaceholder(
+    exerciseName: string,
+    discipline: string,
+    lockId: string
+  ): void {
+    const key = this.getCacheKey(exerciseName, discipline);
+
+    this.cache.set(key, {
+      illustrationId: lockId,
+      imageUrl: '',
+      thumbnailUrl: '',
+      source: 'generating',
+      timestamp: Date.now(),
+      isPlaceholder: true
+    });
+
+    logger.info('ILLUSTRATION_CACHE', 'Placeholder set - generation in progress', {
+      exerciseName,
+      discipline,
+      lockId
+    });
+  }
+
+  /**
+   * Remove placeholder from cache
+   */
+  removePlaceholder(
+    exerciseName: string,
+    discipline: string
+  ): void {
+    const key = this.getCacheKey(exerciseName, discipline);
+    const entry = this.cache.get(key);
+
+    if (entry && entry.isPlaceholder) {
+      this.cache.delete(key);
+      logger.debug('ILLUSTRATION_CACHE', 'Placeholder removed', {
+        exerciseName,
+        discipline
+      });
     }
   }
 

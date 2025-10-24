@@ -11,6 +11,7 @@ import { illustrationMatchingService } from '../../../../system/services/illustr
 import type { IllustrationMatch } from '../../../../system/services/illustrationMatchingService';
 import { illustrationCacheService } from '../../../../system/services/illustrationCacheService';
 import { generationLockService } from '../../../../system/services/generationLockService';
+import { strictModeHelper } from '../../../../lib/utils/strictModeHelper';
 import { env } from '../../../../system/env';
 import logger from '../../../../lib/utils/logger';
 import { useUserStore } from '../../../../system/store/userStore';
@@ -61,6 +62,8 @@ export function ExerciseIllustration({
   const generationInProgressRef = useRef(false);
   const mountedRef = useRef(true);
   const initialLoadRef = useRef(true);
+  const lockAcquiredRef = useRef(false);
+  const componentIdRef = useRef(`comp-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -72,10 +75,15 @@ export function ExerciseIllustration({
       logger.debug('EXERCISE_ILLUSTRATION', 'Generation already in progress, skipping', {
         exerciseName,
         discipline,
-        reason: 'local_ref_lock'
+        reason: 'local_ref_lock',
+        componentId: componentIdRef.current
       });
       return;
     }
+
+    // Add small random delay to reduce StrictMode collision race conditions
+    // This helps stagger mount timing when React StrictMode mounts components twice
+    const mountDelay = Math.random() * 50; // 0-50ms random delay
 
     // CRITICAL: Skip if we already have an exact match loaded
     // This prevents unnecessary re-fetches when component re-renders
@@ -196,6 +204,28 @@ export function ExerciseIllustration({
     initialLoadRef.current = false;
 
     const fetchIllustration = async () => {
+      // Apply mount delay to stagger requests in StrictMode
+      if (mountDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, mountDelay));
+        if (!mountedRef.current) return;
+      }
+
+      // CRITICAL: Check if we should proceed (StrictMode guard)
+      const strictModeKey = `illustration:${exerciseName}:${discipline}`;
+      const shouldProceed = strictModeHelper.shouldProceed(strictModeKey, componentIdRef.current);
+
+      if (!shouldProceed) {
+        logger.info('EXERCISE_ILLUSTRATION', 'Blocked by StrictMode guard - duplicate mount detected', {
+          exerciseName,
+          discipline,
+          componentId: componentIdRef.current
+        });
+        // Set loading state and wait for the other component to complete
+        setIsGenerating(true);
+        setLoading(true);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(false);
@@ -288,20 +318,22 @@ export function ExerciseIllustration({
         // Step 2: No illustration found - generate directly
         logger.info('EXERCISE_ILLUSTRATION', 'No existing illustration - generating now', {
           exerciseName,
-          discipline
+          discipline,
+          componentId: componentIdRef.current
         });
 
-        // CRITICAL: Acquire global lock before generation
-        const lockResult = generationLockService.acquireLock('illustration', {
+        // CRITICAL: Acquire global lock with retry mechanism
+        const lockResult = await generationLockService.acquireLockWithRetry('illustration', {
           exerciseName,
           discipline
-        });
+        }, 3);
 
         if (!lockResult.success) {
-          logger.warn('EXERCISE_ILLUSTRATION', 'Already generating elsewhere, waiting for completion', {
+          logger.warn('EXERCISE_ILLUSTRATION', 'Failed to acquire lock after retries - waiting for completion', {
             exerciseName,
             discipline,
-            existingLockId: lockResult.existingLock?.lockId
+            existingLockId: lockResult.existingLock?.lockId,
+            componentId: componentIdRef.current
           });
           // Set loading state and wait for existing generation
           if (mountedRef.current) {
@@ -311,6 +343,72 @@ export function ExerciseIllustration({
           // The pending request check at the start of useEffect will handle it
           return;
         }
+
+        // CRITICAL: Double-check DB after lock acquisition
+        // This prevents race conditions where illustration was created
+        // between our initial check and lock acquisition
+        logger.debug('EXERCISE_ILLUSTRATION', 'Lock acquired - double-checking DB', {
+          exerciseName,
+          discipline,
+          lockId: lockResult.lockId
+        });
+
+        const doubleCheckMatch = await illustrationMatchingService.findExerciseIllustration({
+          exerciseName,
+          discipline,
+          muscleGroups,
+          equipment,
+          movementPattern
+        });
+
+        if (doubleCheckMatch && !mountedRef.current) {
+          // Release lock and return
+          generationLockService.releaseLock('illustration', {
+            exerciseName,
+            discipline
+          });
+          return;
+        }
+
+        if (doubleCheckMatch) {
+          logger.info('EXERCISE_ILLUSTRATION', 'Found illustration in double-check - using it', {
+            illustrationId: doubleCheckMatch.id,
+            exerciseName,
+            lockId: lockResult.lockId
+          });
+
+          // Release lock
+          generationLockService.releaseLock('illustration', {
+            exerciseName,
+            discipline
+          });
+
+          // Cache and use the found illustration
+          illustrationCacheService.set(
+            exerciseName,
+            discipline,
+            doubleCheckMatch.id,
+            doubleCheckMatch.imageUrl,
+            doubleCheckMatch.thumbnailUrl,
+            doubleCheckMatch.source,
+            doubleCheckMatch.isDiptych,
+            doubleCheckMatch.aspectRatio
+          );
+
+          if (mountedRef.current) {
+            setIllustration(doubleCheckMatch);
+            setIllustrationIsDiptych(doubleCheckMatch.isDiptych || false);
+            setIllustrationAspectRatio(doubleCheckMatch.aspectRatio || '1:1');
+            setLoading(false);
+          }
+          return;
+        }
+
+        // Mark lock as acquired
+        lockAcquiredRef.current = true;
+
+        // CRITICAL: Set placeholder in cache immediately to block other requests
+        illustrationCacheService.setPlaceholder(exerciseName, discipline, lockResult.lockId!);
 
         if (mountedRef.current) {
           setIsGenerating(true);
@@ -353,10 +451,11 @@ export function ExerciseIllustration({
           exerciseName,
           discipline,
           url: `${env.supabaseUrl}/functions/v1/generate-training-illustration`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          componentId: componentIdRef.current
         });
 
-        // Create generation promise and register it
+        // Create generation promise
         const generationPromise = (async () => {
           try {
             const generationStartTime = Date.now();
@@ -514,6 +613,9 @@ export function ExerciseIllustration({
               discipline
             });
 
+            // Remove placeholder on error
+            illustrationCacheService.removePlaceholder(exerciseName, discipline);
+
             // Handle errors within the promise
             if (error instanceof Error && error.name === 'AbortError') {
               logger.info('EXERCISE_ILLUSTRATION', 'Generation aborted', {
@@ -545,18 +647,32 @@ export function ExerciseIllustration({
           }
         })();
 
-        // Register pending request to prevent duplicates
+        // CRITICAL: Register pending request BEFORE starting fetch to prevent duplicates
+        // This ensures other components can find and reuse this promise immediately
         illustrationCacheService.setPendingRequest(exerciseName, discipline, generationPromise);
+        logger.debug('EXERCISE_ILLUSTRATION', 'Pending request registered before fetch', {
+          exerciseName,
+          discipline,
+          componentId: componentIdRef.current
+        });
 
         // Wait for result (with error handling)
         try {
-          await generationPromise;
+          const result = await generationPromise;
+          if (result && mountedRef.current) {
+            logger.info('EXERCISE_ILLUSTRATION', 'Generation completed successfully', {
+              exerciseName,
+              illustrationId: result.illustrationId,
+              componentId: componentIdRef.current
+            });
+          }
         } catch (promiseError) {
           // Promise errors are already handled internally
           if (promiseError instanceof Error && promiseError.name !== 'AbortError') {
             logger.warn('EXERCISE_ILLUSTRATION', 'Promise rejection caught', {
               error: promiseError.message,
-              exerciseName
+              exerciseName,
+              componentId: componentIdRef.current
             });
           }
         }
@@ -632,17 +748,27 @@ export function ExerciseIllustration({
       }
 
       // CRITICAL: Release lock on unmount if generation was in progress
-      if (generationInProgressRef.current) {
+      if (generationInProgressRef.current || lockAcquiredRef.current) {
         logger.info('EXERCISE_ILLUSTRATION', 'Releasing lock on component unmount', {
           exerciseName,
-          discipline
+          discipline,
+          componentId: componentIdRef.current
         });
         generationLockService.releaseLock('illustration', {
           exerciseName,
           discipline
         });
+
+        // Remove placeholder if we set one
+        illustrationCacheService.removePlaceholder(exerciseName, discipline);
+
         generationInProgressRef.current = false;
+        lockAcquiredRef.current = false;
       }
+
+      // Release StrictMode guard
+      const strictModeKey = `illustration:${exerciseName}:${discipline}`;
+      strictModeHelper.release(strictModeKey, componentIdRef.current);
     };
   }, [exerciseName, discipline]);
 

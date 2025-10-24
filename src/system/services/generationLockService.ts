@@ -22,6 +22,8 @@ class GenerationLockService {
   private locks: Map<string, LockEntry> = new Map();
   private readonly LOCK_TIMEOUT_MS = 180000; // 3 minutes
   private cleanupIntervalId: NodeJS.Timeout | null = null;
+  private readonly MAX_RETRY_ATTEMPTS = 3;
+  private readonly RETRY_DELAY_BASE_MS = 100; // Base delay for exponential backoff
 
   private generateLockKey(type: LockType, params: Record<string, string | undefined>): string {
     switch (type) {
@@ -87,6 +89,64 @@ class GenerationLockService {
     });
 
     return { success: true, lockId };
+  }
+
+  /**
+   * Acquire lock with automatic retry and exponential backoff
+   * Returns null if unable to acquire after all retries
+   */
+  async acquireLockWithRetry(
+    type: LockType,
+    params: {
+      sessionId?: string;
+      userId?: string;
+      exerciseName?: string;
+      discipline?: string;
+    },
+    maxAttempts: number = this.MAX_RETRY_ATTEMPTS
+  ): Promise<{ success: boolean; lockId?: string; existingLock?: LockEntry }> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const result = this.acquireLock(type, params);
+
+      if (result.success) {
+        if (attempt > 0) {
+          logger.info('GENERATION_LOCK', 'Lock acquired after retry', {
+            type,
+            attempt: attempt + 1,
+            totalAttempts: maxAttempts
+          });
+        }
+        return result;
+      }
+
+      // If this is the last attempt, return failure
+      if (attempt === maxAttempts - 1) {
+        logger.warn('GENERATION_LOCK', 'Failed to acquire lock after all retries', {
+          type,
+          attempts: maxAttempts,
+          existingLock: result.existingLock
+        });
+        return result;
+      }
+
+      // Calculate exponential backoff delay with jitter
+      const baseDelay = this.RETRY_DELAY_BASE_MS * Math.pow(2, attempt);
+      const jitter = Math.random() * baseDelay * 0.3; // Add 0-30% jitter
+      const delay = baseDelay + jitter;
+
+      logger.debug('GENERATION_LOCK', 'Retrying lock acquisition', {
+        type,
+        attempt: attempt + 1,
+        delayMs: Math.round(delay),
+        nextAttempt: attempt + 2
+      });
+
+      // Wait before next attempt
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    // This should never be reached, but TypeScript needs it
+    return { success: false };
   }
 
   releaseLock(
