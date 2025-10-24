@@ -1,5 +1,5 @@
 # SPRINT 1: RAPPORT D'AUDIT COMPLET
-**Date d'execution:** 24/10/2025 17:53:34
+**Date d'execution:** 24/10/2025 18:03:39
 **Total exercices:** 1000
 
 ---
@@ -28,12 +28,12 @@
 
 | Metadata | Complets | Manquants | % Completude |
 |----------|----------|-----------|--------------|
-| Muscles | 983 | 17 | 98.3% |
+| Muscles | 1000 | 0 | 100.0% |
 | Equipement | 748 | 252 | 74.8% |
-| Coaching Cues | 631 | 369 | 63.1% |
+| Coaching Cues | 720 | 280 | 72.0% |
 | Visual Keywords | 1000 | 0 | 100.0% |
 | Tempo | 1000 | 0 | 100.0% |
-| Safety Notes | 929 | 71 | 92.9% |
+| Safety Notes | 1000 | 0 | 100.0% |
 
 ---
 
@@ -56,12 +56,8 @@
 ## 🎯 PRIORITES D'ACTION
 
 ### Priorite 1: Completer coaching cues manquants
-- **Exercices concernes**: 369 (36.9%)
+- **Exercices concernes**: 280 (28.0%)
 - **Impact**: CRITIQUE - Coach IA ne peut pas guider correctement
-
-### Priorite 2: Assigner muscles aux exercices
-- **Exercices concernes**: 17 (1.7%)
-- **Impact**: MAJEUR - Matching et substitution impactes
 
 ### Priorite 3: Assigner equipements
 - **Exercices concernes**: 252 (25.2%)
@@ -71,35 +67,15 @@
 - **Exercices concernes**: 755 (75.5%)
 - **Impact**: IMPORTANT - Adaptation automatique limitee
 
-### Priorite 5: Completer safety notes
-- **Exercices concernes**: 71 (7.1%)
-- **Impact**: IMPORTANT - Securite utilisateur
-
 ---
 
 ## 📋 LISTES DETAILLEES
 
-### Exercices sans Muscles (17 total)
-- DEKA STRONG Overhead Press Strength (competitions)
-- DEKA Zone 2 Floor to Overhead 20 Reps (competitions)
-- DEKA STRONG Bench Press Max Effort (competitions)
-- DEKA Zone 2 Goblet Squats 30 Reps (competitions)
-- DEKA STRONG Heavy Deadlifts Max Reps (competitions)
-- DEKA STRONG Back Squats Max Weight (competitions)
-- DEKA STRONG Zone 6 Box Step-Overs 20 Reps (competitions)
-- DEKA MILE Box Jump Speed 30 Reps (competitions)
-- DEKA MILE BikeErg Sprint 1000m (competitions)
-- DEKA MILE Box Jumps Quick 40 Reps (competitions)
-- DEKA Zone 6 Box Step-Overs 20 Reps (competitions)
-- DEKA Zone 1 Box Jumps 30 Reps (competitions)
-- DEKA STRONG Max Effort Protocols (competitions)
-- DEKA STRONG Max Effort Protocol (competitions)
-- DEKA STRONG Full Race Max Effort (competitions)
-- DEKA STRONG Heavy Carries Max Distance (competitions)
-- DEKA STRONG Sandbag Clean Max Reps (competitions)
+### Exercices sans Muscles (0 total)
 
 
-### Exercices sans Coaching Cues (369 total)
+
+### Exercices sans Coaching Cues (280 total)
 - Leg Extension + Squat Pre-Exhaust (force, intermediate)
 - Squat + Leg Extension Post-Exhaust (force, intermediate)
 - Hack Squat Machine (force, intermediate)
@@ -121,55 +97,45 @@
 - Mixed Modal Assault Bike + Deadlifts + Box Jumps (functional, advanced)
 - Tabata 8 Rounds Air Squats (functional, beginner)
 
-... et 349 autres
+... et 260 autres
 
 ### Exercices sans Equipement (252 total)
+- Yoke Walk Medley (force)
+- Internal Rotation with Band (rehab)
+- [DOUBLON] Bench Press with Chains (force)
 - Atlas Stone Load (force)
+- Yoke Walk Turns (force)
+- Atlas Stone to Shoulder (force)
+- Back Squat with Chains (force)
 - Atlas Stone Lap (force)
 - Sled Push Heavy (force)
+- Board Press 2 Boards (force)
+- Pilates Shoulder Bridge (mobility)
 - Hack Squat Machine (force)
 - Hack Squat Narrow Stance (force)
 - Hack Squat Wide Stance (force)
 - Reverse Hack Squat (force)
+- Log Press Continental Style (force)
+- Scorpion Stretch (mobility)
+- Wall Slides (rehab)
 - Hack Squat Calf Raise (force)
 - Sandbag Over Bar (force)
-- Atlas Stone Load Series (force)
-- Yoke Walk Medley (force)
-- Yoke Walk Turns (force)
-- Log Clean and Press (force)
-- Front Squat with Chains (force)
-- Deadlift with Bands (force)
-- Board Press 2 Boards (force)
-- Pin Press Low (force)
-- Pin Press Mid (force)
-- Speed Deadlift (force)
-- Speed Squat (force)
 
 ... et 232 autres
 
-### Doublons Detectes
-- "log clean and press" (2 fois)
-- "deadlift with bands" (2 fois)
-- "speed deadlift" (2 fois)
-- "speed squat" (2 fois)
-- "bench press with chains" (2 fois)
-- "bench press with bands" (2 fois)
-- "deadlift with chains" (2 fois)
-- "speed bench press" (2 fois)
-- "triceps overhead stretch" (2 fois)
-- "pike push-ups" (2 fois)
+
 
 ### Incoherences Discipline/Category
+- Pilates Shoulder Bridge: mobility/pilates
 - Couch Bulgarian Split Squat: force/legs
+- Foam Roll Calves: mobility/foam_rolling
+- Diaphragmatic Breathing (Belly Breathing): mobility/breathing
+- Box Breathing (4-4-4-4): mobility/breathing
+- [DOUBLON] Pike Push-Ups: force/home_bodyweight
 - Triplet Run + Squats + Pull-ups: functional/wod_combination
 - Mixed Modal Assault Bike + Deadlifts + Box Jumps: functional/wod_combination
 - Sun Salutation A (Surya Namaskar A): mobility/yoga
 - Downward Dog (Adho Mukha Svanasana): mobility/yoga
-- Pigeon Pose (Eka Pada Rajakapotasana): mobility/yoga
-- Cobra Pose (Bhujangasana): mobility/yoga
-- Thread the Needle: mobility/yoga
-- Pilates Saw: mobility/pilates
-- Pilates Spine Stretch Forward: mobility/pilates
 
 ---
 
