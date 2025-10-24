@@ -41,132 +41,30 @@ const MUSCLE_NAME_MAP: MuscleMapping = {
   mollets: 'gastrocnemius'
 };
 
-/**
- * Movement Arrow Configuration - OPTIMIZED FOR COHERENCE
- * Each config defines PRECISE geometric arrow directions for Panel 1 and Panel 2
- */
-const MOVEMENT_ARROW_CONFIG: Record<string, {
-  panel1Position: string;
-  panel2Position: string;
-  macroArrow: { direction: string; color: string; style: string };
-  microArrows: string[];
-}> = {
-  // PUSH VERTICAL (Shoulder Press, Overhead Press)
-  'push-vertical': {
-    panel1Position: 'Arms bent at 90 degrees, weight at shoulder level (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Arms fully extended overhead, weight locked out above head (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'PERFECTLY VERTICAL UPWARD arrow (10px thick) from shoulder height to overhead lockout position',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight vertical line, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at elbow showing extension from 90° to 180°',
-      'Thin straight arrow at shoulder showing upward elevation'
-    ]
+const MOVEMENT_ARROW_CONFIG: Record<string, { macro: string; micro: string[] }> = {
+  push: {
+    macro: 'thick solid red arrow showing upward pushing motion from chest level to full extension',
+    micro: ['thin red arrows at shoulders showing rotation', 'thin red arrows at elbows showing extension']
   },
-
-  // PUSH HORIZONTAL (Bench Press, Push-ups)
-  'push-horizontal': {
-    panel1Position: 'Barbell touching chest, elbows bent at 90 degrees (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Arms fully extended, barbell at arms length above chest (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'PERFECTLY VERTICAL UPWARD arrow (10px thick) perpendicular to body from chest to arms extension',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight vertical line relative to gravity, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at elbow showing extension',
-      'Thin straight arrow at shoulder showing horizontal adduction'
-    ]
+  pull: {
+    macro: 'thick solid red arrow showing pulling motion toward body from extended to contracted position',
+    micro: ['thin red arrows at shoulders showing retraction', 'thin red arrows at elbows showing flexion']
   },
-
-  // PULL VERTICAL (Pull-ups, Lat Pulldown)
-  'pull-vertical': {
-    panel1Position: 'Arms fully extended upward, hanging from bar or holding cable handle high (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Elbows pulled down to sides, bar at chin level or cable pulled to chest (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'PERFECTLY VERTICAL DOWNWARD arrow (10px thick) from extended arms position to pulled position',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight vertical line downward, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at elbow showing flexion from 180° to 90°',
-      'Thin straight arrow at shoulder showing depression and retraction'
-    ]
-  },
-
-  // PULL HORIZONTAL (Seated Row, Barbell Row)
-  'pull-horizontal': {
-    panel1Position: 'Arms fully extended forward, holding handle or barbell away from body (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Elbows pulled back behind torso, handle or barbell against abdomen/chest (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'PERFECTLY HORIZONTAL BACKWARD arrow (10px thick) from extended arms to pulled position toward body',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight horizontal line parallel to ground, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at elbow showing flexion',
-      'Thin straight arrow at shoulder blade showing retraction'
-    ]
-  },
-
-  // SQUAT (Back Squat, Front Squat)
   squat: {
-    panel1Position: 'Full depth squat position: hip crease BELOW knee level, thighs parallel or below parallel to ground (STARTING POSITION - BOTTOM)',
-    panel2Position: 'Standing upright position: knees and hips fully extended, barbell overhead or on shoulders (ENDING POSITION - TOP)',
-    macroArrow: {
-      direction: 'PERFECTLY VERTICAL UPWARD arrow (10px thick) showing barbell ascending from bottom to top position',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight vertical line upward, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at knee showing extension from flexed to straight',
-      'Thin straight arrow at hip showing extension from flexed to straight'
-    ]
+    macro: 'thick solid red arrow showing vertical descent and ascent of barbell path',
+    micro: ['thin red arrows at hips showing flexion/extension', 'thin red arrows at knees showing bending angle', 'thin red arrows at ankles showing dorsiflexion']
   },
-
-  // HINGE (Deadlift, Romanian Deadlift)
   hinge: {
-    panel1Position: 'Barbell on ground or at shin level, torso hinged forward at hips, knees slightly bent (STARTING POSITION - BOTTOM)',
-    panel2Position: 'Standing fully upright, hips and knees extended, barbell at hip level (ENDING POSITION - TOP)',
-    macroArrow: {
-      direction: 'PERFECTLY VERTICAL UPWARD arrow (10px thick) showing barbell path from ground to hip level',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight vertical line close to body, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at hip showing extension from bent to straight',
-      'Thin horizontal arrow along spine showing neutral position maintenance'
-    ]
+    macro: 'thick solid red curved arrow showing hip hinge pattern from standing to bent position',
+    micro: ['thin red arrows at hips showing main hinge point', 'thin red arrows at lower back showing neutral spine maintenance']
   },
-
-  // EXTENSION (Triceps Extension, Leg Extension)
-  extension: {
-    panel1Position: 'Joint fully flexed, weight at starting position near body (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Joint fully extended, weight pushed away from body (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'STRAIGHT arrow (10px thick) in the direction of extension from flexed to extended position',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Straight line following the extension path, no curves'
-    },
-    microArrows: [
-      'Thin straight arrow at primary joint showing extension angle change'
-    ]
+  press: {
+    macro: 'thick solid red arrow showing pressing motion from shoulder to overhead lockout',
+    micro: ['thin red arrows at shoulders showing elevation', 'thin red arrows at elbows showing extension']
   },
-
-  // CURL (Biceps Curl, Hamstring Curl)
-  curl: {
-    panel1Position: 'Arms or legs fully extended, weight at starting position away from body (STARTING POSITION - MUSCLE STRETCHED)',
-    panel2Position: 'Joint fully flexed, weight curled toward body (ENDING POSITION - MUSCLE CONTRACTED)',
-    macroArrow: {
-      direction: 'CURVED arrow (10px thick) following the curling motion from extended to flexed position',
-      color: 'SOLID RED (#FF0000) in Panel 1',
-      style: 'Smooth arc following joint rotation, minimal curve'
-    },
-    microArrows: [
-      'Thin curved arrow at joint showing flexion arc'
-    ]
+  row: {
+    macro: 'thick solid red arrow showing horizontal pull from extended arms to body',
+    micro: ['thin red arrows at scapula showing retraction', 'thin red arrows at elbows showing pull']
   }
 };
 
@@ -177,10 +75,6 @@ function normalizeMuscleNames(muscles: string[]): string[] {
   });
 }
 
-/**
- * Determine precise movement pattern with sub-categorization
- * Returns specific pattern keys that map to exact arrow configurations
- */
 function determineMovementPattern(exerciseName: string, providedPattern?: string): string {
   if (providedPattern) {
     return providedPattern.toLowerCase();
@@ -188,97 +82,34 @@ function determineMovementPattern(exerciseName: string, providedPattern?: string
 
   const name = exerciseName.toLowerCase();
 
-  // SQUAT patterns
   if (name.includes('squat')) return 'squat';
+  if (name.includes('deadlift') || name.includes('soulev') || name.includes('rdl')) return 'hinge';
+  if (name.includes('press') || name.includes('bench') || name.includes('développé')) return 'push';
+  if (name.includes('row') || name.includes('rowing') || name.includes('tirage')) return 'pull';
+  if (name.includes('curl')) return 'pull';
+  if (name.includes('extension')) return 'push';
+  if (name.includes('shoulder') || name.includes('épaule')) return 'press';
 
-  // HINGE patterns (Deadlifts)
-  if (name.includes('deadlift') || name.includes('soulev') || name.includes('rdl') ||
-      name.includes('soulevé de terre')) return 'hinge';
-
-  // PUSH VERTICAL (Overhead Press)
-  if (name.includes('shoulder press') || name.includes('military press') ||
-      name.includes('overhead press') || name.includes('développé militaire') ||
-      name.includes('développé épaules')) return 'push-vertical';
-
-  // PUSH HORIZONTAL (Bench Press, Push-ups)
-  if (name.includes('bench press') || name.includes('développé couché') ||
-      name.includes('push-up') || name.includes('pompe') ||
-      name.includes('chest press') || name.includes('développé incliné')) return 'push-horizontal';
-
-  // PULL VERTICAL (Pull-ups, Lat Pulldown)
-  if (name.includes('pull-up') || name.includes('pulldown') || name.includes('traction') ||
-      name.includes('tirage vertical') || name.includes('lat pull')) return 'pull-vertical';
-
-  // PULL HORIZONTAL (Rows)
-  if (name.includes('row') || name.includes('rowing') || name.includes('tirage horizontal') ||
-      name.includes('rameur') || name.includes('tirage assis')) return 'pull-horizontal';
-
-  // CURL patterns
-  if (name.includes('curl') || name.includes('flexion')) return 'curl';
-
-  // EXTENSION patterns
-  if (name.includes('extension') || name.includes('triceps')) return 'extension';
-
-  // Default fallback
-  if (name.includes('press') || name.includes('développé')) return 'push-horizontal';
-  if (name.includes('pull') || name.includes('tirage')) return 'pull-horizontal';
-
-  return 'push-horizontal';
+  return 'push';
 }
 
-/**
- * Generate PRECISE arrow instructions with exact positioning
- * CRITICAL: This function ensures arrows match the actual movement direction
- */
 function generateArrowInstructions(movementPattern: string): string {
-  const config = MOVEMENT_ARROW_CONFIG[movementPattern] || MOVEMENT_ARROW_CONFIG['push-horizontal'];
+  const config = MOVEMENT_ARROW_CONFIG[movementPattern] || MOVEMENT_ARROW_CONFIG.push;
 
   return `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CRITICAL POSITIONING REQUIREMENTS - PANEL 1 vs PANEL 2:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PANEL 1 (LEFT SIDE - STARTING POSITION):
+- ${config.macro} showing concentric phase (lifting/pushing)
+- Maximum 3 thin micro arrows: ${config.micro.slice(0, 3).join(', ')}
+- ALL arrows MUST be solid red color (#FF0000)
+- Arrows MUST be thick and clearly visible (minimum 8px width for macro, 4px for micro)
+- Add small bracket marks [ ] at start and end of range of motion
 
-PANEL 1 (LEFT SIDE - STARTING/STRETCHED POSITION):
-ATHLETE POSITION: ${config.panel1Position}
-
-ARROWS IN PANEL 1:
-• MACRO ARROW (PRIMARY): ${config.macroArrow.direction}
-  - Color: ${config.macroArrow.color}
-  - Style: ${config.macroArrow.style}
-  - Width: EXACTLY 10 pixels thick
-  - Must be PERFECTLY STRAIGHT (no curves unless specified)
-  - Arrow points in the direction of CONCENTRIC movement (muscle contraction)
-
-• MICRO ARROWS (MAXIMUM 2):
-${config.microArrows.slice(0, 2).map((arrow, i) => `  ${i + 1}. ${arrow} - 4px width, SOLID RED (#FF0000)`).join('\n')}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-PANEL 2 (RIGHT SIDE - ENDING/CONTRACTED POSITION):
-ATHLETE POSITION: ${config.panel2Position}
-
-ARROWS IN PANEL 2:
-• MACRO ARROW (PRIMARY): SAME direction as Panel 1 but DASHED and BLUE
-  - Direction: ${config.macroArrow.direction.replace('SOLID RED', 'DASHED BLUE')}
-  - Color: DASHED BLUE (#0066FF)
-  - Style: Dashed line (5px dash, 3px gap)
-  - Width: EXACTLY 10 pixels thick
-  - Arrow points in the direction of ECCENTRIC movement (muscle lengthening/return)
-
-• MICRO ARROWS (MAXIMUM 2):
-${config.microArrows.slice(0, 2).map((arrow, i) => `  ${i + 1}. ${arrow} - 4px width, DASHED BLUE (#0066FF)`).join('\n')}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ABSOLUTE REQUIREMENTS:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- The athlete's body position MUST BE CLEARLY DIFFERENT between Panel 1 and Panel 2
-- Panel 1 shows STARTING position (muscle stretched, weight away)
-- Panel 2 shows ENDING position (muscle contracted, weight close)
-- Camera angle, equipment position, background: IDENTICAL in both panels
-- ONLY the athlete's body and limb positions change between panels
-- Arrows must clearly indicate the path of movement
-- NO curved arrows unless explicitly specified in config
-- ALL arrows must be clearly visible against the gray background`;
+PANEL 2 (RIGHT SIDE - END POSITION):
+- Same ${config.macro.replace('red', 'blue').replace('solid', 'dashed')} showing eccentric phase (lowering/returning)
+- Same 3 thin micro arrows but DASHED and BLUE color (#0066FF)
+- Arrows show return path to starting position
+- Add small bracket marks [ ] at ROM endpoints
+- Maintain EXACT same camera angle and scale as Panel 1`;
 }
 
 function generateMuscleHighlightInstruction(muscles: string[]): string {
@@ -298,149 +129,58 @@ MUSCLE HIGHLIGHTING (BOTH PANELS):
 }
 
 /**
- * Generate ULTRA-PRECISE equipment descriptions
- * CRITICAL: Equipment must be described with exact specifications to ensure consistency
+ * Generate equipment-specific context based on exercise and available equipment
  */
 function generateEquipmentContext(exerciseName: string, equipment: string[]): string {
   const lowerName = exerciseName.toLowerCase();
   const hasEquipment = equipment && equipment.length > 0;
 
-  let equipmentDescription = '';
+  // Build equipment list from provided data
+  let equipmentList: string[] = [];
 
-  // CABLE MACHINE exercises (Pulldown, Cable Row, Triceps Extension, Cable Fly)
-  if (lowerName.includes('cable') || lowerName.includes('poulie') || lowerName.includes('câble') ||
-      lowerName.includes('pulldown') || lowerName.includes('tirage')) {
-
-    if (lowerName.includes('high') || lowerName.includes('pulldown') || lowerName.includes('vertical') ||
-        lowerName.includes('triceps') || lowerName.includes('extension')) {
-      // High cable/pulley
-      equipmentDescription = `- Cable machine with HIGH pulley attachment (positioned at 2.5 meters height)
-- Straight bar handle or rope attachment
-- Weight stack positioned at base of machine
-- Professional cable column with smooth pulley system
-- Athlete stands or sits directly in front of machine`;
-    } else if (lowerName.includes('low') || lowerName.includes('row') || lowerName.includes('rameur') ||
-               lowerName.includes('seated') || lowerName.includes('assis')) {
-      // Low cable/seated row
-      equipmentDescription = `- Cable machine with LOW pulley attachment (positioned at floor level)
-- Seated row bench with footrest platform (fixed position)
-- V-bar handle or straight bar attachment
-- Weight stack positioned at base of machine behind athlete
-- Professional cable row station with stable bench`;
+  if (hasEquipment) {
+    // Use provided equipment
+    equipmentList = equipment.map(eq => eq.toLowerCase());
+  } else {
+    // Infer from exercise name
+    if (lowerName.includes('barbell') || lowerName.includes('barre')) {
+      equipmentList.push('olympic barbell with weight plates');
+    } else if (lowerName.includes('dumbbell') || lowerName.includes('haltère')) {
+      equipmentList.push('dumbbells');
+    } else if (lowerName.includes('cable') || lowerName.includes('poulie') || lowerName.includes('câble')) {
+      equipmentList.push('cable machine with handles');
+    } else if (lowerName.includes('machine')) {
+      equipmentList.push('professional strength machine');
+    } else if (lowerName.includes('kettlebell')) {
+      equipmentList.push('kettlebell');
+    } else if (lowerName.includes('box') || lowerName.includes('saut')) {
+      equipmentList.push('plyometric box');
+    } else if (lowerName.includes('pull') || lowerName.includes('chin') || lowerName.includes('traction')) {
+      equipmentList.push('pull-up bar');
+    } else if (lowerName.includes('dip')) {
+      equipmentList.push('dip station or parallel bars');
     } else {
-      // Generic cable machine
-      equipmentDescription = `- Adjustable cable machine with pulley at mid-height
-- Professional cable station with weight stack
-- Standard cable handle attachment
-- Stable machine frame with clear cable path`;
+      equipmentList.push('barbell and weight plates');
     }
   }
 
-  // BARBELL exercises
-  else if (lowerName.includes('barbell') || lowerName.includes('barre')) {
-    if (lowerName.includes('squat')) {
-      equipmentDescription = `- Olympic barbell (20kg, 2.2m length) with weight plates
-- Power rack with adjustable J-hooks at shoulder height
-- Safety bars positioned just below squat depth
-- Rubber platform flooring
-- Barbell positioned on upper back (high bar) or lower traps (low bar)`;
-    } else if (lowerName.includes('bench') || lowerName.includes('développé couché')) {
-      equipmentDescription = `- Olympic barbell (20kg, 2.2m length) with weight plates
-- Flat bench press bench with vertical uprights
-- Uprights positioned to allow proper bar path
-- Stable bench with non-slip surface
-- Barbell positioned at chest level when lying down`;
-    } else if (lowerName.includes('deadlift') || lowerName.includes('soulevé')) {
-      equipmentDescription = `- Olympic barbell (20kg, 2.2m length) with standard weight plates
-- Rubber lifting platform or gym floor
-- Barbell positioned horizontally on ground
-- Weight plates touching floor in starting position
-- No rack or supports (barbell starts from ground)`;
-    } else if (lowerName.includes('row') || lowerName.includes('rowing')) {
-      equipmentDescription = `- Olympic barbell (20kg, 2.2m length) with weight plates
-- Open floor space or platform for bent-over position
-- Barbell positioned horizontally
-- No bench or rack required
-- Athlete in bent-over stance with barbell hanging`;
-    } else {
-      equipmentDescription = `- Olympic barbell (20kg, 2.2m length) with weight plates
-- Professional gym setting with appropriate support equipment
-- Barbell positioned according to exercise requirements`;
-    }
+  // Add exercise-specific rack/bench requirements
+  let supportEquipment = '';
+  if (lowerName.includes('squat')) {
+    supportEquipment = '\n- Power rack with safety bars and J-hooks';
+  } else if (lowerName.includes('bench press') || lowerName.includes('développé couché')) {
+    supportEquipment = '\n- Flat bench with upright supports';
+  } else if (lowerName.includes('incline') || lowerName.includes('incliné')) {
+    supportEquipment = '\n- Adjustable incline bench';
+  } else if (lowerName.includes('row') && lowerName.includes('barbell')) {
+    supportEquipment = '\n- Platform or lifting area for proper stance';
   }
 
-  // DUMBBELL exercises
-  else if (lowerName.includes('dumbbell') || lowerName.includes('haltère')) {
-    if (lowerName.includes('bench') || lowerName.includes('press') || lowerName.includes('fly')) {
-      equipmentDescription = `- Pair of identical dumbbells (same weight and size)
-- Flat or adjustable bench with stable base
-- Dumbbells held at chest level or extended position
-- Professional rubber or metal dumbbells
-- Bench positioned horizontally for lying position`;
-    } else if (lowerName.includes('row')) {
-      equipmentDescription = `- Single dumbbell (or pair for bilateral)
-- Flat bench for support (if single-arm)
-- Professional hex or round dumbbells
-- Stable bench with non-slip surface
-- Dumbbell positioned for rowing motion`;
-    } else {
-      equipmentDescription = `- Pair of identical dumbbells (professional grade)
-- Open space for movement execution
-- Dumbbells with secure grip handles
-- Appropriate weight selection visible`;
-    }
-  }
+  const mainEquipment = equipmentList.length > 0
+    ? equipmentList.map(eq => `- ${eq.charAt(0).toUpperCase() + eq.slice(1)}`).join('\n')
+    : '- Barbell and weight plates';
 
-  // MACHINE exercises (non-cable)
-  else if (lowerName.includes('machine') && !lowerName.includes('cable')) {
-    if (lowerName.includes('leg')) {
-      equipmentDescription = `- Professional leg press or leg extension machine
-- Padded seat with backrest at appropriate angle
-- Adjustable foot platform or leg pad
-- Weight stack with selector pin visible
-- Machine frame clearly visible and stable`;
-    } else if (lowerName.includes('chest') || lowerName.includes('pectoral')) {
-      equipmentDescription = `- Chest press machine with padded seat
-- Adjustable handles or press arms
-- Backrest positioned for proper pressing angle
-- Weight stack at side or rear of machine
-- Professional commercial grade machine`;
-    } else {
-      equipmentDescription = `- Professional strength training machine
-- Padded seat and backrest (if applicable)
-- Adjustable components for proper fit
-- Weight stack with clear selector system
-- Stable machine frame clearly visible`;
-    }
-  }
-
-  // BODYWEIGHT exercises
-  else if (lowerName.includes('pull-up') || lowerName.includes('chin') || lowerName.includes('traction')) {
-    equipmentDescription = `- Professional pull-up bar (horizontal, 2.2-2.5m height)
-- Sturdy frame or wall-mounted bar
-- Bar diameter: 28-32mm for proper grip
-- Sufficient clearance above and below bar
-- No bench or platform (athlete hangs freely)`;
-  } else if (lowerName.includes('dip')) {
-    equipmentDescription = `- Parallel dip bars (width: 50-60cm apart)
-- Bars at same height (approximately waist to chest level)
-- Stable frame with no wobble
-- Sufficient space for full range of motion
-- Professional dip station or power rack attachment`;
-  }
-
-  // DEFAULT/FALLBACK
-  else {
-    if (hasEquipment && equipment.length > 0) {
-      equipmentDescription = equipment.map(eq => `- ${eq.charAt(0).toUpperCase() + eq.slice(1)}`).join('\n');
-    } else {
-      equipmentDescription = `- Standard gym equipment appropriate for exercise
-- Professional grade strength training equipment
-- Stable and secure setup for safe execution`;
-    }
-  }
-
-  return equipmentDescription;
+  return `${mainEquipment}${supportEquipment}`;
 }
 
 export function generateForceDiptychPrompt(params: DiptychPromptParams): string {
@@ -458,83 +198,52 @@ export function generateForceDiptychPrompt(params: DiptychPromptParams): string 
 SUBJECT: ${exerciseName}
 FORMAT: Panoramic 16:9 ratio (1536x1024 pixels), TWO EQUAL PANELS separated by thin vertical line
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VISUAL STYLE & RENDERING:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STYLE:
 - Black and white anatomical drawing style
 - Realistic muscular anatomy without exaggeration
-- Clean neutral gray background (#D3D3D3)
-- Studio lighting with clear shadows for depth
+- Clean gray neutral background
+- Studio lighting with clear shadows
 - Educational fitness diagram aesthetic
-- Single male athlete (same person in both panels)
-- Professional medical illustration quality
+- Single male athlete in both panels
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EQUIPMENT SPECIFICATIONS (MUST BE IDENTICAL IN BOTH PANELS):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EQUIPMENT & CONTEXT:
 ${equipmentContext}
+- Professional gym setting with proper lighting
 
-CRITICAL EQUIPMENT CONSISTENCY:
-- Equipment position: EXACTLY THE SAME in both panels
-- Equipment size and scale: EXACTLY THE SAME in both panels
-- Equipment orientation: EXACTLY THE SAME in both panels
-- Background setting: EXACTLY THE SAME in both panels
-- Lighting direction: EXACTLY THE SAME in both panels
-- ONLY the athlete's body position changes between panels
-- Equipment NEVER moves, floats, or changes size
+PANEL LAYOUT:
+┌─────────────────────────────────────────────────┐
+│  PANEL 1: START     │    PANEL 2: END           │
+│  (Concentric Phase) │   (Eccentric Phase)       │
+│  ● Red solid arrows │   ● Blue dashed arrows    │
+│  ● Starting position│   ● Ending position       │
+└─────────────────────────────────────────────────┘
 
 ${arrowInstructions}
 
+ARROW SYSTEM REQUIREMENTS:
+- MACRO ARROW: 1 thick arrow (minimum 10px width) showing primary barbell/body trajectory
+- MICRO ARROWS: Maximum 3 thin arrows (4-6px width) showing joint rotations
+- Color code: RED = concentric (lifting), BLUE = eccentric (lowering), GRAY = stability cues
+- Style: Solid lines for concentric, Dashed lines for eccentric
+- Arrows MUST be bold and clearly visible against background
+
 ${muscleInstructions}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CAMERA & COMPOSITION (ABSOLUTE REQUIREMENTS):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Camera angle: EXACTLY THE SAME in both panels (FIXED, NEVER MOVES)
-- Camera distance: EXACTLY THE SAME in both panels (FIXED, NEVER ZOOMS)
-- Camera height: EXACTLY THE SAME in both panels (FIXED, NEVER CHANGES)
-- Viewing angle: Side profile (90° perpendicular to movement plane) or 3/4 view if needed for clarity
-- Athlete scale: EXACTLY THE SAME size in both panels
-- Athlete position in frame: Centered in both panels
-- Background elements: EXACTLY THE SAME in both panels
-- Lighting angle: EXACTLY THE SAME in both panels
+CAMERA & COMPOSITION:
+- Side profile view (or 3/4 angle if movement requires)
+- Same exact camera angle, distance, and athlete position in BOTH panels
+- Athlete centered in each panel
+- Clear visibility of form and technique
+- Professional fitness poster quality
 
-What CHANGES between panels:
-✓ Athlete's limb positions (arms, legs)
-✓ Joint angles (elbows, knees, hips, shoulders)
-✓ Muscle contraction state (stretched vs contracted)
-✓ Arrow colors and styles (red solid vs blue dashed)
+TECHNICAL REQUIREMENTS:
+- 16:9 aspect ratio (WIDE format for 2 panels)
+- High contrast for clarity
+- Sharp edges and clean lines
+- No text labels or annotations beyond bracket marks for ROM
+- Both panels MUST show same athlete, same equipment, same background
 
-What NEVER CHANGES between panels:
-✗ Camera position or angle
-✗ Equipment position, size, or orientation
-✗ Background or setting
-✗ Lighting direction or quality
-✗ Athlete's scale or proportions
-✗ Overall framing or composition
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TECHNICAL RENDERING REQUIREMENTS:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Image dimensions: EXACTLY 1536 x 1024 pixels (16:9 aspect ratio)
-- Panel division: EXACTLY 768 pixels width per panel
-- Vertical separator: Thin 2-pixel line between panels
-- High contrast for clarity (black lines, white highlights, gray midtones)
-- Sharp edges and clean lines (no blur or soft edges on anatomy)
-- No text labels or annotations except small ROM bracket marks [ ]
-- Professional medical illustration quality rendering
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FINAL CRITICAL REMINDER:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-This is a DIPTYCH showing TWO DISTINCT BODY POSITIONS of the same exercise.
-Panel 1 = STARTING position (muscle STRETCHED, weight AWAY from body)
-Panel 2 = ENDING position (muscle CONTRACTED, weight CLOSE to body)
-
-The ONLY difference between panels is the athlete's body position.
-Everything else (camera, equipment, background, lighting) remains PERFECTLY IDENTICAL.
-
-Arrows must clearly show the direction of movement and match the actual exercise mechanics.`;
+CRITICAL: This must be a DIPTYCH with 2 distinct panels showing movement progression from start (left) to finish (right).`;
 
   return prompt;
 }
