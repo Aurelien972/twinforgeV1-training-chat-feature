@@ -298,14 +298,17 @@ export function ExerciseIllustration({
         });
 
         if (!lockResult.success) {
-          logger.warn('EXERCISE_ILLUSTRATION', 'Already generating elsewhere, skipping', {
+          logger.warn('EXERCISE_ILLUSTRATION', 'Already generating elsewhere, waiting for completion', {
             exerciseName,
-            discipline
+            discipline,
+            existingLockId: lockResult.existingLock?.lockId
           });
-          // Set loading state and return - let other generation complete
+          // Set loading state and wait for existing generation
           if (mountedRef.current) {
             setIsGenerating(true);
           }
+          // Don't attempt to generate, just wait for cache to be populated
+          // The pending request check at the start of useEffect will handle it
           return;
         }
 
@@ -626,6 +629,19 @@ export function ExerciseIllustration({
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
+      }
+
+      // CRITICAL: Release lock on unmount if generation was in progress
+      if (generationInProgressRef.current) {
+        logger.info('EXERCISE_ILLUSTRATION', 'Releasing lock on component unmount', {
+          exerciseName,
+          discipline
+        });
+        generationLockService.releaseLock('illustration', {
+          exerciseName,
+          discipline
+        });
+        generationInProgressRef.current = false;
       }
     };
   }, [exerciseName, discipline]);

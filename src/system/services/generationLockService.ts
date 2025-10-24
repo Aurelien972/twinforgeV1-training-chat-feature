@@ -21,6 +21,7 @@ interface LockEntry {
 class GenerationLockService {
   private locks: Map<string, LockEntry> = new Map();
   private readonly LOCK_TIMEOUT_MS = 180000; // 3 minutes
+  private cleanupIntervalId: NodeJS.Timeout | null = null;
 
   private generateLockKey(type: LockType, params: Record<string, string | undefined>): string {
     switch (type) {
@@ -211,6 +212,52 @@ class GenerationLockService {
     });
   }
 
+  forceReleaseLock(
+    type: LockType,
+    params: {
+      sessionId?: string;
+      userId?: string;
+      exerciseName?: string;
+      discipline?: string;
+    }
+  ): boolean {
+    const lockKey = this.generateLockKey(type, params);
+    const existed = this.locks.has(lockKey);
+
+    if (existed) {
+      this.locks.delete(lockKey);
+      logger.warn('GENERATION_LOCK', 'Lock force released', {
+        type,
+        lockKey,
+        reason: 'force_release'
+      });
+    }
+
+    return existed;
+  }
+
+  startPeriodicCleanup(intervalMs: number = 30000): void {
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+    }
+
+    this.cleanupIntervalId = setInterval(() => {
+      this.cleanupExpiredLocks();
+    }, intervalMs);
+
+    logger.info('GENERATION_LOCK', 'Periodic cleanup started', {
+      intervalMs
+    });
+  }
+
+  stopPeriodicCleanup(): void {
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+      logger.info('GENERATION_LOCK', 'Periodic cleanup stopped');
+    }
+  }
+
   getStats() {
     return {
       totalLocks: this.locks.size,
@@ -228,7 +275,11 @@ export const generationLockService = new GenerationLockService();
 
 // Periodic cleanup (every 30 seconds)
 if (typeof window !== 'undefined') {
-  setInterval(() => {
-    generationLockService.cleanupExpiredLocks();
-  }, 30000);
+  generationLockService.startPeriodicCleanup(30000);
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    generationLockService.stopPeriodicCleanup();
+    generationLockService.clearAllLocks();
+  });
 }

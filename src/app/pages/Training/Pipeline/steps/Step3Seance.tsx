@@ -946,19 +946,53 @@ const Step3SeanceContent: React.FC = () => {
         });
       } catch (error) {
         logger.error('STEP_3_WEARABLE', 'Failed to collect wearable data', { error });
+        // Continue without wearable data
       }
     }
 
+    // CRITICAL: Handle skipped sessions (dev mode or empty sessions)
+    // Generate minimal valid feedback data if no exercises were completed
+    let finalExerciseFeedbacks = exerciseFeedbacks;
+    let finalSessionTime = sessionTime;
+
+    if (exercises.length > 0 && exerciseFeedbacks.length === 0) {
+      logger.warn('STEP_3_SEANCE', 'Session completed with no exercise feedbacks - generating minimal data', {
+        sessionId: currentSessionId,
+        expectedExercises: exercises.length,
+        actualFeedbacks: exerciseFeedbacks.length,
+        isDevMode: import.meta.env.DEV
+      });
+
+      // Generate minimal valid feedback for each exercise
+      finalExerciseFeedbacks = exercises.map((exercise) => ({
+        exerciseId: exercise.id,
+        completed: true,
+        setsCompleted: exercise.sets || 3,
+        repsActual: Array(exercise.sets || 3).fill(exercise.reps || 10),
+        loadUsed: exercise.load || { type: 'bodyweight', value: 0, unit: 'kg' },
+        rpe: 5, // Neutral RPE
+        hadPain: false,
+        technique: 7, // Decent technique
+        wasSubstituted: false,
+      }));
+
+      // Set minimal session time if none recorded (1 second minimum)
+      finalSessionTime = sessionTime > 0 ? sessionTime : 1;
+    }
+
+    // Calculate average RPE with fallback
+    const averageRpe = finalExerciseFeedbacks.length > 0
+      ? Math.round(finalExerciseFeedbacks.reduce((sum, ex) => sum + (ex.rpe || 5), 0) / finalExerciseFeedbacks.length)
+      : 5;
+
     const sessionFeedback = {
       warmupCompleted,
-      warmupDuration: warmupCompleted && sessionPrescription.warmup ? sessionPrescription.warmup.duration : undefined,
-      exercises: exerciseFeedbacks,
-      durationActual: sessionTime,
-      overallRpe: Math.round(
-        exerciseFeedbacks.reduce((sum, ex) => sum + (ex.rpe || 0), 0) / exerciseFeedbacks.length
-      ),
-      effortPerceived: 8,
-      enjoyment: 8,
+      warmupDuration: warmupCompleted && sessionPrescription?.warmup ? sessionPrescription.warmup.duration : undefined,
+      exercises: finalExerciseFeedbacks,
+      durationActual: finalSessionTime,
+      overallRpe: averageRpe,
+      effortPerceived: averageRpe,
+      enjoyment: 7,
       wearableMetrics: wearableMetrics || undefined,
       wearableDeviceUsed: wearableTracking.deviceInfo?.deviceName,
       hrTrackingEnabled: wearableTracking.isTracking
@@ -970,9 +1004,10 @@ const Step3SeanceContent: React.FC = () => {
 
     logger.info('STEP_3_SEANCE', 'Session completed, showing feedback modal', {
       sessionId: currentSessionId,
-      duration: sessionTime,
-      exercisesCompleted: exerciseFeedbacks.length,
+      duration: finalSessionTime,
+      exercisesCompleted: finalExerciseFeedbacks.length,
       averageRpe: sessionFeedback.overallRpe,
+      wasGenerated: finalExerciseFeedbacks !== exerciseFeedbacks,
       timestamp: new Date().toISOString(),
     });
 

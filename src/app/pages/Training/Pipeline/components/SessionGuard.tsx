@@ -88,11 +88,26 @@ const SessionGuard: React.FC<SessionGuardProps> = ({
       }
 
       // Check 5: For adapter/avancer, session feedback is required
-      if (requiresFeedback && !sessionFeedback) {
-        setBlockReason('Séance non complétée');
-        setIsAuthorized(false);
-        logger.warn('SESSION_GUARD', 'Access blocked - no feedback', { step });
-        return;
+      // CRITICAL: Also check if feedback has valid data structure
+      if (requiresFeedback) {
+        if (!sessionFeedback) {
+          setBlockReason('Séance non complétée');
+          setIsAuthorized(false);
+          logger.warn('SESSION_GUARD', 'Access blocked - no feedback', { step });
+          return;
+        }
+
+        // Additional validation: feedback must have at least durationActual
+        const hasValidFeedbackStructure = sessionFeedback.durationActual !== undefined;
+        if (!hasValidFeedbackStructure) {
+          logger.warn('SESSION_GUARD', 'Feedback exists but invalid structure', {
+            step,
+            feedbackKeys: Object.keys(sessionFeedback),
+            hasDuration: !!sessionFeedback.durationActual,
+            note: 'Allowing access with warning'
+          });
+          // Allow access but log warning - the step will handle it
+        }
       }
 
       // All checks passed

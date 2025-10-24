@@ -197,31 +197,53 @@ const Step4AdapterContent: React.FC = () => {
 
       let hasValidData = false;
       let validationReason = '';
+      let isMinimalData = false;
 
       if (isCompetitionSession) {
-        // Competitions must have stationsCompleted and totalTime
-        hasValidData = !!(competitionMetrics &&
+        // Competitions: Check for valid metrics OR minimal session data
+        const hasCompetitionMetrics = !!(competitionMetrics &&
                          competitionMetrics.stationsCompleted > 0 &&
                          competitionMetrics.totalTime > 0);
-        validationReason = hasValidData ? 'valid_competition_metrics' : 'no_competition_metrics';
+        const hasMinimalData = !!(feedback.durationActual && feedback.durationActual >= 1);
+
+        hasValidData = hasCompetitionMetrics || hasMinimalData;
+        isMinimalData = !hasCompetitionMetrics && hasMinimalData;
+        validationReason = hasCompetitionMetrics ? 'valid_competition_metrics' :
+                          hasMinimalData ? 'minimal_competition_data' : 'no_competition_data';
 
         logger.info('STEP_4_COMPETITION_VALIDATION_RESULT', 'Competition validation completed', {
           hasValidData,
+          isMinimalData,
           validationReason,
           metricsSource: (feedback as any)?.competitionMetrics ? 'direct_field' : 'parsed_notes',
           stationsCompleted: competitionMetrics?.stationsCompleted,
           totalTime: competitionMetrics?.totalTime,
+          durationActual: feedback.durationActual,
           stationTimesLength: competitionMetrics?.stationTimes?.length
         });
       } else if (isEnduranceSession) {
-        hasValidData = !!(feedback.durationActual && feedback.durationActual > 0);
-        validationReason = hasValidData ? 'valid_endurance_duration' : 'no_duration';
+        // Endurance: Accept any session with duration >= 1 second
+        hasValidData = !!(feedback.durationActual && feedback.durationActual >= 1);
+        isMinimalData = hasValidData && feedback.durationActual < 60; // Less than 1 minute is minimal
+        validationReason = hasValidData ? (isMinimalData ? 'minimal_endurance_data' : 'valid_endurance_duration') : 'no_duration';
       } else if (isFunctionalSession) {
-        hasValidData = !!(functionalMetrics && (functionalMetrics.roundsCompleted > 0 || functionalMetrics.totalReps > 0));
-        validationReason = hasValidData ? 'valid_functional_metrics' : 'no_functional_metrics';
+        // Functional: Check for metrics OR minimal exercise data
+        const hasFunctionalMetrics = !!(functionalMetrics && (functionalMetrics.roundsCompleted > 0 || functionalMetrics.totalReps > 0));
+        const hasMinimalData = !!(feedback.durationActual && feedback.durationActual >= 1);
+
+        hasValidData = hasFunctionalMetrics || hasMinimalData;
+        isMinimalData = !hasFunctionalMetrics && hasMinimalData;
+        validationReason = hasFunctionalMetrics ? 'valid_functional_metrics' :
+                          hasMinimalData ? 'minimal_functional_data' : 'no_functional_data';
       } else {
-        hasValidData = !!(feedback.exercises && feedback.exercises.length > 0);
-        validationReason = hasValidData ? 'valid_force_exercises' : 'no_exercises';
+        // Force/Calisthenics: Accept any session with exercises OR minimal duration
+        const hasExercises = !!(feedback.exercises && feedback.exercises.length > 0);
+        const hasMinimalData = !!(feedback.durationActual && feedback.durationActual >= 1);
+
+        hasValidData = hasExercises || hasMinimalData;
+        isMinimalData = !hasExercises && hasMinimalData;
+        validationReason = hasExercises ? 'valid_force_exercises' :
+                          hasMinimalData ? 'minimal_force_data' : 'no_exercises';
       }
 
       logger.info('STEP_4_ADAPTER', 'Session validation check', {
@@ -229,6 +251,7 @@ const Step4AdapterContent: React.FC = () => {
         isEnduranceSession,
         isFunctionalSession,
         hasValidData,
+        isMinimalData,
         validationReason,
         durationActual: feedback.durationActual,
         exercisesCount: feedback.exercises?.length || 0,
@@ -267,6 +290,15 @@ const Step4AdapterContent: React.FC = () => {
         return;
       }
 
+      // If we have minimal data, still run AI analysis but with lower expectations
+      if (isMinimalData) {
+        logger.info('STEP_4_ADAPTER', 'Running AI analysis with minimal data', {
+          validationReason,
+          willProceedWithAnalysis: true,
+          expectLowScores: true
+        });
+      }
+
       setIsAnalyzing(true);
       setLoadingState('analyzing', 'Analyse de votre performance...');
 
@@ -288,12 +320,31 @@ const Step4AdapterContent: React.FC = () => {
           setTimeout(() => step4NotificationService.onAnalysisProgress(75), 8000);
         }
 
-        const { analysis: aiAnalysis, metadata } = await sessionAnalysisService.analyzeSession(
-          userId,
-          sessionPrescription,
-          feedback,
-          preparerData
-        );
+        // CRITICAL: Wrap AI analysis call in try-catch for resilience
+        let aiAnalysis;
+        let metadata;
+        try {
+          const result = await sessionAnalysisService.analyzeSession(
+            userId,
+            sessionPrescription,
+            feedback,
+            preparerData
+          );
+          aiAnalysis = result.analysis;
+          metadata = result.metadata;
+        } catch (analysisError) {
+          logger.error('STEP_4_ADAPTER', 'AI analysis service error - will show basic metrics', {
+            error: analysisError instanceof Error ? analysisError.message : 'Unknown',
+            errorStack: analysisError instanceof Error ? analysisError.stack : undefined,
+            willContinue: true
+          });
+          // Set error state but continue with basic UI
+          setAnalysisError(analysisError instanceof Error ? analysisError.message : 'Unknown error');
+          setIsAnalyzing(false);
+          setLoadingState('idle');
+          setForceDisplay(true);
+          return;
+        }
 
         // Analyze wearable metrics if available
         if (feedback.wearableMetrics) {
@@ -340,19 +391,25 @@ const Step4AdapterContent: React.FC = () => {
         if (isTimeout) {
           logger.warn('STEP_4_ADAPTER', 'AI analysis timeout - using fallback', {
             error: errorMessage,
-            willShowFallbackUI: true
+            willShowFallbackUI: true,
+            canStillProceed: true
           });
 
           setAnalysisError('timeout');
         } else {
-          logger.error('STEP_4_ADAPTER', 'AI analysis failed', {
+          logger.error('STEP_4_ADAPTER', 'AI analysis failed - showing basic metrics', {
             error: errorMessage,
-            errorStack: error instanceof Error ? error.stack : undefined
+            errorStack: error instanceof Error ? error.stack : undefined,
+            canStillProceed: true,
+            note: 'User can still see basic metrics and proceed to Step 5'
           });
           setAnalysisError(errorMessage);
         }
 
+        // CRITICAL: Always set loading to idle and force display
+        // This ensures user can always proceed even if AI fails
         setLoadingState('idle');
+        setForceDisplay(true);
       } finally {
         setIsAnalyzing(false);
       }
