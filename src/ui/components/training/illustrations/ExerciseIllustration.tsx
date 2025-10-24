@@ -568,6 +568,7 @@ export function ExerciseIllustration({
         });
 
         // Create generation promise
+        // CRITICAL: This promise should complete even if component unmounts during navigation
         const generationPromise = (async () => {
           try {
             const generationStartTime = Date.now();
@@ -862,16 +863,25 @@ export function ExerciseIllustration({
     return () => {
       mountedRef.current = false;
 
-      // Only abort if we're actually fetching (not waiting on pending promise)
-      // and only if component is truly unmounting (not just re-rendering)
-      const isRealUnmount = !document.contains(document.querySelector(`[data-exercise-id="${exerciseName}"]`));
+      // CRITICAL: DO NOT abort fetch during navigation within the training app
+      // Only abort when the user is truly leaving the application
+      // This allows image generation to continue in the background when navigating from Step 2 to Step 3
+      const isNavigatingWithinTraining = window.location.pathname.includes('/training/pipeline');
+      const shouldAbort = abortController && !isNavigatingWithinTraining;
 
-      if (abortController && isRealUnmount) {
-        logger.debug('EXERCISE_ILLUSTRATION', 'Component unmounting - aborting fetch', {
+      if (shouldAbort) {
+        logger.debug('EXERCISE_ILLUSTRATION', 'Component unmounting outside training flow - aborting fetch', {
           exerciseName,
-          reason: 'component_unmount'
+          reason: 'true_unmount',
+          pathname: window.location.pathname
         });
         abortController.abort();
+      } else if (abortController) {
+        logger.info('EXERCISE_ILLUSTRATION', 'Component unmounting but within training flow - keeping generation alive', {
+          exerciseName,
+          reason: 'navigation_within_training',
+          pathname: window.location.pathname
+        });
       }
 
       if (timeoutId) {
@@ -884,23 +894,36 @@ export function ExerciseIllustration({
         progressIntervalRef.current = null;
       }
 
-      // CRITICAL: Release lock on unmount if generation was in progress
+      // CRITICAL: DO NOT release lock or remove placeholder during navigation within training
+      // Keep the lock and placeholder active so generation can complete in background
       if (generationInProgressRef.current || lockAcquiredRef.current) {
-        logger.info('EXERCISE_ILLUSTRATION', 'Releasing lock on component unmount', {
-          exerciseName,
-          discipline,
-          componentId: componentIdRef.current
-        });
-        generationLockService.releaseLock('illustration', {
-          exerciseName,
-          discipline
-        });
+        if (!isNavigatingWithinTraining) {
+          // Only release lock if truly leaving the training flow
+          logger.info('EXERCISE_ILLUSTRATION', 'Releasing lock on true unmount', {
+            exerciseName,
+            discipline,
+            componentId: componentIdRef.current,
+            reason: 'leaving_training'
+          });
+          generationLockService.releaseLock('illustration', {
+            exerciseName,
+            discipline
+          });
 
-        // Remove placeholder if we set one
-        illustrationCacheService.removePlaceholder(exerciseName, discipline);
+          // Remove placeholder if we set one
+          illustrationCacheService.removePlaceholder(exerciseName, discipline);
 
-        generationInProgressRef.current = false;
-        lockAcquiredRef.current = false;
+          generationInProgressRef.current = false;
+          lockAcquiredRef.current = false;
+        } else {
+          // Keep lock and placeholder active during navigation
+          logger.info('EXERCISE_ILLUSTRATION', 'Keeping lock and generation active during training navigation', {
+            exerciseName,
+            discipline,
+            componentId: componentIdRef.current,
+            reason: 'navigation_within_training'
+          });
+        }
       }
 
       // Release StrictMode guard

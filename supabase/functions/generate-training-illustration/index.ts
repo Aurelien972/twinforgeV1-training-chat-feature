@@ -105,6 +105,31 @@ Deno.serve(async (req: Request) => {
       throw new Error('Missing required fields: type, discipline');
     }
 
+    // CRITICAL: Normalize equipment to always be an array
+    // Handle cases where equipment might be undefined, string, or single object
+    if (request.equipment !== undefined && request.equipment !== null) {
+      if (!Array.isArray(request.equipment)) {
+        console.warn(`[GPT-IMAGE-1][${requestId}] Equipment is not an array, normalizing`, {
+          equipmentType: typeof request.equipment,
+          equipmentValue: JSON.stringify(request.equipment).substring(0, 100)
+        });
+
+        // Convert to array if it's a string or object
+        if (typeof request.equipment === 'string') {
+          request.equipment = [request.equipment];
+        } else {
+          // If it's an object or other type, wrap in array or set to empty
+          request.equipment = [String(request.equipment)];
+        }
+      }
+    } else {
+      // If undefined or null, set to empty array
+      request.equipment = [];
+    }
+
+    // Validate that all equipment items are strings
+    request.equipment = request.equipment.map(item => String(item));
+
     const { type, exerciseName } = request;
     const discipline = normalizeDiscipline(request.discipline);
 

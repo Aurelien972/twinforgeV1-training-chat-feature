@@ -131,16 +131,19 @@ MUSCLE HIGHLIGHTING (BOTH PANELS):
 /**
  * Generate equipment-specific context based on exercise and available equipment
  */
-function generateEquipmentContext(exerciseName: string, equipment: string[]): string {
+function generateEquipmentContext(exerciseName: string, equipment: string[] | undefined): string {
   const lowerName = exerciseName.toLowerCase();
-  const hasEquipment = equipment && equipment.length > 0;
+
+  // CRITICAL: Defensive programming - ensure equipment is always an array
+  const safeEquipment = Array.isArray(equipment) ? equipment : [];
+  const hasEquipment = safeEquipment.length > 0;
 
   // Build equipment list from provided data
   let equipmentList: string[] = [];
 
   if (hasEquipment) {
-    // Use provided equipment
-    equipmentList = equipment.map(eq => eq.toLowerCase());
+    // Use provided equipment - ensure all items are strings
+    equipmentList = safeEquipment.map(eq => String(eq).toLowerCase());
   } else {
     // Infer from exercise name
     if (lowerName.includes('barbell') || lowerName.includes('barre')) {
