@@ -115,8 +115,10 @@ class OpenAIWhisperService {
 
   /**
    * Transcrire un fichier audio
+   * @param audioBlob Audio blob to transcribe
+   * @param userId User ID for token tracking
    */
-  async transcribe(audioBlob: Blob): Promise<WhisperTranscriptionResult> {
+  async transcribe(audioBlob: Blob, userId: string): Promise<WhisperTranscriptionResult> {
     try {
       logger.info('WHISPER_SERVICE', 'Starting transcription', {
         size: audioBlob.size,
@@ -133,9 +135,15 @@ class OpenAIWhisperService {
         throw new Error('L\'enregistrement est trop long');
       }
 
+      // Vérifier que userId est fourni
+      if (!userId) {
+        throw new Error('user_id is required');
+      }
+
       // Préparer le FormData
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('user_id', userId);
 
       // Appeler l'Edge Function
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -180,8 +188,9 @@ class OpenAIWhisperService {
 
   /**
    * Enregistrer et transcrire en une seule opération
+   * @param userId User ID for token tracking
    */
-  async recordAndTranscribe(): Promise<string> {
+  async recordAndTranscribe(userId: string): Promise<string> {
     try {
       logger.info('WHISPER_SERVICE', 'Starting record and transcribe flow');
 
@@ -191,7 +200,7 @@ class OpenAIWhisperService {
       // (cette méthode sera appelée après que stopRecording ait été appelé)
       const audioBlob = await this.stopRecording();
 
-      const result = await this.transcribe(audioBlob);
+      const result = await this.transcribe(audioBlob, userId);
 
       return result.text;
     } catch (error) {

@@ -53,6 +53,9 @@ const CoachChatInterface: React.FC<CoachChatInterfaceProps> = ({
   const currentMode = useUnifiedCoachStore(state => state.currentMode);
   const voiceError = useUnifiedCoachStore(state => state.error);
 
+  // Détecter si Realtime est actif pour masquer les messages
+  const isRealtimeActive = voiceState === 'listening' || voiceState === 'speaking' || voiceState === 'connecting';
+
   // Local state for realtime
   const [realtimeError, setRealtimeError] = useState<string | undefined>(undefined);
 
@@ -137,22 +140,52 @@ const CoachChatInterface: React.FC<CoachChatInterfaceProps> = ({
 
   return (
     <div className={`coach-chat-interface flex flex-col ${className}`} style={{ height: '100%', position: 'relative', minHeight: 0 }}>
-      {/* Messages Display */}
-      <MessagesDisplay
-        stepColor={stepColor}
-        isTyping={isTyping}
-        messagesContainerRef={messagesContainerRef}
-        onScrollChange={onScrollChange}
-        onExerciseClick={onExerciseClick}
-        onCategorySelect={onCategorySelect}
-        onOptionSelect={onOptionSelect}
-        onValidate={onValidate}
-        onModify={onModify}
-        onViewExercise={onViewExercise}
-        onContinue={onContinue}
-        onBack={onBack}
-        onSendMessage={onSendMessage}
-      />
+      {/* Messages Display - Masqué pendant les sessions Realtime */}
+      {!isRealtimeActive && (
+        <MessagesDisplay
+          stepColor={stepColor}
+          isTyping={isTyping}
+          messagesContainerRef={messagesContainerRef}
+          onScrollChange={onScrollChange}
+          onExerciseClick={onExerciseClick}
+          onCategorySelect={onCategorySelect}
+          onOptionSelect={onOptionSelect}
+          onValidate={onValidate}
+          onModify={onModify}
+          onViewExercise={onViewExercise}
+          onContinue={onContinue}
+          onBack={onBack}
+          onSendMessage={onSendMessage}
+        />
+      )}
+
+      {/* Message d'info pendant Realtime */}
+      {isRealtimeActive && (
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          textAlign: 'center'
+        }}>
+          <div>
+            <div style={{
+              fontSize: '14px',
+              color: 'rgba(255, 255, 255, 0.7)',
+              marginBottom: '8px'
+            }}>
+              Session vocale en cours
+            </div>
+            <div style={{
+              fontSize: '12px',
+              color: 'rgba(255, 255, 255, 0.5)'
+            }}>
+              L'historique des messages apparaîtra à la fin de la session
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Input Bar - Fixed at bottom with dynamic height based on mode */}
       <div

@@ -45,6 +45,7 @@ const FloatingChatButton = React.forwardRef<HTMLButtonElement, FloatingChatButto
   const { click } = useFeedback();
   const { mode: performanceMode } = usePerformanceMode();
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1025 : false);
+  const [isTablet, setIsTablet] = useState(typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1025);
   const internalButtonRef = useRef<HTMLButtonElement>(null);
   const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || internalButtonRef;
 
@@ -54,7 +55,9 @@ const FloatingChatButton = React.forwardRef<HTMLButtonElement, FloatingChatButto
 
   useEffect(() => {
     const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1025);
+      const width = window.innerWidth;
+      setIsDesktop(width >= 1025);
+      setIsTablet(width >= 768 && width < 1025);
     };
 
     window.addEventListener('resize', handleResize);
@@ -115,8 +118,11 @@ const FloatingChatButton = React.forwardRef<HTMLButtonElement, FloatingChatButto
       className={`floating-chat-button ${isStep2Active ? 'floating-chat-button--step2' : ''} ${className}`}
       style={{
         position: 'fixed',
-        right: (isOpen && !isDesktop) ? '-100px' : (isDesktop ? '24px' : '8px'),
-        bottom: isDesktop ? '24px' : 'calc(var(--new-bottom-bar-height) + var(--new-bottom-bar-bottom-offset) + 8px)',
+        // Tablette: positionner à 16px du bord droit même quand ouvert pour rester visible
+        right: isOpen
+          ? (isTablet ? '16px' : (isDesktop ? '24px' : '-100px'))
+          : (isTablet ? '16px' : (isDesktop ? '24px' : '8px')),
+        bottom: (isDesktop || isTablet) ? '24px' : 'calc(var(--new-bottom-bar-height) + var(--new-bottom-bar-bottom-offset) + 8px)',
         zIndex: Z_INDEX.FLOATING_CHAT_BUTTON,
         borderRadius: '50%',
         overflow: 'visible',

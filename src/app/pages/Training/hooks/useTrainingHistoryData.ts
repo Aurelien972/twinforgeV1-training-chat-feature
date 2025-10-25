@@ -72,13 +72,15 @@ async function fetchHistoryData(
       completed_at,
       duration_actual_min,
       rpe_avg,
-      exercises_tracked,
       training_metrics (
         volume_kg,
         distance_km
       ),
       training_locations (
         name
+      ),
+      training_exercises!training_exercises_session_id_fkey(
+        id
       )
     `, { count: 'exact' })
     .eq('user_id', userId)
@@ -110,6 +112,7 @@ async function fetchHistoryData(
   const historySessions: HistorySession[] = completedSessions.map(s => {
     const metrics = Array.isArray(s.training_metrics) ? s.training_metrics[0] : s.training_metrics;
     const location = Array.isArray(s.training_locations) ? s.training_locations[0] : s.training_locations;
+    const exercises = s.training_exercises || [];
 
     return {
       id: s.id,
@@ -119,7 +122,7 @@ async function fetchHistoryData(
       rpe_avg: s.rpe_avg,
       volume_kg: metrics?.volume_kg,
       distance_km: metrics?.distance_km,
-      exercises_count: Array.isArray(s.exercises_tracked) ? s.exercises_tracked.length : 0,
+      exercises_count: Array.isArray(exercises) ? exercises.length : 0,
       location_name: location?.name
     };
   });

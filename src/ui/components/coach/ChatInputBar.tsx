@@ -12,6 +12,7 @@ import { useFeedback } from '../../../hooks/useFeedback';
 import { Haptics } from '../../../utils/haptics';
 import { openaiWhisperService } from '../../../system/services/openaiWhisperService';
 import { useUnifiedCoachStore } from '../../../system/store/unifiedCoachStore';
+import { useUserStore } from '../../../system/store/userStore';
 import CentralInputZone from '../../components/chat/CentralInputZone';
 import logger from '../../../lib/utils/logger';
 
@@ -115,6 +116,16 @@ const ChatInputBar: React.FC<ChatInputBarProps> = ({
     click();
     Haptics.press();
 
+    // Get user ID from store
+    const { session } = useUserStore.getState();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      logger.error('CHAT_INPUT_BAR', 'User not authenticated for voice transcription');
+      setTranscriptionError('Utilisateur non authentifié');
+      return;
+    }
+
     if (isRecording) {
       // Arrêter l'enregistrement et transcrire
       logger.info('CHAT_INPUT_BAR', 'Stopping voice recording and starting transcription');
@@ -128,7 +139,7 @@ const ChatInputBar: React.FC<ChatInputBarProps> = ({
         logger.info('CHAT_INPUT_BAR', 'Audio blob captured', { size: audioBlob.size });
 
         setIsTranscribing(true);
-        const result = await openaiWhisperService.transcribe(audioBlob);
+        const result = await openaiWhisperService.transcribe(audioBlob, userId);
         setIsTranscribing(false);
 
         logger.info('CHAT_INPUT_BAR', 'Transcription completed', {

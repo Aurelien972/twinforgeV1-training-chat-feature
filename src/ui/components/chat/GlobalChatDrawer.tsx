@@ -54,8 +54,19 @@ const GlobalChatDrawer: React.FC<GlobalChatDrawerProps> = ({ chatButtonRef }) =>
   const modeConfig = modeConfigs[currentMode];
   const modeColor = modeConfig.color;
 
-  // Position du drawer (toujours à droite pour le moment)
-  const position = { side: 'right' as const, width: 420, isMinimized: false };
+  // Position du drawer - responsive pour tablette
+  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+
+  const position = {
+    side: 'right' as const,
+    width: isTablet ? 500 : 420,
+    isMinimized: false
+  };
+
+  // Détecter si une session Realtime est active pour masquer l'historique
+  const isRealtimeActive = voiceState === 'listening' || voiceState === 'speaking' || voiceState === 'connecting';
+  const shouldShowMessages = !isRealtimeActive; // Masquer les messages pendant Realtime
 
   // Performance-aware backdrop filters
   const overlayBackdrop = useMemo(() => {
@@ -344,9 +355,12 @@ const GlobalChatDrawer: React.FC<GlobalChatDrawerProps> = ({ chatButtonRef }) =>
             style={{
               position: 'fixed',
               top: 'calc(64px + 12px)',
-              right: '8px',
+              // Tablette: positionner à droite avec un offset proche du bouton de chat
+              right: isTablet ? '80px' : (isDesktop ? '8px' : '8px'),
               bottom: 'calc(var(--new-bottom-bar-height) + var(--new-bottom-bar-bottom-offset) + 12px)',
-              width: `min(${drawerWidth}px, calc(100vw - 16px))`,
+              width: isTablet
+                ? `${drawerWidth}px`
+                : `min(${drawerWidth}px, calc(100vw - 16px))`,
               zIndex: Z_INDEX.CHAT_DRAWER,
               borderRadius: '20px',
               background: mode === 'high-performance'
