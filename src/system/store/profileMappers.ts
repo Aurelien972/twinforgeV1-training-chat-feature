@@ -30,13 +30,15 @@ const DB_COLUMNS = new Set([
   'emotions', 'nutrition', 'health', 'avatar_onboarding_completed',
   'portrait_url', 'portrait_source',
   'household_details', 'meal_prep_preferences', 'kitchen_equipment',
-  'food_preferences', 'sensory_preferences', 'macro_targets', 'shopping_preferences'
+  'food_preferences', 'sensory_preferences', 'macro_targets', 'shopping_preferences',
+  'country'
 ]);
 
 // Text fields that should be null instead of empty strings
 const TEXT_FIELDS = new Set([
-  'display_name', 'sex', 'activity_level', 'job_category', 'objective', 
-  'avatar_status', 'avatar_url', 'portrait_url', 'portrait_source', 'phone_number'
+  'display_name', 'sex', 'activity_level', 'job_category', 'objective',
+  'avatar_status', 'avatar_url', 'portrait_url', 'portrait_source', 'phone_number',
+  'country'
 ]);
 
 /**
@@ -223,6 +225,7 @@ export async function mapDbProfileToProfile(dbProfile: any): Promise<Profile> {
     phoneNumber: emptyStringToNull(dbProfile.phone_number),
     birthdate: emptyStringToNull(dbProfile.birthdate || dbProfile.dob),
     sex: emptyStringToNull(dbProfile.sex),
+    country: emptyStringToNull(dbProfile.country),
     height_cm: dbProfile.height_cm,
     weight_kg: dbProfile.weight_kg,
     target_weight_kg: dbProfile.target_weight_kg,
@@ -347,6 +350,7 @@ export function mapProfileToDb(profile: Profile, userId: string): any {
     phone_number: profile.phoneNumber,
     birthdate: profile.birthdate,
     sex: profile.sex,
+    country: profile.country,
     height_cm: profile.height_cm,
     weight_kg: profile.weight_kg,
     target_weight_kg: profile.target_weight_kg,

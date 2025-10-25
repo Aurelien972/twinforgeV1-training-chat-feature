@@ -224,7 +224,7 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
               <div className="p-3 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-white/60 text-xs mb-1">Intensité Moy.</div>
                 <div className="text-lg font-semibold text-white">
-                  {weeklyProgress.intensityAverage.toFixed(1)}/10
+                  {weeklyProgress.intensityAverage ? weeklyProgress.intensityAverage.toFixed(1) : '0.0'}/10
                 </div>
               </div>
             </div>

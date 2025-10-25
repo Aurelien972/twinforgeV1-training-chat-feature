@@ -55,11 +55,11 @@ const LocationQuickSelector: React.FC<LocationQuickSelectorProps> = ({
           </div>
           <motion.button
             onClick={handleAddLocationClick}
-            className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 mx-auto"
+            className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 mx-auto transition-all"
             style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(59, 130, 246, 0.25)), rgba(255, 255, 255, 0.08)',
-              border: '2px solid rgba(6, 182, 212, 0.4)',
-              color: '#22D3EE'
+              background: `${color}20`,
+              border: `2px solid ${color}50`,
+              color: color
             }}
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
@@ -219,11 +219,11 @@ const LocationQuickSelector: React.FC<LocationQuickSelectorProps> = ({
       {/* Bouton Ajouter un lieu */}
       <motion.button
         onClick={handleAddLocationClick}
-        className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
         style={{
-          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)), rgba(255, 255, 255, 0.05)',
-          border: '2px solid rgba(6, 182, 212, 0.3)',
-          color: '#22D3EE'
+          background: `${color}20`,
+          border: `2px solid ${color}50`,
+          color: color
         }}
         whileHover={{ scale: 1.01, y: -1 }}
         whileTap={{ scale: 0.99 }}
