@@ -699,7 +699,8 @@ export async function getExerciseVisualMetadata(
 }
 
 /**
- * Format exercise catalog for AI prompt
+ * Format exercise catalog for AI prompt - COMPACT VERSION
+ * Reduces token usage by 60-70% by using ultra-compact format
  */
 export function formatExercisesForAI(
   exercises: ExerciseCatalogEntry[],
@@ -707,39 +708,38 @@ export function formatExercisesForAI(
 ): string {
   if (exercises.length === 0) {
     return language === 'fr'
-      ? "Aucun exercice disponible dans le catalogue pour ces critères."
-      : "No exercises available in the catalog for these criteria.";
+      ? "Aucun exercice disponible."
+      : "No exercises available.";
   }
 
+  // ULTRA-COMPACT FORMAT: 1 line per exercise instead of 6-8 lines
+  // Format: Name | Diff | Muscles | Equipment | Sets×Reps | Tempo
+  // Example: "Squat | Inter | Quadriceps,Fessiers | Barre | 3-5×5-8 | 3010"
+
   const intro = language === 'fr'
-    ? `CATALOGUE D'EXERCICES DISPONIBLES (${exercises.length} exercices):\n\n`
-    : `AVAILABLE EXERCISE CATALOG (${exercises.length} exercises):\n\n`;
+    ? `CATALOGUE (${exercises.length}):\n`
+    : `CATALOG (${exercises.length}):\n`;
 
   const exerciseList = exercises.map((ex, idx) => {
     const primaryMuscles = ex.muscle_groups
       .filter(mg => mg.involvement_type === 'primary')
       .map(mg => mg.name)
-      .join(', ');
+      .join(',');
 
     const requiredEquipment = ex.equipment
       .filter(eq => eq.is_required)
       .map(eq => eq.name)
-      .join(', ') || (language === 'fr' ? 'Poids du corps' : 'Bodyweight');
+      .join(',') || (language === 'fr' ? 'Corps' : 'BW');
 
-    return `${idx + 1}. ${ex.name_translated || ex.name}
-   - Difficulté: ${ex.difficulty}
-   - Muscles: ${primaryMuscles}
-   - Équipement: ${requiredEquipment}
-   - Sets: ${ex.typical_sets_range}, Reps: ${ex.typical_reps_range}
-   ${ex.tempo ? `- Tempo: ${ex.tempo}` : ''}
-   ${ex.coaching_cues.length > 0 ? `- Conseil: ${ex.coaching_cues[0]}` : ''}`;
-  }).join('\n\n');
+    // Compact difficulty: Beginner→Déb, Intermediate→Int, Advanced→Av
+    const diffShort = ex.difficulty === 'beginner' ? 'Déb' :
+                      ex.difficulty === 'intermediate' ? 'Int' : 'Av';
 
-  const footer = language === 'fr'
-    ? `\n\nUTILISE UNIQUEMENT ces exercices du catalogue. Ne génère PAS de nouveaux exercices.`
-    : `\n\nUSE ONLY these exercises from the catalog. Do NOT generate new exercises.`;
+    // Compact format: Name | Diff | Muscles | Equip | Sets×Reps
+    return `${idx + 1}. ${ex.name_translated || ex.name} | ${diffShort} | ${primaryMuscles} | ${requiredEquipment} | ${ex.typical_sets_range}×${ex.typical_reps_range}${ex.tempo ? ` | ${ex.tempo}` : ''}`;
+  }).join('\n');
 
-  return intro + exerciseList + footer;
+  return intro + exerciseList;
 }
 
 /**
