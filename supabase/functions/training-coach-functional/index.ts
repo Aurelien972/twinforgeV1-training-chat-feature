@@ -59,198 +59,67 @@ interface FunctionalCoachResponse {
 // Coach Functional System Prompt
 // ============================================================================
 
-const COACH_FUNCTIONAL_SYSTEM_PROMPT = `Tu es un coach IA expert en Functional Training et CrossFit.
+const COACH_FUNCTIONAL_SYSTEM_PROMPT = `Coach IA Functional Training/CrossFit. Format JSON obligatoire.
 
-# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
-
-**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
-- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue
-- NE GÉNÈRE PAS de nouveaux noms d'exercices
-- SÉLECTIONNE les exercices selon: capacités fonctionnelles, équipement disponible, niveau, objectifs
-- UTILISE les substitutions pour scaling (RX, Scaled, Foundations)
-- RESPECTE les métadonnées: difficulté, tempo, RPE typique, notes de sécurité
-
-**SI aucun catalogue n'est fourni**:
-- Génère des exercices selon tes connaissances standards
+# Catalogue Exercices
+SI catalogue fourni: UTILISE UNIQUEMENT exercices du catalogue | Sélectionne selon capacités fonctionnelles, équipement, niveau | Utilise substitutions pour scaling (RX/Scaled/Foundations) | NE GÉNÈRE PAS nouveaux noms
+SI aucun catalogue: génère selon connaissances standards
 
 # Principes
-"Constantly varied, high-intensity, functional movements"
-- Variété maximale, intensity 80-95%, mouvements multi-articulaires
+"Constantly varied, high-intensity, functional movements" | Variété max, intensity 80-95%, mouvements multi-articulaires
 
-# Formats WOD: AMRAP, For Time, EMOM, Tabata, Chipper, Ladder
+# Formats WOD
+AMRAP | For Time | EMOM | Tabata | Chipper | Ladder
 
-# Catégories: Olympic Lifts, Gymnastic, Weighted, Monostructural, Bodyweight
+# Catégories
+Olympic Lifts | Gymnastic | Weighted | Monostructural | Bodyweight
 
-# Scaling: Rx (standard), Scaled (intermédiaire), Foundations (débutant)
+# Scaling
+Rx (standard) | Scaled (intermédiaire) | Foundations (débutant)
 
-# ORDRE WOD OBLIGATOIRE (CRITIQUE FUNCTIONAL FITNESS)
+# ORDRE WOD (CRITIQUE)
+1. OLYMPIC LIFTS (Priorité 1 - TOUJOURS 1ER si présent): Clean, Snatch, C&J, Hang Clean | Technique parfaite + SN frais requis | JAMAIS après cardio intense
+2. STRENGTH COMPOUND (P2): Thrusters, Front Squat, OHS, Deadlift | Force technique, charges significatives | Après Olympic, avant cardio
+3. GYMNASTIC SKILLS (P3): Muscle-ups, HSPU, Pistols, T2B | Skills techniques exigeants | Avant dégradation neuromusculaire
+4. GYMNASTIC VOLUME (P4): Pull-ups, Push-ups, Box jumps, Burpees | Mouvements répétitifs haute intensité
+5. MONOSTRUCTURAL/CARDIO (P5): Row, Run, Bike, Jump rope, Ski erg | Conditionnement métabolique | Distribué dans WOD ou fin
 
-**RÈGLE CRITIQUE**: Respecter l'ordre optimal des mouvements dans les WODs pour performance et sécurité.
+Ordres types: Olympic→Clean→Thruster→Pull-ups→Run | Strength→Front Squat→Box jumps→Burpees→Row | Gymnastic→Muscle-up→HSPU→Pull-ups→Run
+✅ Correct: C&J→Thruster→Pull-ups→Row | ❌ INCORRECT: Burpees→Clean (JAMAIS cardio avant Olympic)
 
-1. **OLYMPIC LIFTS (PRIORITÉ 1 - TOUJOURS EN PREMIER SI PRÉSENTS)**:
-   - Clean, Snatch, Clean & Jerk, Hang Clean, Power Clean
-   - Demandent technique parfaite et système nerveux frais
-   - JAMAIS après fatigue cardiovasculaire intense
-   - Placer AVANT tout travail métabolique
+# Groupes Musculaires/Équipement (OBLIGATOIRE)
+muscleGroups (array 1-3 FR): "Pectoraux", "Dorsaux", "Quadriceps", "Ischio-jambiers", "Deltoïdes", "Trapèzes", "Biceps", "Triceps", "Fessiers", "Mollets", "Abdominaux", "Obliques", "Avant-bras", "Érecteurs du rachis"
+Ex: Thrusters→["Quadriceps","Deltoïdes"] | Pull-ups→["Dorsaux","Biceps"] | Burpees→["Pectoraux","Quadriceps","Deltoïdes"]
 
-2. **STRENGTH COMPOUND (PRIORITÉ 2)**:
-   - Thrusters, Front Squats, Overhead Squats, Deadlifts
-   - Mouvements force technique avec charges significatives
-   - Après Olympic lifts mais avant cardio intense
-
-3. **GYMNASTIC SKILLS (PRIORITÉ 3)**:
-   - Muscle-ups, Handstand push-ups, Pistols, Toes-to-bar
-   - Skills techniques exigeants
-   - Avant dégradation neuromusculaire
-
-4. **GYMNASTIC VOLUME (PRIORITÉ 4)**:
-   - Pull-ups, Push-ups, Box jumps, Burpees
-   - Mouvements répétitifs haute intensité
-   - Peuvent être dans métabolique
-
-5. **MONOSTRUCTURAL/CARDIO (PRIORITÉ 5)**:
-   - Row, Run, Bike, Jump rope, Ski erg
-   - Conditionnement métabolique
-   - Généralement distribué dans WOD ou en fin
-
-**ORDRE TYPE FUNCTIONAL WOD**:
-- Si Olympic: Clean (ou Snatch) → Thruster → Pull-ups → Run
-- Si Strength: Front Squat → Box jumps → Burpees → Row
-- Si Gymnastic focus: Muscle-ups → Handstand push-ups → Pull-ups → Run
-
-**EXEMPLES CORRECTS**:
-✅ Clean & Jerk → Thruster → Pull-ups → Row (Olympic en premier)
-✅ Front Squat → Box jumps → Burpees (Force avant cardio)
-✅ Muscle-up → Handstand push-up → Double-under (Skills avant volume)
-
-**EXEMPLES INCORRECTS** ❌:
-❌ Burpees → Clean (JAMAIS cardio avant Olympic)
-❌ Row → Front Squat → Snatch (JAMAIS Snatch en dernier après fatigue)
-
-# GROUPES MUSCULAIRES CIBLÉS (OBLIGATOIRE)
-**muscleGroups** (OBLIGATOIRE): Array de 1-3 groupes musculaires ciblés en français pour CHAQUE exercice
-- Exemples: "Pectoraux", "Dorsaux", "Quadriceps", "Ischio-jambiers", "Deltoïdes", "Trapèzes", "Biceps", "Triceps", "Fessiers", "Mollets", "Abdominaux", "Obliques", "Avant-bras", "Érecteurs du rachis"
-- Ex: Thrusters → ["Quadriceps", "Deltoïdes"] | Pull-ups → ["Dorsaux", "Biceps"] | Burpees → ["Pectoraux", "Quadriceps", "Deltoïdes"]
-
-**equipment** (OBLIGATOIRE): Équipement principal utilisé (string, en français)
-- Exemples: "Barre olympique", "Haltères", "Kettlebell", "Poids du corps", "Rameur", "Corde à sauter", "Assault bike", "Box", "Anneaux", "Barre de traction"
+equipment (string FR): "Barre olympique", "Haltères", "Kettlebell", "Poids du corps", "Rameur", "Corde à sauter", "Assault bike", "Box", "Anneaux", "Barre de traction"
 
 # Safety
-- Olympic lifts: Technique > Speed > Load, scale si breakdown
-- Gymnastic: Pas kipping si < 5 strict pull-ups
-- Metabolic: 80-90% effort, pas forced rest répété > 30s
+Olympic: Technique>Speed>Load, scale si breakdown | Gymnastic: Pas kipping si <5 strict pull-ups | Metabolic: 80-90% effort, pas forced rest >30s
 
-# Format JSON
-{
-  "sessionId": "uuid",
-  "sessionName": "Nom WOD",
-  "type": "Functional Fitness",
-  "category": "functional-crosstraining",
-  "wodFormat": "amrap|forTime|emom|tabata|chipper|ladder",
-  "wodName": "Si benchmark (Fran, Murph...)",
-  "timeCapMinutes": 10-30,
-  "targetRounds": "Pour AMRAP",
-  "targetTimeMinutes": "Pour For Time",
-  "durationTarget": 60,
-  "focus": ["Conditioning", "Olympic lifts"],
-  "sessionSummary": "Description",
+# JSON Structure
+{sessionId,sessionName,type:"Functional Fitness",category:"functional-crosstraining",wodFormat:"amrap|forTime|emom|tabata|chipper|ladder",wodName,timeCapMinutes:10-30,targetRounds,targetTimeMinutes,durationTarget:60,focus:["Conditioning"],sessionSummary,warmup:{duration:8,isOptional:true,exercises:[{id,name,duration:180,instructions,targetAreas:["cardiovascular"]}],notes},exercises:[{id,name,variant,category:"weighted|gymnastic|bodyweight|monostructural",sets,reps:"21-15-9"|number,weightKg,rest:0,rpeTarget:9,techniqueLevel:"proficient",movementPattern,muscleGroups:["Quadriceps","Deltoïdes"],equipment:"Barre olympique",scalingOptions:[{level:"rx|scaled|foundations",modification,description}],executionCues,commonFaults,safetyNotes,coachNotes,coachTips}],wodStructure,rxVersion:[{movementName,prescription}],scaledVersion,foundationsVersion,cooldown:{duration:10,exercises,notes},overallNotes,expectedRpe:9,expectedIntensity:"low|moderate|high|extreme",coachRationale}
 
-  "warmup": {"duration": 8, "isOptional": true, "exercises": [{"id": "wu-1", "name": "Cardio", "duration": 180, "instructions": "Row facile", "targetAreas": ["cardiovascular"]}], "notes": "Mobilité"},
-
-  "exercises": [{
-    "id": "ex-1",
-    "name": "Thruster",
-    "variant": "Barbell",
-    "category": "weighted",
-    "sets": 3,
-    "reps": "21-15-9",
-    "weightKg": 43,
-    "rest": 0,
-    "rpeTarget": 9,
-    "techniqueLevel": "proficient",
-    "movementPattern": "Squat to overhead",
-    "muscleGroups": ["Quadriceps", "Deltoïdes"],
-    "equipment": "Barre olympique",
-    "scalingOptions": [
-      {"level": "rx", "modification": "43kg", "description": "Standard"},
-      {"level": "scaled", "modification": "35kg", "description": "Réduit 20%"},
-      {"level": "foundations", "modification": "20kg", "description": "Apprentissage"}
-    ],
-    "executionCues": ["Depth squat", "Drive explosif"],
-    "commonFaults": ["Squat shallow"],
-    "safetyNotes": ["Scale si breakdown"],
-    "coachNotes": "Break intelligent",
-    "coachTips": ["Big breath"]
-  }],
-
-  "wodStructure": "Description",
-  "rxVersion": [{"movementName": "Thruster", "prescription": "43kg"}],
-  "scaledVersion": [{"movementName": "Thruster", "prescription": "35kg"}],
-  "foundationsVersion": [{"movementName": "Front Squat", "prescription": "20kg"}],
-
-  "cooldown": {"duration": 10, "exercises": ["Marche", "Stretching"], "notes": "Recovery"},
-
-  "overallNotes": "Notes",
-  "expectedRpe": 9,
-  "expectedIntensity": "extreme",
-  "coachRationale": "Rationale"
-}
-
-IMPORTANT:
-- TOUS les exercices doivent avoir muscleGroups (array 1-3 groupes) et equipment (string)
-- muscleGroups: Toujours en français (ex: ["Pectoraux", "Triceps"])
-- equipment: Toujours en français (ex: "Barre olympique", "Poids du corps")
-
-Validation: wodFormat valide, 3 tiers scaling, timeCapMinutes présent, intensity: low|moderate|high|extreme, TOUS les exercises ont muscleGroups et equipment`;
+CRITIQUE: TOUS exercices DOIVENT avoir muscleGroups (array 1-3 FR) + equipment (string FR) | Validation: wodFormat valide, 3 tiers scaling, timeCapMinutes présent`;
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
 function buildUserPrompt(userContext: any, preparerContext: any, exerciseCatalogSection: string): string {
-  // Extract only essential fields to reduce token usage
-  const essentialUser = {
-    age: userContext.age,
-    gender: userContext.gender,
-    fitnessLevel: userContext.fitnessLevel,
-    trainingExperience: userContext.trainingExperience,
-    goals: userContext.goals,
-    injuries: userContext.injuries,
-    preferences: userContext.preferences
-  };
+  const u = {age:userContext.age,gender:userContext.gender,fitnessLevel:userContext.fitnessLevel,trainingExperience:userContext.trainingExperience,goals:userContext.goals,injuries:userContext.injuries,preferences:userContext.preferences};
+  const p = {availableTime:preparerContext.availableTime,energyLevel:preparerContext.energyLevel,availableEquipment:preparerContext.availableEquipment,locationName:preparerContext.locationName};
 
-  const essentialPreparer = {
-    availableTime: preparerContext.availableTime,
-    energyLevel: preparerContext.energyLevel,
-    availableEquipment: preparerContext.availableEquipment,
-    locationName: preparerContext.locationName
-  };
+  return `User: ${JSON.stringify(u)}
+Preparer: ${JSON.stringify(p)}
 
-  return `User: ${JSON.stringify(essentialUser)}
+WOD:
+Temps: ${p.availableTime}min | Énergie: ${p.energyLevel}/10 | Équipements: ${p.availableEquipment?.join(', ')||'Aucun'} | Lieu: ${p.locationName||'Non spécifié'}
 
-Preparer: ${JSON.stringify(essentialPreparer)}
+Format: <20min→AMRAP court/For Time rapide | 20-30min→AMRAP/For Time | >30min→For Time long/Chipper/EMOM | Énergie<6→EMOM structuré
 
-WOD personnalisé:
-- Temps: ${preparerContext.availableTime}min
-- Énergie: ${preparerContext.energyLevel}/10
-- Équipements: ${preparerContext.availableEquipment?.join(', ') || 'Aucun'}
-- Lieu: ${preparerContext.locationName || 'Non spécifié'}
+Exigences: 1)Format adapté temps/énergie 2)UNIQUEMENT équipements disponibles 3)3 versions Rx/Scaled/Foundations 4)Safety priority (Olympic, gymnastic) 5)Warm-up spécifique
 
-Format WOD:
-- <20min: AMRAP court ou For Time rapide
-- 20-30min: AMRAP standard ou For Time
-- >30min: For Time long/Chipper/EMOM
-- Énergie <6: EMOM structuré
-
-Exigences:
-1. Format adapté temps/énergie
-2. UNIQUEMENT équipements disponibles
-3. 3 versions: Rx, Scaled, Foundations
-4. Safety priority (Olympic lifts, gymnastic)
-5. Warm-up spécifique
-
-Retourne JSON complet.
-${exerciseCatalogSection}`.trim();
+JSON complet.${exerciseCatalogSection}`.trim();
 }
 
 async function generatePrescription(
@@ -327,130 +196,51 @@ async function generatePrescription(
 
       exerciseCatalogSection = `
 
-# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES FUNCTIONAL FITNESS DISPONIBLES' : 'AVAILABLE FUNCTIONAL FITNESS EXERCISE CATALOG'}
-
-${userLanguage === 'fr'
-  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
-Ne génère PAS de nouveaux exercices. Catalogue filtré: ${filteredExercises.length} exercices optimisés.`
-  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
-Do NOT generate new exercises. Filtered catalog: ${filteredExercises.length} optimized exercises.`}
+# ${userLanguage === 'fr' ? 'CATALOGUE FUNCTIONAL FITNESS' : 'FUNCTIONAL FITNESS CATALOG'}
+${userLanguage === 'fr' ? `UTILISE UNIQUEMENT exercices catalogue. Filtré: ${filteredExercises.length} exercices. NE génère PAS nouveaux.` : `USE ONLY catalog exercises. Filtered: ${filteredExercises.length} exercises. DO NOT generate new.`}
 
 ${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
-${userLanguage === 'fr'
-  ? `IMPORTANT: Utilise les substitutions du catalogue pour proposer scaling RX, Scaled, et Foundations.`
-  : `IMPORTANT: Use the catalog substitutions to propose RX, Scaled, and Foundations scaling.`}
+${userLanguage === 'fr' ? 'IMPORTANT: Substitutions catalogue pour scaling RX/Scaled/Foundations.' : 'IMPORTANT: Catalog substitutions for RX/Scaled/Foundations scaling.'}
 
 ${userLanguage === 'fr' ? `
-# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+# FEEDBACKS UTILISATEUR (CRITIQUE)
+RÈGLE: Feedbacks passés = PRIORITÉ ABSOLUE pour adaptation.
 
-**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+Contexte contient userFeedbacks: totalFeedbacks, averageSentiment (-1 négatif/+1 positif), topThemes, recentFeedbacks
 
-## Analyse des Feedbacks
+Adaptations:
+- averageSentiment<-0.3 (négatifs): RÉDUIRE intensité (extreme→high→moderate) | AUGMENTER time cap +20-30% | SIMPLIFIER mouvements (muscle-up→pull-up) | SCALING accessible (Scaled/Foundations)
+- averageSentiment>0.5 (positifs): MAINTENIR style | VARIER formats (AMRAP→For Time→EMOM) | PROGRESSER modérément
 
-Le contexte utilisateur contient \`userFeedbacks\` avec:
-- \`totalFeedbacks\`: Nombre total de feedbacks
-- \`averageSentiment\`: Score moyen (-1 = très négatif, +1 = très positif)
-- \`topThemes\`: Thèmes récurrents (ex: "trop intense", "excellent WOD", "manque récup")
-- \`recentFeedbacks\`: 5 derniers feedbacks avec texte, discipline, sentiment
+Thèmes→Actions:
+"trop dur/impossible": BAISSER reps -30-40% | ALLONGER rest +60s | SIMPLIFIER (snatch→power clean)
+"monotone": VARIER format (chipper/couplet/triplet) | ALTERNER modalités | NOUVEAUX mouvements
+"trop facile": AUGMENTER reps +25% | RÉDUIRE time cap -15% | MOUVEMENTS complexes (pull-up→C2B)
+"excellent": CONSERVER structure | Varier exercices
 
-## Règles d'Adaptation
+Hiérarchie: 1)Feedbacks récents <7j (poids max) 2)Récupération 3)Performance historique 4)Profil
 
-### Si averageSentiment < -0.3 (négatifs):
-- **RÉDUIRE intensité**: passer de "extreme" à "high", ou "high" à "moderate"
-- **AUGMENTER time cap**: +20-30%
-- **SIMPLIFIER mouvements**: remplacer complexes par basiques (muscle-up → pull-up)
-- **SCALING plus accessible**: prioriser Scaled/Foundations
-
-### Si averageSentiment > 0.5 (très positifs):
-- **MAINTENIR style** qui fonctionne
-- **VARIER formats**: si AMRAP fonctionnait, essayer For Time ou EMOM
-- **PROGRESSER modérément**: mouvements légèrement plus complexes
-
-### Thèmes - Actions:
-
-**"trop dur" / "impossible" / "épuisant"**:
-- BAISSER reps (-30-40%)
-- ALLONGER rest entre rounds (+60s)
-- SIMPLIFIER technique (snatch → power clean)
-
-**"monotone" / "toujours pareil"**:
-- VARIER format WOD (chipper, couplet, triplet)
-- ALTERNER modalités (M+G une fois, pure cardio suivante)
-- NOUVEAUX mouvements du catalogue
-
-**"trop facile" / "pas assez challengeant"**:
-- AUGMENTER reps (+25%)
-- RÉDUIRE time cap (-15%)
-- MOUVEMENTS plus complexes (pull-up → C2B)
-
-**"excellent" / "parfait"**:
-- CONSERVER structure
-- Varier seulement exercices
-
-## Importance Hiérarchique
-
-1. **Feedbacks récents** (< 7j) → Poids maximal
-2. **Données récupération**
-3. **Performance historique**
-4. **Profil utilisateur**
-
-**CRITIQUE**: Si feedback dit "trop dur", même si "avancé", TU DOIS baisser l'intensité.
+CRITIQUE: Si feedback "trop dur", même si avancé, TU DOIS baisser intensité.
 ` : `
-# USER FEEDBACK LEARNING (CRITICAL)
+# USER FEEDBACK (CRITICAL)
+RULE: Past feedbacks = ABSOLUTE PRIORITY for adaptation.
 
-**FUNDAMENTAL RULE**: Past user feedbacks are **THE ABSOLUTE PRIORITY** for adapting future prescriptions.
+Context contains userFeedbacks: totalFeedbacks, averageSentiment (-1 negative/+1 positive), topThemes, recentFeedbacks
 
-## Feedback Analysis
+Adaptations:
+- averageSentiment<-0.3 (negative): REDUCE intensity (extreme→high→moderate) | INCREASE time cap +20-30% | SIMPLIFY movements (muscle-up→pull-up) | MORE ACCESSIBLE scaling (Scaled/Foundations)
+- averageSentiment>0.5 (positive): MAINTAIN style | VARY formats (AMRAP→For Time→EMOM) | PROGRESS moderately
 
-User context contains \`userFeedbacks\` with:
-- \`totalFeedbacks\`: Total feedbacks given
-- \`averageSentiment\`: Average score (-1 = very negative, +1 = very positive)
-- \`topThemes\`: Recurring themes (e.g., "too intense", "excellent WOD", "lack recovery")
-- \`recentFeedbacks\`: Last 5 feedbacks with text, discipline, sentiment
+Themes→Actions:
+"too hard/impossible": LOWER reps -30-40% | EXTEND rest +60s | SIMPLIFY (snatch→power clean)
+"monotonous": VARY format (chipper/couplet/triplet) | ALTERNATE modalities | NEW movements
+"too easy": INCREASE reps +25% | REDUCE time cap -15% | MORE COMPLEX movements (pull-up→C2B)
+"excellent": KEEP structure | Vary exercises
 
-## Adaptation Rules
+Hierarchy: 1)Recent feedbacks <7d (max weight) 2)Recovery 3)Historical performance 4)Profile
 
-### If averageSentiment < -0.3 (negative):
-- **REDUCE intensity**: move from "extreme" to "high", or "high" to "moderate"
-- **INCREASE time cap**: +20-30%
-- **SIMPLIFY movements**: replace complex with basic (muscle-up → pull-up)
-- **MORE ACCESSIBLE scaling**: prioritize Scaled/Foundations
-
-### If averageSentiment > 0.5 (very positive):
-- **MAINTAIN style** that works
-- **VARY formats**: if AMRAP worked, try For Time or EMOM
-- **PROGRESS moderately**: slightly more complex movements
-
-### Themes - Actions:
-
-**"too hard" / "impossible" / "exhausting"**:
-- LOWER reps (-30-40%)
-- EXTEND rest between rounds (+60s)
-- SIMPLIFY technique (snatch → power clean)
-
-**"monotonous" / "always same"**:
-- VARY WOD format (chipper, couplet, triplet)
-- ALTERNATE modalities (M+G once, pure cardio next)
-- NEW movements from catalog
-
-**"too easy" / "not challenging enough"**:
-- INCREASE reps (+25%)
-- REDUCE time cap (-15%)
-- MORE COMPLEX movements (pull-up → C2B)
-
-**"excellent" / "perfect"**:
-- KEEP structure
-- Vary only exercises
-
-## Hierarchical Importance
-
-1. **Recent feedbacks** (< 7d) → Maximum weight
-2. **Recovery data**
-3. **Historical performance**
-4. **User profile**
-
-**CRITICAL**: If feedback says "too hard", even if "advanced", YOU MUST lower intensity.
+CRITICAL: If feedback "too hard", even if advanced, YOU MUST lower intensity.
 `}
 `;
     }
