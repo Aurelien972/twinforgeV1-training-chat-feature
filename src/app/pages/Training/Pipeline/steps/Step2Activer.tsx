@@ -79,6 +79,7 @@ const Step2Activer: React.FC = () => {
   const discipline = sessionPrescription?.discipline || sessionPrescription?.category || preparerData?.tempSport || 'force';
 
   const [isPrescriptionVisible, setIsPrescriptionVisible] = useState(false);
+  const [isWarmupVisible, setIsWarmupVisible] = useState(false);
   const [validated, setValidated] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -1459,28 +1460,9 @@ const Step2Activer: React.FC = () => {
           `
         }}
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-1">{sessionPrescription.type}</h2>
-            <p className="text-white/60 text-sm">Durée cible: {sessionPrescription.durationTarget} minutes</p>
-          </div>
-          <motion.button
-            onClick={() => setIsPrescriptionVisible(!isPrescriptionVisible)}
-            className="w-12 h-12 rounded-full flex items-center justify-center"
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)'
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <motion.div
-              animate={{ rotate: isPrescriptionVisible ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <SpatialIcon Icon={ICONS.ChevronDown} size={20} style={{ color: 'white' }} />
-            </motion.div>
-          </motion.button>
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-1">{sessionPrescription.type}</h2>
+          <p className="text-white/60 text-sm">Durée cible: {sessionPrescription.durationTarget} minutes</p>
         </div>
 
         {((sessionPrescription.focus && sessionPrescription.focus.length > 0) ||
@@ -1549,9 +1531,9 @@ const Step2Activer: React.FC = () => {
         )}
       </GlassCard>
 
-      {/* Session Overview Charts - Discipline Specific */}
+      {/* Session Overview Charts - Discipline Specific - Always Visible */}
       <AnimatePresence>
-        {isPrescriptionVisible && (() => {
+        {sessionPrescription && (() => {
           // Force/Power Sessions
           if (!sessionPrescription.mainWorkout &&
               !sessionPrescription.stations &&
@@ -1670,14 +1652,65 @@ const Step2Activer: React.FC = () => {
         })()}
       </AnimatePresence>
 
-      {/* Warmup Card - Positioned before exercises */}
+      {/* Warmup Toggle Button - Orange themed */}
+      {sessionPrescription && sessionPrescription.warmup && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="my-6"
+        >
+          <button
+            onClick={() => setIsWarmupVisible(!isWarmupVisible)}
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-[1.01]"
+            style={{
+              background: isWarmupVisible
+                ? 'color-mix(in srgb, #FF8C42 12%, transparent)'
+                : 'rgba(255, 255, 255, 0.04)',
+              border: isWarmupVisible
+                ? '1px solid color-mix(in srgb, #FF8C42 25%, transparent)'
+                : '1px solid rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <SpatialIcon
+                Icon={ICONS.Flame}
+                size={24}
+                style={{ color: isWarmupVisible ? '#FF8C42' : 'rgba(255, 255, 255, 0.6)' }}
+              />
+              <div className="text-left">
+                <p className="text-white font-bold text-base">
+                  {isWarmupVisible ? 'Masquer l\'échauffement' : `Découvrir l'échauffement articulaire`}
+                </p>
+                {!isWarmupVisible && (
+                  <p className="text-white/50 text-sm mt-1">
+                    Mobilité et préparation articulaire optimale
+                  </p>
+                )}
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: isWarmupVisible ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SpatialIcon
+                Icon={ICONS.ChevronDown}
+                size={24}
+                style={{ color: isWarmupVisible ? '#FF8C42' : 'rgba(255, 255, 255, 0.6)' }}
+              />
+            </motion.div>
+          </button>
+        </motion.div>
+      )}
+
+      {/* Warmup Card - Collapsible */}
       <AnimatePresence>
-        {isPrescriptionVisible && sessionPrescription.warmup && (
+        {isWarmupVisible && sessionPrescription.warmup && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-6 mb-6"
+            className="mb-6"
           >
             <WarmupCard warmup={sessionPrescription.warmup} stepColor={stepColor} />
           </motion.div>
@@ -1784,9 +1817,9 @@ const Step2Activer: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Endurance Session Overview - Visual Summary at the top */}
+      {/* Endurance Session Overview - Visual Summary - Always Visible */}
       <AnimatePresence>
-        {isPrescriptionVisible && sessionPrescription.mainWorkout && (
+        {sessionPrescription && sessionPrescription.mainWorkout && (
           <EnduranceSessionOverview
             prescription={sessionPrescription as any}
             stepColor={stepColor}
@@ -1794,9 +1827,9 @@ const Step2Activer: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Endurance Session Details - Enhanced Display */}
+      {/* Endurance Session Details - Enhanced Display - Always Visible */}
       <AnimatePresence>
-        {isPrescriptionVisible && sessionPrescription.mainWorkout && (
+        {sessionPrescription && sessionPrescription.mainWorkout && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
