@@ -16,7 +16,16 @@
     "stripe:setup": "npm run stripe:create:test && npm run stripe:verify:test",
     "enrich:fetch": "tsx scripts/phase7-interactive-enrichment.ts fetch",
     "enrich:apply": "tsx scripts/phase7-interactive-enrichment.ts apply",
-    "enrich:stats": "tsx scripts/phase7-interactive-enrichment.ts stats"
+    "enrich:stats": "tsx scripts/phase7-interactive-enrichment.ts stats",
+    "phase7:analyze": "tsx scripts/phase7-batch-analysis.ts",
+    "phase7:enrich:force": "tsx scripts/phase7-batch-enrich.ts force",
+    "phase7:enrich:functional": "tsx scripts/phase7-batch-enrich.ts functional",
+    "phase7:enrich:calisthenics": "tsx scripts/phase7-batch-enrich.ts calisthenics",
+    "phase7:enrich:endurance": "tsx scripts/phase7-batch-enrich.ts endurance",
+    "phase7:enrich:competitions": "tsx scripts/phase7-batch-enrich.ts competitions",
+    "phase7:enrich:all": "tsx scripts/phase7-batch-enrich.ts all",
+    "phase7:orchestrate": "tsx scripts/phase7-orchestrator.ts",
+    "phase7:verify": "tsx scripts/phase7-verify-progress.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
