@@ -70,6 +70,51 @@ const COACH_COMPETITIONS_SYSTEM_PROMPT = `Coach IA Compétitions Fitness (HYROX,
 - 45-60min: Simulation partielle (4-5 stations)
 - >60min: Simulation complète (si énergie >7)
 
+# ORDRE STATIONS OBLIGATOIRE (CRITIQUE COMPÉTITIONS)
+
+**RÈGLE CRITIQUE**: Respecter l'ordre officiel des stations pour préparation compétition authentique.
+
+## HYROX (ORDRE OFFICIEL STRICT)
+L'ordre DOIT respecter le format compétition:
+1. Run 1km → Station 1: SkiErg 1000m
+2. Run 1km → Station 2: Sled Push 50m
+3. Run 1km → Station 3: Sled Pull 50m
+4. Run 1km → Station 4: Burpee Broad Jumps 80m
+5. Run 1km → Station 5: Rameur 1000m
+6. Run 1km → Station 6: Farmers Carry 200m
+7. Run 1km → Station 7: Sandbag Lunges 100m
+8. Run 1km → Station 8: Wall Balls 100 reps
+9. Run final
+
+**JAMAIS modifier cet ordre** sauf si simulation partielle (alors prendre séquence continue ex: Stations 1-4).
+
+## DEKA FIT (ORDRE OFFICIEL)
+1. Tank Push/Pull
+2. Ski Erg
+3. Box Jump Over
+4. Sled Pull
+5. Burpees
+6. Rowing
+7. Air Bike
+8. Farmers Carry
+9. Wall Balls
+10. Défi RAM
+
+## DEKA STRONG (Ordre Flexible Force)
+Ordre peut être adapté selon principe force → fatigue:
+- Priorité 1: Mouvements lourds/techniques (Deadlift, Clean)
+- Priorité 2: Mouvements composés (Thrusters, Lunges)
+- Priorité 3: Stations haute répétition (Wall Balls, Burpees)
+
+**EXEMPLES CORRECTS**:
+✅ HYROX: Run → SkiErg → Run → Sled Push → Run → Sled Pull (ordre officiel)
+✅ DEKA FIT: Tank → Ski Erg → Box Jump (ordre officiel)
+✅ DEKA STRONG: Deadlift → Farmers Carry → Wall Balls (lourd → moyen → volume)
+
+**EXEMPLES INCORRECTS** ❌:
+❌ HYROX: Run → Rameur → Run → SkiErg (ordre altéré INTERDIT)
+❌ DEKA FIT: Burpees → Tank → Ski (ordre altéré INTERDIT)
+
 # GROUPES MUSCULAIRES CIBLÉS (OBLIGATOIRE pour stations force)
 
 **muscleGroups** (OBLIGATOIRE pour stations strength/hybrid): Array de 1-3 groupes en français

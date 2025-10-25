@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
 - Équilibre poussée/traction/core
 - Créativité et expression personnelle
 
-# Système de Progressions
+# Système de Progressions - ORDRE OBLIGATOIRE
 
 ## Niveaux de Skills
 - **Beginner**: Fondations (push-ups, squats, rows)
@@ -152,6 +152,42 @@ Deno.serve(async (req: Request) => {
 - **Advanced**: Skills avancés (muscle-up, front lever tuck, handstand push-up)
 - **Elite**: Skills élite (one arm pull-up, planche, human flag)
 - **Master**: Combinaisons et freestyle (360 pull-up, hefesto)
+
+## ORDRE DE SÉANCE OBLIGATOIRE (CRITIQUE POUR CALISTHENICS)
+
+**RÈGLE CRITIQUE**: Respecter l'ordre optimal pour performance maximale et prévention blessures.
+
+1. **SKILLS STATIQUES (PRIORITÉ 1 - TOUJOURS EN PREMIER)**:
+   - Front lever, Back lever, Planche, Human flag, Handstand
+   - Demandent système nerveux frais et concentration maximale
+   - Placer AVANT tout travail de force dynamique
+   - 2-4 sets de progressions (tuck → straddle → full)
+
+2. **FORCE DYNAMIQUE COMPLEXE (PRIORITÉ 2)**:
+   - Muscle-ups, One-arm pull-up progressions, Hefesto
+   - Mouvements techniques exigeants
+   - Après skills mais avant volume
+
+3. **FORCE/STRENGTH WORK (PRIORITÉ 3)**:
+   - Weighted pull-ups, Weighted dips, Variations difficiles
+   - Composés force maximale poids du corps
+   - Volume modéré, intensité élevée
+
+4. **VOLUME/HYPERTROPHY (PRIORITÉ 4)**:
+   - Push-ups variations, Rows, Core work
+   - Accumulation volume après force
+   - Variations plus faciles, reps plus élevées
+
+5. **CONDITIONING (OPTIONNEL EN FIN)**:
+   - Burpees, Sprints, AMRAP, Combos dynamiques
+   - Uniquement si énergie restante
+
+**ORDRE TYPE CALISTHENICS**:
+- Exercice 1: Skill statique (ex: Front lever progressions)
+- Exercice 2: Skill dynamique complexe (ex: Muscle-up)
+- Exercice 3: Force composée (ex: Weighted pull-ups)
+- Exercice 4: Volume (ex: Archer push-ups)
+- Exercice 5+: Conditioning/Core (ex: Burpees, L-sit)
 
 ## Progressions par Mouvement
 
@@ -302,6 +338,27 @@ Ex: {"name": "L-sit tucked", "sets": 4, "holdTime": 20, "rest": 120}
 Ex: {"name": "Weighted pull-ups", "sets": 5, "reps": 5, "load": 10, "rest": 180}
 
 ❌ ERREUR: Sans reps/holdTime OU plusieurs à la fois
+
+# PROGRESSION CHARGES LESTÉES (OBLIGATOIRE POUR WEIGHTED)
+
+**RÈGLE CRITIQUE**: Pour TOUS les exercices lestés (weighted pull-ups, weighted dips), utiliser TOUJOURS un array de charges progressives.
+
+**Format OBLIGATOIRE pour lestés**: load = [s1, s2, s3, ...]
+- TOUJOURS un array pour exercices lestés, JAMAIS un nombre unique
+- Ex: {"name": "Weighted pull-ups", "sets": 5, "reps": 5, "load": [5, 7.5, 10, 12.5, 15]}
+
+**Application STRICTE**:
+✅ OBLIGATOIRE avec array: Weighted pull-ups, Weighted dips, Weighted muscle-ups
+✅ RECOMMANDÉ: Progressions skills avec ajout résistance (band-assisted avec resistance décroissante)
+⚠️ Non applicable: Skills statiques poids du corps pur (front lever, planche - utiliser holdTime progressif)
+
+**Exemples CORRECTS**:
+- Weighted pull-ups: "load": [5, 7.5, 10, 12.5, 15]
+- Weighted dips: "load": [7.5, 10, 12.5, 15]
+
+**Exemples INCORRECTS** ❌:
+- Weighted pull-ups: "load": 10 (JAMAIS de charge unique pour lestés)
+- Weighted dips: "load": [10, 10, 10, 10] (JAMAIS charges plates, toujours progressif)
 
 # SUBSTITUTIONS INTELLIGENTES
 

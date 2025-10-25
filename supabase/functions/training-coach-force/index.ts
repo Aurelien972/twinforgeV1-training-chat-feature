@@ -127,10 +127,29 @@ Deno.serve(async (req: Request) => {
 - Ondulée: Intermédiaires/Avancés (variation volume/intensité)
 - Auto-régulation: RPE 7-8 (2-3 reps en réserve)
 
-## Sélection Exercices
-1. **Composés majeurs**: Squat, Développé couché, Soulevé de terre, Développé militaire, Tirage
-2. **Composés secondaires**: Fentes, Dips, Tractions
-3. **Isolation**: Biceps, Triceps, Deltoïdes (optionnel)
+## Sélection Exercices - ORDRE OBLIGATOIRE
+
+**RÈGLE CRITIQUE**: TOUJOURS commencer par les exercices polyarticulaires (composés majeurs), JAMAIS par l'isolation.
+
+1. **Composés majeurs (PRIORITÉ 1 - OBLIGATOIRE EN PREMIER)**:
+   - Squat, Développé couché, Soulevé de terre, Développé militaire, Tirage
+   - Ces exercices DOIVENT être placés en début de séance quand l'énergie est maximale
+   - Minimum 1-2 exercices composés majeurs par séance
+
+2. **Composés secondaires (PRIORITÉ 2)**:
+   - Fentes, Dips, Tractions, Hip Thrust, Romanian Deadlift
+   - Placer après les composés majeurs
+
+3. **Isolation (PRIORITÉ 3 - UNIQUEMENT EN FIN DE SÉANCE)**:
+   - Biceps, Triceps, Deltoïdes, Mollets
+   - NE JAMAIS placer en début de séance
+   - Optionnel selon le temps disponible
+
+**ORDRE TYPE DE SÉANCE**:
+- Exercice 1: Composé majeur (ex: Squat)
+- Exercice 2: Composé majeur ou secondaire (ex: Développé Couché)
+- Exercice 3: Composé secondaire (ex: Fentes)
+- Exercice 4+: Isolation (ex: Curls, Extensions)
 
 ## Paramètres
 - **Volume**: 10-25 sets/groupe/semaine selon niveau
@@ -237,11 +256,28 @@ Ex: {"name": "Bench", "sets": 4, "repsProgression": [12,10,8,6], "load": [60,70,
 
 ❌ ERREUR: Sans reps/repsProgression OU les deux OU sans muscleGroups OU sans equipment
 
-# RAMPING SETS
+# RAMPING SETS - CHARGES PROGRESSIVES (OBLIGATOIRE)
 
-Composés majeurs (Squat/Bench/DL/Row): PROGRESSION charge array obligatoire.
+**RÈGLE CRITIQUE**: TOUS les exercices composés (majeurs ET secondaires) DOIVENT avoir un array de charges progressives.
 
-**Format**: load = [s1, s2, ...] Ex: {"name": "Squat", "sets": 5, "reps": 6, "load": [60,80,100,110,120]}
+**Format OBLIGATOIRE**: load = [s1, s2, s3, ...]
+- Minimum 3 séries avec progression
+- TOUJOURS un array, JAMAIS un nombre unique
+- Ex: {"name": "Squat", "sets": 5, "reps": 6, "load": [60,80,100,110,120]}
+
+**Application STRICTE**:
+✅ OBLIGATOIRE avec array: Squat, Bench, Deadlift, Press, Row, Dips lestés, Tractions lestées, Fentes, Romanian DL, Hip Thrust
+✅ RECOMMANDÉ avec array: Tous exercices composés secondaires
+⚠️ Optionnel (charge unique acceptable): Isolation pure (Curls, Extensions, Élévations latérales)
+
+**Exemples CORRECTS**:
+- Squat: "load": [60, 80, 100, 110, 120]
+- Bench Press: "load": [50, 65, 75, 80, 85]
+- Fentes: "load": [40, 50, 60]
+
+**Exemples INCORRECTS** ❌:
+- Squat: "load": 100 (JAMAIS de charge unique pour composés)
+- Bench: "load": [80, 80, 80, 80] (JAMAIS de charges plates, toujours progressif)
 
 **Principes**: S1-2 warm-up (50-75% cible), S3-5 working, dernière = top set
 
@@ -250,8 +286,6 @@ Composés majeurs (Squat/Bench/DL/Row): PROGRESSION charge array obligatoire.
 **Historique**: avgRPE 7-8 → +2.5-5kg | >8 → même | <7 → +5-10kg | Nouveau → conservateur (Déb 40-50kg squat, Inter 60-80kg, Av estimer)
 
 **Sécurité**: S1 max 60% finale, saut max 15kg, energyLevel<6 → -10-15%, RPE 8 cible
-
-**Application**: Squat/Bench/DL/Press/Row/Traction lestée → array | Isolation/accessoires → unique OK
 
 # ADAPTATION LIEU (CRITIQUE)
 
