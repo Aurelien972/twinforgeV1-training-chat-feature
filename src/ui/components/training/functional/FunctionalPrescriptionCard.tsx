@@ -12,7 +12,7 @@ import type { Exercise } from '../../../../system/store/trainingPipeline/types';
 import ExerciseAlternativesModal from './ExerciseAlternativesModal';
 import { RepDisplay } from '../shared/RepDisplay';
 import { ExerciseIllustration, ExerciseIllustrationModal } from '../illustrations';
-import { MuscleGroupsBadges, HelpCoachButton } from '../shared';
+import { MuscleGroupsBadges } from '../shared';
 
 interface FunctionalPrescriptionCardProps {
   exercise: Exercise;
@@ -661,15 +661,6 @@ const FunctionalPrescriptionCard: React.FC<FunctionalPrescriptionCardProps> = ({
           </div>
         )}
 
-        {/* Help Coach Button */}
-        {onRequestHelp && (
-          <div className="mt-4">
-            <HelpCoachButton
-              onClick={handleRequestHelp}
-              disciplineColor={formatColor}
-            />
-          </div>
-        )}
       </GlassCard>
 
       {/* Alternatives Modal */}

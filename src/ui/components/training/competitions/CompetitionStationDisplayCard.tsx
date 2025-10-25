@@ -11,7 +11,7 @@ import SpatialIcon from '../../../icons/SpatialIcon';
 import GlowIcon from '../GlowIcon';
 import { ICONS } from '../../../icons/registry';
 import { ExerciseIllustration, ExerciseIllustrationModal } from '../illustrations';
-import { MuscleGroupsBadges, HelpCoachButton } from '../shared';
+import { MuscleGroupsBadges } from '../shared';
 
 interface Station {
   id: string;
@@ -565,15 +565,6 @@ const CompetitionStationDisplayCard: React.FC<CompetitionStationDisplayCardProps
           )}
         </AnimatePresence>
 
-        {/* Help Coach Button */}
-        {onRequestHelp && (
-          <div className="mt-4">
-            <HelpCoachButton
-              onClick={handleRequestHelp}
-              disciplineColor={disciplineColor}
-            />
-          </div>
-        )}
       </GlassCard>
 
       {/* Illustration Modal */}

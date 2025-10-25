@@ -14,7 +14,7 @@ import { step2NotificationService } from '../../../../../system/services/step2No
 import { getInitialLoad, getTopSet, isRampingSet, getLoadProgressionSummary } from '../../../../../utils/loadUtils';
 import { Haptics } from '../../../../../utils/haptics';
 import { ExerciseIllustration, ExerciseIllustrationModal } from '../../illustrations';
-import { MuscleGroupsBadges, HelpCoachButton } from '../../shared';
+import { MuscleGroupsBadges } from '../../shared';
 
 interface TrainingPrescriptionCardProps {
   exercise: Exercise;
@@ -600,21 +600,6 @@ const TrainingPrescriptionCard: React.FC<TrainingPrescriptionCardProps> = ({
           )}
         </div>
 
-        {/* Help Coach Button */}
-        {onRequestHelp && (
-          <div className="mt-4">
-            <HelpCoachButton
-              onClick={() => onRequestHelp(exercise.name, {
-                sets: exercise.sets,
-                reps: exercise.reps,
-                load: exercise.load,
-                rpeTarget: exercise.rpeTarget,
-                muscleGroups: exercise.muscleGroups
-              })}
-              disciplineColor={stepColor}
-            />
-          </div>
-        )}
     </GlassCard>
 
       {/* Fullscreen Illustration Modal */}

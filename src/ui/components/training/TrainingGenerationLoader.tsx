@@ -65,16 +65,28 @@ const DISCIPLINE_CONFIGS: Record<string, DisciplineConfig> = {
         color: '#10B981'
       },
       {
-        icon: 'Zap',
-        label: 'Sélection des Exercices',
-        sublabel: 'Mouvements de force adaptés',
+        icon: 'Database',
+        label: 'Base de +2600 Exercices',
+        sublabel: 'Scan de la bibliothèque complète',
         color: '#06B6D4'
+      },
+      {
+        icon: 'Zap',
+        label: 'Sélection Intelligente',
+        sublabel: 'Mouvements optimaux pour toi',
+        color: '#8B5CF6'
       },
       {
         icon: 'Calculator',
         label: 'Calcul des Charges',
-        sublabel: 'Optimisation poids et répétitions',
-        color: '#8B5CF6'
+        sublabel: 'Poids et répétitions personnalisés',
+        color: '#F59E0B'
+      },
+      {
+        icon: 'Sparkles',
+        label: 'Optimisation Finale',
+        sublabel: 'Ajustements et progressions',
+        color: '#EC4899'
       }
     ],
     tips: [
@@ -108,16 +120,28 @@ const DISCIPLINE_CONFIGS: Record<string, DisciplineConfig> = {
         color: '#EF4444'
       },
       {
+        icon: 'Database',
+        label: 'Base de +2600 Exercices',
+        sublabel: 'Protocoles d\'endurance',
+        color: '#F59E0B'
+      },
+      {
         icon: 'Target',
         label: 'Zones d\'Intensité',
         sublabel: 'Allures et fréquences cardiaques',
-        color: '#F59E0B'
+        color: '#06B6D4'
       },
       {
         icon: 'TrendingUp',
         label: 'Structure de Séance',
         sublabel: 'Intervalles et récupérations',
-        color: '#06B6D4'
+        color: '#8B5CF6'
+      },
+      {
+        icon: 'Sparkles',
+        label: 'Optimisation Finale',
+        sublabel: 'Ajustements personnalisés',
+        color: '#EC4899'
       }
     ],
     tips: [
@@ -194,16 +218,28 @@ const DISCIPLINE_CONFIGS: Record<string, DisciplineConfig> = {
         color: '#8B5CF6'
       },
       {
+        icon: 'Database',
+        label: 'Base de +2600 Exercices',
+        sublabel: 'WODs et mouvements fonctionnels',
+        color: '#EC4899'
+      },
+      {
         icon: 'Layers',
         label: 'Design du WOD',
         sublabel: 'Format et mouvements',
-        color: '#EC4899'
+        color: '#06B6D4'
       },
       {
         icon: 'Timer',
         label: 'Timing & Intensité',
         sublabel: 'Durées et répétitions',
-        color: '#06B6D4'
+        color: '#F59E0B'
+      },
+      {
+        icon: 'Sparkles',
+        label: 'Optimisation Finale',
+        sublabel: 'Scaling et ajustements',
+        color: '#10B981'
       }
     ],
     tips: [
@@ -237,16 +273,28 @@ const DISCIPLINE_CONFIGS: Record<string, DisciplineConfig> = {
         color: '#F59E0B'
       },
       {
+        icon: 'Database',
+        label: 'Base de +2600 Exercices',
+        sublabel: 'Stations et mouvements HYROX/DEKA',
+        color: '#EF4444'
+      },
+      {
         icon: 'Target',
         label: 'Design des Stations',
         sublabel: 'Circuit et mouvements',
-        color: '#EF4444'
+        color: '#8B5CF6'
       },
       {
         icon: 'BarChart',
         label: 'Optimisation Score',
         sublabel: 'Charges et stratégie',
-        color: '#8B5CF6'
+        color: '#06B6D4'
+      },
+      {
+        icon: 'Sparkles',
+        label: 'Optimisation Finale',
+        sublabel: 'Pacing et transitions',
+        color: '#EC4899'
       }
     ],
     tips: [
@@ -322,7 +370,7 @@ const TrainingGenerationLoader: React.FC<TrainingGenerationLoaderProps> = ({
 
   const modules: ProcessingModule[] = config.modules.map((module, idx) => ({
     ...module,
-    active: safeProgress >= (idx + 1) * 30
+    active: safeProgress >= (idx + 1) * (100 / config.modules.length)
   }));
 
   const currentTip = config.tips[currentTipIndex];
@@ -668,7 +716,7 @@ const TrainingGenerationLoader: React.FC<TrainingGenerationLoaderProps> = ({
           )}
 
           {/* Processing Modules */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
             {modules.map((module, index) => (
               <motion.div
                 key={module.label}

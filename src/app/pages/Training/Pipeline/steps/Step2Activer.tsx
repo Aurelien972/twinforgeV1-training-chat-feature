@@ -78,7 +78,7 @@ const Step2Activer: React.FC = () => {
   // Derive discipline from prescription for use in JSX
   const discipline = sessionPrescription?.discipline || sessionPrescription?.category || preparerData?.tempSport || 'force';
 
-  const [isPrescriptionVisible, setIsPrescriptionVisible] = useState(true);
+  const [isPrescriptionVisible, setIsPrescriptionVisible] = useState(false);
   const [validated, setValidated] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -2130,6 +2130,61 @@ const Step2Activer: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Exercises Toggle Button */}
+      {sessionPrescription && !sessionPrescription.mainWorkout && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="my-6"
+        >
+          <button
+            onClick={() => setIsPrescriptionVisible(!isPrescriptionVisible)}
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-[1.01]"
+            style={{
+              background: isPrescriptionVisible
+                ? `color-mix(in srgb, ${stepColor} 12%, transparent)`
+                : 'rgba(255, 255, 255, 0.04)',
+              border: isPrescriptionVisible
+                ? `1px solid color-mix(in srgb, ${stepColor} 25%, transparent)`
+                : '1px solid rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <SpatialIcon
+                Icon={ICONS.Dumbbell}
+                size={24}
+                style={{ color: isPrescriptionVisible ? stepColor : 'rgba(255, 255, 255, 0.6)' }}
+              />
+              <div className="text-left">
+                <p className="text-white font-bold text-base">
+                  {isPrescriptionVisible ? 'Masquer les exercices' : `D\u00e9couvrir les ${sessionPrescription.exercises?.length || 0} exercices`}
+                </p>
+                {!isPrescriptionVisible && (
+                  <p className="text-white/50 text-sm mt-1">
+                    {(sessionPrescription.category === 'fitness-competitions' || (sessionPrescription as any)?.competitionFormat)
+                      ? 'Circuit de stations personnalis\u00e9 avec ajustements en temps r\u00e9el'
+                      : (sessionPrescription.category === 'functional-crosstraining' || (sessionPrescription as any)?.wodFormat)
+                      ? 'WOD adapt\u00e9 \u00e0 ton niveau avec intensit\u00e9 optimale'
+                      : 'Exercices cibl\u00e9s issu de notre base de +2600 mouvements'}
+                  </p>
+                )}
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: isPrescriptionVisible ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SpatialIcon
+                Icon={ICONS.ChevronDown}
+                size={24}
+                style={{ color: isPrescriptionVisible ? stepColor : 'rgba(255, 255, 255, 0.6)' }}
+              />
+            </motion.div>
+          </button>
+        </motion.div>
+      )}
 
       {/* Exercises List (Collapsible) - VisionOS 26 spacing */}
       <AnimatePresence>

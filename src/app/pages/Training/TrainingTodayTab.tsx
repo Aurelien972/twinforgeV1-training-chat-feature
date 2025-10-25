@@ -74,7 +74,8 @@ const TrainingTodayTab: React.FC = () => {
     );
   }
 
-  if (!todayData || todayData.weekStats.sessionsCount === 0) {
+  // Show empty state only if no completed sessions AND no draft sessions
+  if (!todayData || (todayData.weekStats.sessionsCount === 0 && todayData.draftSessions.length === 0)) {
     return <EmptyCoachingTodayState onStartTraining={handleStartSession} />;
   }
 

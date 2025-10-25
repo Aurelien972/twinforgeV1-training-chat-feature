@@ -115,9 +115,9 @@ export function ForceSessionChart({
             >
               Vue d'ensemble des exercices
             </h3>
-            <p className="text-xs md:text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <div className="text-xs md:text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               {data.category || 'Force & Powerbuilding'} • {totalExercises} exercice{totalExercises > 1 ? 's' : ''}
-            </p>
+            </div>
           </div>
         </div>
 
@@ -391,10 +391,10 @@ export function ForceSessionChart({
           transition={{ delay: 0.8 }}
           className="text-center"
         >
-          <p className="text-xs text-white/50 font-medium">
-            <SpatialIcon Icon={ICONS.Info} size={12} variant="pure" style={{ display: 'inline', marginRight: '4px' }} />
-            Cliquez sur un exercice pour accéder aux détails
-          </p>
+          <div className="text-xs text-white/50 font-medium flex items-center justify-center gap-1">
+            <SpatialIcon Icon={ICONS.Info} size={12} variant="pure" />
+            <span>Cliquez sur un exercice pour accéder aux détails</span>
+          </div>
         </motion.div>
       </GlassCard>
     </motion.div>

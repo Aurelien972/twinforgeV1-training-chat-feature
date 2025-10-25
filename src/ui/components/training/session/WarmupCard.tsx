@@ -1,10 +1,11 @@
 /**
  * WarmupCard Component
  * Displays warmup prescription with joint mobility exercises
+ * Features collapsible exercises/drills section
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GlassCard from '../../../cards/GlassCard';
 import SpatialIcon from '../../../icons/SpatialIcon';
 import GlowIcon from '../GlowIcon';
@@ -21,6 +22,10 @@ const WARMUP_COLOR = '#FF8C42';
 const WarmupCard: React.FC<WarmupCardProps> = ({ warmup, stepColor }) => {
   const hasExercises = warmup.exercises && warmup.exercises.length > 0;
   const hasDynamicDrills = warmup.dynamicDrills && warmup.dynamicDrills.length > 0;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const itemCount = hasExercises ? warmup.exercises.length : (hasDynamicDrills ? warmup.dynamicDrills!.length : 0);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -87,9 +92,60 @@ const WarmupCard: React.FC<WarmupCardProps> = ({ warmup, stepColor }) => {
           </div>
         </div>
 
-        {/* Dynamic Drills (Endurance) */}
-        {hasDynamicDrills && (
-          <div className="space-y-3 mb-4">
+        {/* Toggle Button */}
+        {(hasExercises || hasDynamicDrills) && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl mb-4 transition-all duration-300 hover:scale-[1.01]"
+            style={{
+              background: isExpanded
+                ? `color-mix(in srgb, ${WARMUP_COLOR} 12%, transparent)`
+                : 'rgba(255, 255, 255, 0.04)',
+              border: isExpanded
+                ? `1px solid color-mix(in srgb, ${WARMUP_COLOR} 25%, transparent)`
+                : '1px solid rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <SpatialIcon
+                Icon={ICONS.List}
+                size={18}
+                style={{ color: isExpanded ? WARMUP_COLOR : 'rgba(255, 255, 255, 0.6)' }}
+              />
+              <div className="text-left">
+                <p className="text-white font-medium text-sm">
+                  {isExpanded ? 'Masquer les détails' : `Découvrir les ${itemCount} ${hasExercises ? 'exercices' : 'instructions'}`}
+                </p>
+                {!isExpanded && (
+                  <p className="text-white/50 text-xs mt-0.5">
+                    {hasExercises ? 'Mobilité ciblée et préparation articulaire optimale' : 'Instructions détaillées pour un échauffement progressif'}
+                  </p>
+                )}
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SpatialIcon
+                Icon={ICONS.ChevronDown}
+                size={20}
+                style={{ color: isExpanded ? WARMUP_COLOR : 'rgba(255, 255, 255, 0.6)' }}
+              />
+            </motion.div>
+          </button>
+        )}
+
+        {/* Dynamic Drills (Endurance) - Collapsible */}
+        <AnimatePresence>
+        {hasDynamicDrills && isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-3 mb-4"
+          >
             <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-3">Instructions de préparation</div>
             {warmup.dynamicDrills!.map((drill, idx) => (
               <motion.div
@@ -120,12 +176,20 @@ const WarmupCard: React.FC<WarmupCardProps> = ({ warmup, stepColor }) => {
                 <p className="text-white/80 text-sm leading-relaxed flex-1">{drill}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
-        {/* Exercises List (Force Training) */}
-        {hasExercises && (
-          <div className="space-y-3 mb-4">
+        {/* Exercises List (Force Training) - Collapsible */}
+        <AnimatePresence>
+        {hasExercises && isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-3 mb-4"
+          >
             <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-3">Exercices de mobilité</div>
             {warmup.exercises.map((exercise, idx) => (
             <motion.div
@@ -202,8 +266,9 @@ const WarmupCard: React.FC<WarmupCardProps> = ({ warmup, stepColor }) => {
               </div>
             </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
         {/* Notes */}
         {warmup.notes && (
