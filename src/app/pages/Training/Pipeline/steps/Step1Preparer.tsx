@@ -393,15 +393,6 @@ const Step1Preparer: React.FC = () => {
         hidden={canContinue || showEmptyState}
       />
 
-      {/* Floating Generate Button - Appears after location selection */}
-      <FloatingGenerateButton
-        visible={canContinue && !showEmptyState}
-        onClick={handleContinue}
-        disabled={!canContinue}
-        stepColor={stepColor}
-        locationName={selectedLocation?.name}
-      />
-
       <StepContainer>
       {/* Profile Incomplete Empty State */}
       {showEmptyState && (
