@@ -32,6 +32,7 @@ import { useProfileValidation } from '../../../../../hooks/useProfileValidation'
 import Step1ProfileIncompleteEmptyState from '../components/Step1ProfileIncompleteEmptyState';
 import { enrichPreparerContext } from '../../../../../system/services/preparerContextEnrichmentService';
 import WeeklyInsightCard from '../../../../../ui/components/training/today/WeeklyInsightCard';
+import { calculateTotalVolume } from '../../../../../system/services/volumeCalculationService';
 
 const Step1Preparer: React.FC = () => {
   const { setPreparerData, goToNextStep } = useTrainingPipeline();
@@ -105,7 +106,8 @@ const Step1Preparer: React.FC = () => {
 
       setIsLoadingInsights(true);
       try {
-        // Create a minimal payload to get insights
+        const coachType = selectedCoachType;
+
         const insights = await enrichPreparerContext(profile.id, {
           availableTime: initialTime,
           wantsShortVersion: false,
@@ -117,7 +119,7 @@ const Step1Preparer: React.FC = () => {
           hasFatigue: false,
           hasPain: false,
           tempSport: selectedDiscipline
-        });
+        }, coachType);
 
         // Transform PriorityToday to format expected by WeeklyInsightCard
         const transformedPriority = insights.priorityToday ? {
@@ -135,11 +137,13 @@ const Step1Preparer: React.FC = () => {
           recommendation: getCycleRecommendation(insights.cyclePhase)
         } : undefined;
 
-        // Transform WeeklyProgress
+        const volumeUnit = getVolumeUnitForCoach(coachType);
+
         const transformedProgress = insights.weeklyProgress ? {
           sessionsThisWeek: insights.weeklyProgress.sessionsThisWeek,
           currentWeekVolume: insights.weeklyProgress.totalVolumeThisWeek,
-          intensityAverage: insights.weeklyProgress.avgRpeThisWeek
+          intensityAverage: insights.weeklyProgress.avgRpeThisWeek,
+          volumeUnit
         } : undefined;
 
         setWeeklyInsights({
@@ -163,7 +167,23 @@ const Step1Preparer: React.FC = () => {
     };
 
     loadWeeklyInsights();
-  }, [profile?.id]);
+  }, [profile?.id, selectedCoachType]);
+
+  const getVolumeUnitForCoach = (coachType: AgentType): string => {
+    switch (coachType) {
+      case 'coach-force':
+      case 'coach-calisthenics':
+        return 'reps';
+      case 'coach-endurance':
+        return 'min';
+      case 'coach-functional':
+        return 'reps';
+      case 'coach-competitions':
+        return 'stations';
+      default:
+        return 'reps';
+    }
+  };
 
   // Helper: Determine priority level from PriorityToday data
   const determinePriorityLevel = (priority: any): 'high' | 'medium' | 'low' => {
@@ -397,7 +417,7 @@ const Step1Preparer: React.FC = () => {
     });
 
     try {
-      const enrichedPayload = await enrichPreparerContext(profile.id, basePayload);
+      const enrichedPayload = await enrichPreparerContext(profile.id, basePayload, selectedCoachType);
 
       logger.info('STEP_1_PREPARER', 'PreparerData enriched successfully', {
         locationId: enrichedPayload.locationId,

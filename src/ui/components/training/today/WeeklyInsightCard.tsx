@@ -15,6 +15,7 @@ interface WeeklyProgressData {
   sessionsThisWeek: number;
   currentWeekVolume: number;
   intensityAverage: number;
+  volumeUnit?: string;
 }
 
 interface PriorityTodayData {
@@ -191,12 +192,12 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
               <SpatialIcon Icon={ICONS.Activity} size={20} style={{ color: stepColor, opacity: 0.5, margin: '0 auto 8px' }} />
               <div className="text-white/40 text-xs">Volume</div>
-              <div className="text-white/60 text-lg font-semibold">-</div>
+              <div className="text-white/60 text-sm font-semibold">En attente</div>
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
               <SpatialIcon Icon={ICONS.Zap} size={20} style={{ color: stepColor, opacity: 0.5, margin: '0 auto 8px' }} />
-              <div className="text-white/40 text-xs">Intensité</div>
-              <div className="text-white/60 text-lg font-semibold">-</div>
+              <div className="text-white/40 text-xs">Intensité (RPE)</div>
+              <div className="text-white/60 text-sm font-semibold">En attente</div>
             </div>
           </div>
         </motion.div>
@@ -217,16 +218,32 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="text-white/60 text-xs mb-1">Volume</div>
+              <div className="p-3 rounded-lg bg-white/5 border border-white/10 group relative">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="text-white/60 text-xs">Volume</div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-[10px] cursor-help"
+                         title="Volume total d'entraînement cette semaine">
+                      ?
+                    </div>
+                  </div>
+                </div>
                 <div className="text-lg font-semibold text-white">
                   {weeklyProgress.currentWeekVolume && !isNaN(weeklyProgress.currentWeekVolume)
-                    ? Math.round(weeklyProgress.currentWeekVolume)
-                    : '0'}
+                    ? `${Math.round(weeklyProgress.currentWeekVolume)} ${weeklyProgress.volumeUnit || 'reps'}`
+                    : `0 ${weeklyProgress.volumeUnit || 'reps'}`}
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="text-white/60 text-xs mb-1">Intensité Moy.</div>
+              <div className="p-3 rounded-lg bg-white/5 border border-white/10 group relative">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="text-white/60 text-xs">Intensité Moy. (RPE)</div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-[10px] cursor-help"
+                         title="Intensité moyenne ressentie sur une échelle de 1 à 10">
+                      ?
+                    </div>
+                  </div>
+                </div>
                 <div className="text-lg font-semibold text-white">
                   {weeklyProgress.intensityAverage && !isNaN(weeklyProgress.intensityAverage)
                     ? weeklyProgress.intensityAverage.toFixed(1)
