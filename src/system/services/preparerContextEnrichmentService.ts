@@ -20,7 +20,7 @@ interface SessionHistory {
   prescription: any;
   feedback: any;
   duration_actual_min?: number;
-  overall_rpe?: number;
+  rpe_avg?: number;
 }
 
 interface ExerciseFrequency {
@@ -42,7 +42,7 @@ export async function enrichPreparerContext(
 
   const { data: sessions, error } = await supabase
     .from('training_sessions')
-    .select('id, created_at, discipline, prescription, duration_actual_min, overall_rpe')
+    .select('id, created_at, discipline, prescription, duration_actual_min, rpe_avg')
     .eq('user_id', userId)
     .gte('created_at', lookbackDate.toISOString())
     .order('created_at', { ascending: false })

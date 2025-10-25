@@ -687,7 +687,7 @@ Deno.serve(async (req: Request) => {
       sessionStats: {
         totalSessions: sessions?.length || 0,
         avgRpe: sessions && sessions.length > 0
-          ? sessions.reduce((sum, s) => sum + (s.overall_rpe || 7), 0) / sessions.length
+          ? sessions.reduce((sum, s) => sum + (s.rpe_avg || 7), 0) / sessions.length
           : 0,
         recentPerformance: sessions?.slice(0, 5) || [],
         avgPerformanceScore: analyses && analyses.length > 0

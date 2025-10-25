@@ -37,7 +37,7 @@ const Step1Preparer: React.FC = () => {
   const { setPreparerData, goToNextStep } = useTrainingPipeline();
   const stepColor = STEP_COLORS.preparer;
   const { chatButtonRef } = useChatButtonRef();
-  const { locations } = useTrainingLocations();
+  const { locations, selectedLocation: defaultSelectedLocation } = useTrainingLocations();
   const { profile } = useUserStore();
   const profileValidation = useProfileValidation();
   const {
@@ -146,6 +146,18 @@ const Step1Preparer: React.FC = () => {
     }
   }, [locations]);
 
+  // Auto-select default location from profile
+  useEffect(() => {
+    if (!selectedLocation && defaultSelectedLocation) {
+      setSelectedLocation(defaultSelectedLocation);
+      logger.info('STEP_1_PREPARER', 'Auto-selected default location from profile', {
+        locationId: defaultSelectedLocation.id,
+        locationName: defaultSelectedLocation.name
+      });
+    }
+  }, [defaultSelectedLocation, selectedLocation]);
+
+  // Handle newly created locations
   useEffect(() => {
     const justCreatedLocationId = typeof window !== 'undefined'
       ? sessionStorage.getItem('justCreatedLocationId')
