@@ -218,13 +218,17 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
               <div className="p-3 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-white/60 text-xs mb-1">Volume</div>
                 <div className="text-lg font-semibold text-white">
-                  {Math.round(weeklyProgress.currentWeekVolume)}
+                  {weeklyProgress.currentWeekVolume && !isNaN(weeklyProgress.currentWeekVolume)
+                    ? Math.round(weeklyProgress.currentWeekVolume)
+                    : '0'}
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-white/60 text-xs mb-1">Intensité Moy.</div>
                 <div className="text-lg font-semibold text-white">
-                  {weeklyProgress.intensityAverage ? weeklyProgress.intensityAverage.toFixed(1) : '0.0'}/10
+                  {weeklyProgress.intensityAverage && !isNaN(weeklyProgress.intensityAverage)
+                    ? weeklyProgress.intensityAverage.toFixed(1)
+                    : '0.0'}/10
                 </div>
               </div>
             </div>
@@ -232,34 +236,40 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
         )
       )}
 
-      {/* Priority Today */}
-      {hasInsightsData && priorityToday && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-4 rounded-lg"
-          style={{
-            background: `linear-gradient(135deg, ${getPriorityColor(priorityToday.priority)}10 0%, transparent 100%)`,
-            border: `1px solid ${getPriorityColor(priorityToday.priority)}30`
-          }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <SpatialIcon
-              Icon={ICONS.Target}
-              size={20}
-              style={{ color: getPriorityColor(priorityToday.priority) }}
-            />
-            <div>
-              <div className="text-xs text-white/60 uppercase tracking-wide">Priorité Aujourd'hui</div>
-              <div className="text-lg font-semibold text-white capitalize">
-                {priorityToday.suggestedDiscipline}
-              </div>
+      {/* Priority Today - Always show with fallback */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="p-4 rounded-lg mt-4 mb-4"
+        style={{
+          background: hasInsightsData && priorityToday
+            ? `linear-gradient(135deg, ${getPriorityColor(priorityToday.priority)}10 0%, transparent 100%)`
+            : `linear-gradient(135deg, ${stepColor}10 0%, transparent 100%)`,
+          border: hasInsightsData && priorityToday
+            ? `1px solid ${getPriorityColor(priorityToday.priority)}30`
+            : `1px solid ${stepColor}30`
+        }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <SpatialIcon
+            Icon={ICONS.Target}
+            size={20}
+            style={{ color: hasInsightsData && priorityToday ? getPriorityColor(priorityToday.priority) : stepColor }}
+          />
+          <div>
+            <div className="text-xs text-white/60 uppercase tracking-wide">Priorité Aujourd'hui</div>
+            <div className="text-lg font-semibold text-white capitalize">
+              {hasInsightsData && priorityToday ? priorityToday.suggestedDiscipline : 'À déterminer'}
             </div>
           </div>
-          <p className="text-sm text-white/70 leading-relaxed">{priorityToday.reasoning}</p>
-        </motion.div>
-      )}
+        </div>
+        <p className="text-sm text-white/70 leading-relaxed">
+          {hasInsightsData && priorityToday
+            ? priorityToday.reasoning
+            : 'Après votre première séance, le système analysera vos objectifs et vous recommandera une discipline prioritaire basée sur votre progression et vos besoins.'}
+        </p>
+      </motion.div>
 
       {/* Cycle Phase */}
       {hasInsightsData && cyclePhase && (
@@ -304,7 +314,7 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
           transition={shouldAnimate ? { delay: hasInsightsData ? 0.4 : 0.1 } : { duration: 0 }}
           onClick={onGenerateClick}
           disabled={!canGenerate}
-          className="w-full py-4 px-6 rounded-xl font-semibold text-base transition-all"
+          className="w-full py-4 px-6 rounded-xl font-semibold text-base transition-all mt-6"
           style={{
             background: canGenerate
               ? `linear-gradient(135deg, ${stepColor} 0%, color-mix(in srgb, ${stepColor} 80%, black) 100%)`

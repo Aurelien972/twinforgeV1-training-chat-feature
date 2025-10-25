@@ -55,6 +55,7 @@ export { default as SavedDraftsCardSkeleton } from './training/SavedDraftsCardSk
 export { default as CurrentGoalCardSkeleton } from './training/CurrentGoalCardSkeleton';
 export { default as QuickHistoryCardSkeleton } from './training/QuickHistoryCardSkeleton';
 export { default as HeroTrainingCTASkeleton } from './training/HeroTrainingCTASkeleton';
+export { default as WeeklyInsightCardSkeleton } from './training/WeeklyInsightCardSkeleton';
 
 export { default as ProfileTabSkeleton } from './ProfileTabSkeleton';
 export { default as AvatarTabSkeleton } from './AvatarTabSkeleton';

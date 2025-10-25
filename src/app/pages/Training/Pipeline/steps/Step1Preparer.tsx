@@ -12,7 +12,7 @@ import StepContainer from '../components/StepContainer';
 import TrainingButton from '../components/TrainingButton';
 import { LocationQuickSelector } from '../../../../../ui/components/training';
 import FilteredDisciplineSelector from '../../../../../ui/components/training/discipline-selector/FilteredDisciplineSelector';
-import { LocationQuickSelectorSkeleton, DisciplineSelectorSkeleton } from '../../../../../ui/components/skeletons';
+import { LocationQuickSelectorSkeleton, DisciplineSelectorSkeleton, WeeklyInsightCardSkeleton } from '../../../../../ui/components/skeletons';
 import logger from '../../../../../lib/utils/logger';
 import TrainingCoachNotificationBubble from '../../../../../ui/components/training/TrainingCoachNotificationBubble';
 import {
@@ -738,7 +738,9 @@ const Step1Preparer: React.FC = () => {
       </GlassCard>
 
       {/* Weekly Insights Card with CTA - Bottom Position */}
-      {!isLoadingInsights && (
+      {isLoadingInsights ? (
+        <WeeklyInsightCardSkeleton stepColor={stepColor} />
+      ) : (
         <WeeklyInsightCard
           weeklyProgress={weeklyInsights?.weeklyProgress}
           priorityToday={weeklyInsights?.priorityToday}
