@@ -245,7 +245,7 @@ class EnduranceSessionService {
       const { error } = await supabase
         .from('training_session_endurance_blocks')
         .update({
-          duration_actual: metrics.durationActual,
+          duration_actual_seconds: metrics.durationActual,
           avg_heart_rate: metrics.avgHeartRate,
           rpe: metrics.rpe,
           notes: metrics.notes,
@@ -355,7 +355,7 @@ class EnduranceSessionService {
       const { error } = await supabase
         .from('training_session_intervals')
         .update({
-          duration_actual: metrics.durationActual,
+          duration_actual_seconds: metrics.durationActual,
           avg_heart_rate: metrics.avgHeartRate,
           completed: true,
           completed_at: new Date().toISOString(),
@@ -455,7 +455,7 @@ class EnduranceSessionService {
    * Calculate zones distribution from blocks
    */
   calculateZonesDistribution(
-    blocks: Array<{ zone_target: string; duration_actual: number }>
+    blocks: Array<{ zone_target: string; duration_actual_seconds: number }>
   ): Record<HeartRateZone, number> {
     const distribution: Record<HeartRateZone, number> = {
       Z1: 0,
@@ -467,8 +467,8 @@ class EnduranceSessionService {
 
     blocks.forEach(block => {
       const zone = this.extractPrimaryZone(block.zone_target);
-      if (zone && block.duration_actual) {
-        distribution[zone] += block.duration_actual;
+      if (zone && block.duration_actual_seconds) {
+        distribution[zone] += block.duration_actual_seconds;
       }
     });
 

@@ -325,7 +325,7 @@ class TrainingActivitySyncService {
    */
   private mapSessionToActivity(session: any): Omit<ActivityFromTraining, 'id' | 'userId' | 'trainingSessionId'> {
     const discipline = session.discipline || session.session_type || 'strength';
-    const durationMin = session.duration_actual || session.duration_target_min || 45;
+    const durationMin = session.duration_actual_min || session.duration_target_min || 45;
     const rpeAvg = session.rpe_avg || 5;
 
     // Mapper le type d'activité

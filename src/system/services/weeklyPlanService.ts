@@ -57,7 +57,7 @@ export async function generateWeeklyPlanRecommendation(
 
   const { data: sessionsThisWeek, error } = await supabase
     .from('training_sessions')
-    .select('id, discipline, prescription, overall_rpe, duration_actual')
+    .select('id, discipline, prescription, overall_rpe, duration_actual_min')
     .eq('user_id', userId)
     .gte('created_at', weekStart.toISOString())
     .order('created_at', { ascending: false });
