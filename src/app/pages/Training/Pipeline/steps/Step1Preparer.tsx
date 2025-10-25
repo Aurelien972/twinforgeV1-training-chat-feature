@@ -10,7 +10,8 @@ import SpatialIcon from '../../../../../ui/icons/SpatialIcon';
 import { ICONS } from '../../../../../ui/icons/registry';
 import StepContainer from '../components/StepContainer';
 import TrainingButton from '../components/TrainingButton';
-import { LocationQuickSelector, DisciplineSelector, FloatingGenerateButton } from '../../../../../ui/components/training';
+import { LocationQuickSelector } from '../../../../../ui/components/training';
+import FilteredDisciplineSelector from '../../../../../ui/components/training/discipline-selector/FilteredDisciplineSelector';
 import { LocationQuickSelectorSkeleton, DisciplineSelectorSkeleton } from '../../../../../ui/components/skeletons';
 import logger from '../../../../../lib/utils/logger';
 import TrainingCoachNotificationBubble from '../../../../../ui/components/training/TrainingCoachNotificationBubble';
@@ -25,6 +26,7 @@ import { step1NotificationService } from '../../../../../system/services/step1No
 import { useChatButtonRef } from '../../../../../system/context/ChatButtonContext';
 import { useTrainingLocations } from '../../../../../hooks/useTrainingLocations';
 import { useUserStore } from '../../../../../system/store/userStore';
+import { useDisciplinePreferences } from '../../../../../hooks/useDisciplinePreferences';
 import type { AgentType } from '../../../../../domain/ai/trainingAiTypes';
 import { useProfileValidation } from '../../../../../hooks/useProfileValidation';
 import Step1ProfileIncompleteEmptyState from '../components/Step1ProfileIncompleteEmptyState';
@@ -38,6 +40,11 @@ const Step1Preparer: React.FC = () => {
   const { locations } = useTrainingLocations();
   const { profile } = useUserStore();
   const profileValidation = useProfileValidation();
+  const {
+    selectedDisciplines,
+    defaultDiscipline,
+    isLoading: isDisciplinesLoading
+  } = useDisciplinePreferences();
 
   const initialTime = profile?.preferences?.workout?.preferredDuration || DEFAULT_SESSION_DURATION;
   const [availableTime, setAvailableTime] = useState(initialTime);
@@ -48,12 +55,36 @@ const Step1Preparer: React.FC = () => {
   const [hasPain, setHasPain] = useState(false);
   const [painDetails, setPainDetails] = useState('');
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>(
-    profile?.preferences?.workout?.type || 'strength'
+    defaultDiscipline || profile?.preferences?.workout?.type || 'strength'
   );
   const [selectedCoachType, setSelectedCoachType] = useState<AgentType>('coach-force');
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [weeklyInsights, setWeeklyInsights] = useState<any>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
+  useEffect(() => {
+    if (defaultDiscipline) {
+      setSelectedDiscipline(defaultDiscipline);
+      const disciplineMap: Record<string, AgentType> = {
+        'strength': 'coach-force',
+        'powerlifting': 'coach-force',
+        'bodybuilding': 'coach-force',
+        'strongman': 'coach-force',
+        'running': 'coach-endurance',
+        'cycling': 'coach-endurance',
+        'swimming': 'coach-endurance',
+        'triathlon': 'coach-endurance',
+        'cardio': 'coach-endurance',
+        'calisthenics': 'coach-calisthenics',
+        'street-workout': 'coach-calisthenics',
+        'functional': 'coach-functional',
+        'hyrox': 'coach-competitions',
+        'deka': 'coach-competitions'
+      };
+      const coachType = disciplineMap[defaultDiscipline] || 'coach-force';
+      setSelectedCoachType(coachType);
+    }
+  }, [defaultDiscipline]);
 
   const timeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const energyDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -642,14 +673,15 @@ const Step1Preparer: React.FC = () => {
           </div>
         </div>
 
-        {!profile ? (
+        {isDisciplinesLoading || !profile ? (
           <DisciplineSelectorSkeleton />
         ) : (
-          <DisciplineSelector
-            profileDiscipline={profile?.preferences?.workout?.type || 'strength'}
+          <FilteredDisciplineSelector
+            preferredDisciplines={selectedDisciplines}
+            defaultDiscipline={defaultDiscipline}
+            selectedDiscipline={selectedDiscipline}
             onDisciplineChange={handleDisciplineChange}
-            compact={true}
-            showConfirmation={true}
+            stepColor={stepColor}
           />
         )}
       </GlassCard>

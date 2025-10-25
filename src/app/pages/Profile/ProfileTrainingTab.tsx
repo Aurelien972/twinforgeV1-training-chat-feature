@@ -12,6 +12,8 @@ import { useProfileTrainingForm } from './hooks/useProfileTrainingForm';
 import { useProfileCompletion } from './hooks/useProfileCompletion';
 import { useUserStore } from '../../../system/store/userStore';
 import { ProgressBar } from './components/ProfileIdentityComponents';
+import { DisciplinePreferencesSelector } from '../../../ui/components/training/discipline-selector/DisciplinePreferencesSelector';
+import { useDisciplinePreferences } from '../../../hooks/useDisciplinePreferences';
 
 const ProfileTrainingTab: React.FC = () => {
   const performanceConfig = useProfilePerformance();
@@ -25,6 +27,14 @@ const ProfileTrainingTab: React.FC = () => {
     handleChange,
     handleSave
   } = useProfileTrainingForm();
+
+  const {
+    selectedDisciplines,
+    defaultDiscipline,
+    isLoading: isDisciplinesLoading,
+    updateDisciplines,
+    updateDefaultDiscipline
+  } = useDisciplinePreferences();
 
   // Debug: Log profile health data
   React.useEffect(() => {
@@ -121,64 +131,6 @@ const ProfileTrainingTab: React.FC = () => {
             </select>
           </div>
 
-          {/* Type d'entraînement préféré */}
-          <div>
-            <label className="block text-white/90 text-sm font-medium mb-3">
-              <div className="flex items-center gap-2">
-                <SpatialIcon Icon={ICONS.Target} size={16} style={{ color: '#06B6D4' }} />
-                <span>Type d'entraînement préféré</span>
-              </div>
-            </label>
-            <select
-              value={formData.preferred_training_type || ''}
-              onChange={(e) => handleChange('preferred_training_type', e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-400/50 transition-colors hover:bg-white/8"
-              style={{
-                backgroundImage: 'none',
-                appearance: 'none',
-                backgroundPosition: 'right 0.75rem center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: '1.5em 1.5em',
-                paddingRight: '2.5rem'
-              }}
-            >
-              <option value="" style={{ background: '#1a1a1a', color: '#fff' }}>Sélectionnez un type</option>
-
-              <optgroup label="Force & Powerbuilding" style={{ background: '#1a1a1a', color: '#3B82F6', fontWeight: 'bold' }}>
-                <option value="strength" style={{ background: '#1a1a1a', color: '#fff' }}>Musculation</option>
-                <option value="powerlifting" style={{ background: '#1a1a1a', color: '#fff' }}>Powerlifting</option>
-                <option value="bodybuilding" style={{ background: '#1a1a1a', color: '#fff' }}>Bodybuilding</option>
-                <option value="strongman" style={{ background: '#1a1a1a', color: '#fff' }}>Strongman</option>
-              </optgroup>
-
-              <optgroup label="Endurance" style={{ background: '#1a1a1a', color: '#22C55E', fontWeight: 'bold' }}>
-                <option value="running" style={{ background: '#1a1a1a', color: '#fff' }}>Course à pied</option>
-                <option value="cycling" style={{ background: '#1a1a1a', color: '#fff' }}>Cyclisme</option>
-                <option value="swimming" style={{ background: '#1a1a1a', color: '#fff' }}>Natation</option>
-                <option value="triathlon" style={{ background: '#1a1a1a', color: '#fff' }}>Triathlon</option>
-                <option value="cardio" style={{ background: '#1a1a1a', color: '#fff' }}>Cardio général</option>
-              </optgroup>
-
-              <optgroup label="Functional & CrossTraining" style={{ background: '#1a1a1a', color: '#DC2626', fontWeight: 'bold' }}>
-                <option value="crossfit" style={{ background: '#1a1a1a', color: '#fff' }}>CrossFit</option>
-                <option value="hiit" style={{ background: '#1a1a1a', color: '#fff' }}>HIIT</option>
-                <option value="functional" style={{ background: '#1a1a1a', color: '#fff' }}>Functional Training</option>
-                <option value="circuit" style={{ background: '#1a1a1a', color: '#fff' }}>Circuit Training</option>
-              </optgroup>
-
-              <optgroup label="Calisthenics & Street" style={{ background: '#1a1a1a', color: '#06B6D4', fontWeight: 'bold' }}>
-                <option value="calisthenics" style={{ background: '#1a1a1a', color: '#fff' }}>Calisthenics</option>
-                <option value="street-workout" style={{ background: '#1a1a1a', color: '#fff' }}>Street Workout</option>
-              </optgroup>
-
-              <optgroup label="Fitness Competitions" style={{ background: '#1a1a1a', color: '#F59E0B', fontWeight: 'bold' }}>
-                <option value="hyrox" style={{ background: '#1a1a1a', color: '#fff' }}>HYROX</option>
-                <option value="deka-fit" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA FIT</option>
-                <option value="deka-mile" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA MILE</option>
-                <option value="deka-strong" style={{ background: '#1a1a1a', color: '#fff' }}>DEKA STRONG</option>
-              </optgroup>
-            </select>
-          </div>
 
           {/* Séances par semaine */}
           <div>
@@ -223,27 +175,56 @@ const ProfileTrainingTab: React.FC = () => {
 
         {/* Wearable Status Card */}
         <WearableStatusCard />
+      </GlassCard>
 
-        {/* Bouton de sauvegarde (visible uniquement si modifié) */}
-        {isDirty && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full py-3 rounded-lg bg-cyan-500/20 border-2 border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/30 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+      {/* Disciplines Sportives */}
+      <GlassCard
+        className="p-6"
+        style={{
+          background: `
+            radial-gradient(circle at 30% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 60%),
+            var(--glass-opacity)
+          `,
+          borderColor: 'rgba(236, 72, 153, 0.2)'
+        }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              boxShadow: '0 0 20px rgba(6, 182, 212, 0.3)'
+              background: `
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(236, 72, 153, 0.4), rgba(236, 72, 153, 0.2))
+              `,
+              border: '2px solid rgba(236, 72, 153, 0.5)',
+              boxShadow: '0 0 20px rgba(236, 72, 153, 0.4)'
             }}
           >
-            {isSaving ? (
-              <div className="flex items-center justify-center gap-2">
-                <SpatialIcon Icon={ICONS.Loader2} size={18} className="animate-spin" />
-                <span>Enregistrement...</span>
-              </div>
-            ) : (
-              'Enregistrer les modifications'
-            )}
-          </button>
+            <SpatialIcon Icon={ICONS.Dumbbell} size={24} style={{ color: '#EC4899' }} variant="pure" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-white font-semibold text-xl">Disciplines Sportives</h3>
+            <p className="text-white/60 text-sm mt-1">Sélectionnez vos disciplines et définissez celle par défaut</p>
+          </div>
+        </div>
+
+        {!isDisciplinesLoading && (
+          <DisciplinePreferencesSelector
+            selectedDisciplines={selectedDisciplines}
+            defaultDiscipline={defaultDiscipline}
+            onDisciplinesChange={updateDisciplines}
+            onDefaultChange={updateDefaultDiscipline}
+            stepColor="#EC4899"
+          />
         )}
+
+        {isDisciplinesLoading && (
+          <div className="text-center py-8 text-white/50">
+            <SpatialIcon Icon={ICONS.Loader2} size={24} className="animate-spin mx-auto" />
+            <p className="mt-2 text-sm">Chargement des disciplines...</p>
+          </div>
+        )}
+
       </GlassCard>
 
       {/* Mes Équipements */}
