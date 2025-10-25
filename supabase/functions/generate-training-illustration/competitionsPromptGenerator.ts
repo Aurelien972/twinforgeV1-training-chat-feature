@@ -19,6 +19,12 @@ export interface CompetitionsPromptParams {
   };
   noRepCriteria?: string[];    // Common no-rep faults
   equipment?: string[];
+  // Enhanced visual metadata from exercise catalog DB
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 /**

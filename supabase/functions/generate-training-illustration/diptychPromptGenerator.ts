@@ -8,6 +8,12 @@ export interface DiptychPromptParams {
   muscleGroups?: string[];
   equipment?: string[];
   movementPattern?: string;
+  // Enhanced visual metadata from exercise catalog DB
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 interface MuscleMapping {
@@ -187,7 +193,17 @@ function generateEquipmentContext(exerciseName: string, equipment: string[] | un
 }
 
 export function generateForceDiptychPrompt(params: DiptychPromptParams): string {
-  const { exerciseName, muscleGroups = [], equipment = [], movementPattern } = params;
+  const {
+    exerciseName,
+    muscleGroups = [],
+    equipment = [],
+    movementPattern,
+    visualKeywords = [],
+    executionPhases = [],
+    keyPositions = [],
+    recommendedViewAngle = 'side',
+    recommendedVisualStyle = 'technical'
+  } = params;
 
   const detectedPattern = determineMovementPattern(exerciseName, movementPattern);
   const arrowInstructions = generateArrowInstructions(detectedPattern);
@@ -196,13 +212,44 @@ export function generateForceDiptychPrompt(params: DiptychPromptParams): string 
   // Enhanced equipment detection with exercise-specific context
   const equipmentContext = generateEquipmentContext(exerciseName, equipment);
 
+  // CRITICAL OPTIMIZATION: Use visual_keywords from DB to enrich prompt
+  const visualKeywordsSection = visualKeywords.length > 0
+    ? `
+
+VISUAL KEYWORDS FROM CATALOG (PRIORITY):
+${visualKeywords.map(kw => `- ${kw}`).join('\n')}
+These keywords define the EXACT visual elements that must appear in the illustration.`
+    : '';
+
+  // Use execution_phases from DB to detail movement breakdown
+  const executionPhasesSection = executionPhases.length > 0
+    ? `
+
+EXECUTION PHASES (from exercise catalog):
+${executionPhases.map((phase, idx) => `${idx + 1}. ${phase}`).join('\n')}
+Panel 1 shows phases 1-2, Panel 2 shows phases 3-4.`
+    : '';
+
+  // Use key_positions from DB to detail anatomical positions
+  const keyPositionsSection = keyPositions.length > 0
+    ? `
+
+KEY ANATOMICAL POSITIONS:
+${keyPositions.map(pos => `- ${pos}`).join('\n')}
+Highlight these positions with precision in both panels.`
+    : '';
+
+  // Use recommended_view_angle from DB
+  const viewAngleInstruction = `
+CAMERA ANGLE (from catalog): ${recommendedViewAngle === 'side' ? 'Side profile' : recommendedViewAngle === 'front' ? 'Front view' : recommendedViewAngle === '3/4' ? '3/4 angle' : 'Side profile'} - MUST be used for optimal movement visibility.`;
+
   const prompt = `Professional fitness technical illustration DIPTYCH (2 panels side-by-side):
 
 SUBJECT: ${exerciseName}
-FORMAT: Panoramic 16:9 ratio (1536x1024 pixels), TWO EQUAL PANELS separated by thin vertical line
+FORMAT: Panoramic 16:9 ratio (1536x1024 pixels), TWO EQUAL PANELS separated by thin vertical line${visualKeywordsSection}${executionPhasesSection}${keyPositionsSection}${viewAngleInstruction}
 
 STYLE:
-- Black and white anatomical drawing style
+- ${recommendedVisualStyle === 'dynamic' ? 'Dynamic action photography style' : recommendedVisualStyle === 'minimalist' ? 'Clean minimalist technical diagram' : 'Black and white anatomical drawing style'}
 - Realistic muscular anatomy without exaggeration
 - Clean gray neutral background
 - Studio lighting with clear shadows

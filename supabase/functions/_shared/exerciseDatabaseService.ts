@@ -581,6 +581,124 @@ export function filterExercisesByContext(
 }
 
 /**
+ * Get visual metadata for illustration generation
+ * Enriches illustration prompts with DB metadata: visual_keywords, execution_phases, movement_pattern
+ */
+export async function getExerciseVisualMetadata(
+  supabase: SupabaseClient,
+  exerciseName: string,
+  discipline: string
+): Promise<{
+  visualKeywords: string[];
+  executionPhases: string[];
+  keyPositions: string[];
+  movementPattern: string;
+  recommendedViewAngle: string;
+  recommendedVisualStyle: string;
+  muscleGroups: string[];
+  equipment: string[];
+} | null> {
+  console.log('[EXERCISE-VISUAL-METADATA] Querying visual metadata', {
+    exerciseName,
+    discipline
+  });
+
+  try {
+    // Normalize exercise name for matching
+    const normalizedName = exerciseName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim();
+
+    // Query exercise with visual metadata
+    const { data: exercise, error } = await supabase
+      .from('exercises')
+      .select(`
+        id,
+        name,
+        visual_keywords,
+        execution_phases,
+        key_positions,
+        movement_pattern,
+        recommended_view_angle,
+        recommended_visual_style
+      `)
+      .eq('discipline', discipline)
+      .eq('is_active', true)
+      .or(`name_normalized.eq.${normalizedName},name.ilike.%${exerciseName}%`)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[EXERCISE-VISUAL-METADATA] Query error', error);
+      return null;
+    }
+
+    if (!exercise) {
+      console.warn('[EXERCISE-VISUAL-METADATA] No exercise found', {
+        exerciseName,
+        discipline,
+        normalizedName
+      });
+      return null;
+    }
+
+    // Get muscle groups for this exercise
+    const { data: muscleGroupsData } = await supabase
+      .from('exercise_muscle_groups')
+      .select(`
+        involvement_type,
+        muscle_groups (
+          name_fr,
+          name_en
+        )
+      `)
+      .eq('exercise_id', exercise.id)
+      .eq('involvement_type', 'primary');
+
+    const muscleGroups = muscleGroupsData?.map((mg: any) => mg.muscle_groups.name_fr) || [];
+
+    // Get equipment for this exercise
+    const { data: equipmentData } = await supabase
+      .from('exercise_equipment')
+      .select(`
+        is_required,
+        equipment_types (
+          name_fr,
+          name_en
+        )
+      `)
+      .eq('exercise_id', exercise.id)
+      .eq('is_required', true);
+
+    const equipment = equipmentData?.map((eq: any) => eq.equipment_types.name_fr) || [];
+
+    console.log('[EXERCISE-VISUAL-METADATA] Metadata found', {
+      exerciseId: exercise.id,
+      visualKeywordsCount: exercise.visual_keywords?.length || 0,
+      executionPhasesCount: exercise.execution_phases?.length || 0,
+      movementPattern: exercise.movement_pattern,
+      muscleGroupsCount: muscleGroups.length
+    });
+
+    return {
+      visualKeywords: exercise.visual_keywords || [],
+      executionPhases: exercise.execution_phases || [],
+      keyPositions: exercise.key_positions || [],
+      movementPattern: exercise.movement_pattern || '',
+      recommendedViewAngle: exercise.recommended_view_angle || 'front',
+      recommendedVisualStyle: exercise.recommended_visual_style || 'technical',
+      muscleGroups,
+      equipment
+    };
+  } catch (error) {
+    console.error('[EXERCISE-VISUAL-METADATA] Exception', error);
+    return null;
+  }
+}
+
+/**
  * Format exercise catalog for AI prompt
  */
 export function formatExercisesForAI(

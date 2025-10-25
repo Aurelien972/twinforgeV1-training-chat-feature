@@ -14,6 +14,12 @@ export interface FunctionalPromptParams {
   timeCap?: number;             // Time cap in minutes
   isUnbroken?: boolean;         // Unbroken requirement
   equipment?: string[];
+  // Enhanced visual metadata from exercise catalog DB
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 /**

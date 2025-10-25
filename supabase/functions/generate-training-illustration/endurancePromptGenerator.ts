@@ -13,6 +13,12 @@ export interface EndurancePromptParams {
   cadence?: number;           // Target cadence (steps/min, rpm, strokes/min)
   duration?: number;          // Duration in minutes
   intensity?: 'easy' | 'tempo' | 'threshold' | 'vo2max' | 'sprint';
+  // Enhanced visual metadata from exercise catalog DB
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 /**

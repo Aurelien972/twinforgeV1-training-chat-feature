@@ -14,6 +14,12 @@ export interface CalisthenicsPromptParams {
   holdDuration?: number;        // For static holds (seconds)
   repTarget?: number;           // For dynamic movements
   equipment?: string[];
+  // Enhanced visual metadata from exercise catalog DB
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 /**

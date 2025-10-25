@@ -7,6 +7,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.54.0";
 import { checkTokenBalance, consumeTokensAtomic, createInsufficientTokensResponse } from '../_shared/tokenMiddleware.ts';
+import { getExerciseVisualMetadata } from '../_shared/exerciseDatabaseService.ts';
 import { generateForceDiptychPrompt, type DiptychPromptParams } from "./diptychPromptGenerator.ts";
 import { generateEndurancePrompt, type EndurancePromptParams } from "./endurancePromptGenerator.ts";
 import { generateFunctionalPrompt, type FunctionalPromptParams } from "./functionalPromptGenerator.ts";
@@ -72,6 +73,12 @@ interface GenerationRequest {
   equipment?: string[];
   movementPattern?: string;
   userId?: string;
+  // Enhanced visual metadata from DB (optional, will be queried if not provided)
+  visualKeywords?: string[];
+  executionPhases?: string[];
+  keyPositions?: string[];
+  recommendedViewAngle?: string;
+  recommendedVisualStyle?: string;
 }
 
 interface GenerationResult {
@@ -194,13 +201,53 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Create normalized request with corrected discipline
-    const normalizedRequest = {
+    // CRITICAL OPTIMIZATION: Enrich with visual metadata from exercise catalog DB
+    let enrichedRequest = {
       ...request,
       discipline
     };
 
-    const promptResult = generateDisciplineOptimizedPrompt(normalizedRequest);
+    // If exercise-specific illustration, query DB for visual metadata
+    if (type === 'exercise' && exerciseName) {
+      console.log(`[GPT-IMAGE-1][${requestId}] Querying visual metadata from DB`, {
+        exerciseName,
+        discipline
+      });
+
+      const visualMetadata = await getExerciseVisualMetadata(
+        supabase,
+        exerciseName,
+        discipline
+      );
+
+      if (visualMetadata) {
+        console.log(`[GPT-IMAGE-1][${requestId}] Visual metadata enriched`, {
+          visualKeywordsCount: visualMetadata.visualKeywords.length,
+          executionPhasesCount: visualMetadata.executionPhases.length,
+          movementPattern: visualMetadata.movementPattern,
+          muscleGroupsCount: visualMetadata.muscleGroups.length,
+          viewAngle: visualMetadata.recommendedViewAngle
+        });
+
+        // Enrich request with DB metadata (override if provided)
+        enrichedRequest = {
+          ...enrichedRequest,
+          visualKeywords: visualMetadata.visualKeywords,
+          executionPhases: visualMetadata.executionPhases,
+          keyPositions: visualMetadata.keyPositions,
+          movementPattern: visualMetadata.movementPattern || enrichedRequest.movementPattern,
+          recommendedViewAngle: visualMetadata.recommendedViewAngle,
+          recommendedVisualStyle: visualMetadata.recommendedVisualStyle,
+          // Use DB muscle groups/equipment if not already provided
+          muscleGroups: enrichedRequest.muscleGroups || visualMetadata.muscleGroups,
+          equipment: enrichedRequest.equipment || visualMetadata.equipment
+        };
+      } else {
+        console.warn(`[GPT-IMAGE-1][${requestId}] No visual metadata found in DB, using defaults`);
+      }
+    }
+
+    const promptResult = generateDisciplineOptimizedPrompt(enrichedRequest);
     const prompt = promptResult.prompt;
     const isDiptych = promptResult.isDiptych || false;
     const aspectRatio = promptResult.aspectRatio || '1:1';
@@ -710,7 +757,19 @@ async function generateWithGPTImage1(
 }
 
 function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt: string; isDiptych: boolean; aspectRatio: string } {
-  const { type, exerciseName, discipline, muscleGroups, equipment, movementPattern } = request;
+  const {
+    type,
+    exerciseName,
+    discipline,
+    muscleGroups,
+    equipment,
+    movementPattern,
+    visualKeywords,
+    executionPhases,
+    keyPositions,
+    recommendedViewAngle,
+    recommendedVisualStyle
+  } = request;
 
   // Session-level illustrations (not exercise-specific)
   if (type === 'session') {
@@ -729,13 +788,18 @@ function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt
     throw new Error('Exercise name required for exercise-type illustrations');
   }
 
-  // FORCE/POWERBUILDING - Use existing diptych generator
+  // FORCE/POWERBUILDING - Use existing diptych generator with enriched metadata
   if (discipline === 'force') {
     const diptychParams: DiptychPromptParams = {
       exerciseName,
       muscleGroups,
       equipment,
-      movementPattern
+      movementPattern,
+      visualKeywords,
+      executionPhases,
+      keyPositions,
+      recommendedViewAngle,
+      recommendedVisualStyle
     };
     return {
       prompt: generateForceDiptychPrompt(diptychParams),
@@ -744,7 +808,7 @@ function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt
     };
   }
 
-  // ENDURANCE - Use cycle-based generator
+  // ENDURANCE - Use cycle-based generator with enriched metadata
   if (discipline === 'endurance') {
     const enduranceParams: EndurancePromptParams = {
       exerciseName,
@@ -752,12 +816,17 @@ function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt
       zones: (request as any).zones,
       cadence: (request as any).cadence,
       duration: (request as any).duration,
-      intensity: (request as any).intensity
+      intensity: (request as any).intensity,
+      visualKeywords,
+      executionPhases,
+      keyPositions,
+      recommendedViewAngle,
+      recommendedVisualStyle
     };
     return generateEndurancePrompt(enduranceParams);
   }
 
-  // FUNCTIONAL/CROSSTRAINING - Use explosive movement generator
+  // FUNCTIONAL/CROSSTRAINING - Use explosive movement generator with enriched metadata
   if (discipline === 'functional') {
     const functionalParams: FunctionalPromptParams = {
       exerciseName,
@@ -766,12 +835,17 @@ function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt
       repScheme: (request as any).repScheme,
       timeCap: (request as any).timeCap,
       isUnbroken: (request as any).isUnbroken,
-      equipment
+      equipment,
+      visualKeywords,
+      executionPhases,
+      keyPositions,
+      recommendedViewAngle,
+      recommendedVisualStyle
     };
     return generateFunctionalPrompt(functionalParams);
   }
 
-  // CALISTHENICS - Use body alignment generator
+  // CALISTHENICS - Use body alignment generator with enriched metadata
   if (discipline === 'calisthenics') {
     const calisthenicsParams: CalisthenicsPromptParams = {
       exerciseName,
@@ -780,19 +854,29 @@ function generateDisciplineOptimizedPrompt(request: GenerationRequest): { prompt
       variant: (request as any).variant,
       holdDuration: (request as any).holdDuration,
       repTarget: (request as any).repTarget,
-      equipment
+      equipment,
+      visualKeywords,
+      executionPhases,
+      keyPositions,
+      recommendedViewAngle,
+      recommendedVisualStyle
     };
     return generateCalisthenicsPrompt(calisthenicsParams);
   }
 
-  // COMPETITIONS - Use judge standards generator
+  // COMPETITIONS - Use judge standards generator with enriched metadata
   if (discipline === 'competitions') {
     const competitionsParams: CompetitionsPromptParams = {
       exerciseName,
       competitionType: (request as any).competitionType || 'general',
       standard: (request as any).standard || {},
       noRepCriteria: (request as any).noRepCriteria,
-      equipment
+      equipment,
+      visualKeywords,
+      executionPhases,
+      keyPositions,
+      recommendedViewAngle,
+      recommendedVisualStyle
     };
     return generateCompetitionsPrompt(competitionsParams);
   }
