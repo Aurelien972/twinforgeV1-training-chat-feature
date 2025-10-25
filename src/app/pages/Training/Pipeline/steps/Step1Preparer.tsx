@@ -119,16 +119,41 @@ const Step1Preparer: React.FC = () => {
           tempSport: selectedDiscipline
         });
 
+        // Transform PriorityToday to format expected by WeeklyInsightCard
+        const transformedPriority = insights.priorityToday ? {
+          suggestedDiscipline: insights.priorityToday.suggestedDiscipline || 'Force',
+          reasoning: insights.priorityToday.reason || 'Continuer votre progression',
+          priority: determinePriorityLevel(insights.priorityToday) as 'high' | 'medium' | 'low',
+          shouldPrioritize: insights.priorityToday.shouldPrioritize,
+          shouldAvoid: insights.priorityToday.shouldAvoid
+        } : undefined;
+
+        // Transform CyclePhase to format expected by WeeklyInsightCard
+        const transformedCycle = insights.cyclePhase ? {
+          phase: insights.cyclePhase.phase,
+          weekInPhase: insights.cyclePhase.currentWeek,
+          recommendation: getCycleRecommendation(insights.cyclePhase)
+        } : undefined;
+
+        // Transform WeeklyProgress
+        const transformedProgress = insights.weeklyProgress ? {
+          sessionsThisWeek: insights.weeklyProgress.sessionsThisWeek,
+          currentWeekVolume: insights.weeklyProgress.totalVolumeThisWeek,
+          intensityAverage: insights.weeklyProgress.avgRpeThisWeek
+        } : undefined;
+
         setWeeklyInsights({
-          weeklyProgress: insights.weeklyProgress,
-          priorityToday: insights.priorityToday,
-          cyclePhase: insights.cyclePhase
+          weeklyProgress: transformedProgress,
+          priorityToday: transformedPriority,
+          cyclePhase: transformedCycle
         });
 
-        logger.info('STEP_1_PREPARER', 'Weekly insights loaded', {
-          hasWeeklyProgress: !!insights.weeklyProgress,
-          hasPriorityToday: !!insights.priorityToday,
-          hasCyclePhase: !!insights.cyclePhase
+        logger.info('STEP_1_PREPARER', 'Weekly insights loaded and transformed', {
+          hasWeeklyProgress: !!transformedProgress,
+          hasPriorityToday: !!transformedPriority,
+          hasCyclePhase: !!transformedCycle,
+          priorityLevel: transformedPriority?.priority,
+          suggestedDiscipline: transformedPriority?.suggestedDiscipline
         });
       } catch (error) {
         logger.error('STEP_1_PREPARER', 'Failed to load weekly insights', { error });
@@ -139,6 +164,39 @@ const Step1Preparer: React.FC = () => {
 
     loadWeeklyInsights();
   }, [profile?.id]);
+
+  // Helper: Determine priority level from PriorityToday data
+  const determinePriorityLevel = (priority: any): 'high' | 'medium' | 'low' => {
+    const reason = priority.reason?.toLowerCase() || '';
+    const shouldAvoidCount = priority.shouldAvoid?.length || 0;
+
+    // High priority: Recovery needed or first session
+    if (reason.includes('repos') || reason.includes('première') || reason.includes('récupération active')) {
+      return 'high';
+    }
+    // Medium priority: Need variation or moderate volume
+    if (reason.includes('varier') || shouldAvoidCount >= 2 || reason.includes('modéré')) {
+      return 'medium';
+    }
+    // Low priority: Normal progression
+    return 'low';
+  };
+
+  // Helper: Get cycle recommendation text
+  const getCycleRecommendation = (cycle: any): string => {
+    switch (cycle.phase) {
+      case 'accumulation':
+        return `Semaine ${cycle.currentWeek}/4 : Phase d'accumulation - Focus sur le volume d'entraînement, charges modérées (65-75%)`;
+      case 'intensification':
+        return `Semaine ${cycle.currentWeek}/4 : Phase d'intensification - Augmenter l'intensité, réduire le volume, charges lourdes (80-90%)`;
+      case 'deload':
+        return `Semaine ${cycle.currentWeek}/4 : Phase de décharge - Réduire volume et intensité de 40-60% pour récupération`;
+      case 'realization':
+        return `Semaine ${cycle.currentWeek}/4 : Phase de réalisation - Tests de force maximale, pic de performance`;
+      default:
+        return 'Phase non définie - Continuer votre progression habituelle';
+    }
+  };
 
   useEffect(() => {
     if (locations) {

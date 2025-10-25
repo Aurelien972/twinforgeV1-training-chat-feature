@@ -123,12 +123,23 @@ function calculateWeeklyProgress(sessions: SessionHistory[]): WeeklyProgress {
 
 /**
  * Determines training priority for today
+ * ALWAYS returns actionable guidance, even for first session
  */
 function determinePriorityToday(
   sessions: SessionHistory[],
   daysSinceLastSession: number,
   weeklyProgress: WeeklyProgress
 ): PriorityToday {
+  // FIRST SESSION - No history
+  if (sessions.length === 0) {
+    return {
+      shouldPrioritize: ['Apprentissage technique', 'Mouvements fondamentaux', 'Sécurité'],
+      shouldAvoid: ['Charges maximales', 'Haute intensité', 'Volumes excessifs'],
+      reason: 'Première séance : Focus sur la technique et l\'apprentissage des mouvements de base',
+      suggestedDiscipline: 'Force' // Default safe choice
+    };
+  }
+
   const disciplineCounts = sessions.reduce((acc, s) => {
     acc[s.discipline] = (acc[s.discipline] || 0) + 1;
     return acc;
@@ -145,21 +156,40 @@ function determinePriorityToday(
   let reason = '';
   let suggestedDiscipline: string | undefined;
 
+  // RECOVERY NEEDED - Long rest period
   if (daysSinceLastSession >= 3) {
-    reason = 'Repos prolongé détecté, privilégier une session modérée';
-    shouldPrioritize.push('Activation progressive', 'Mobilité', 'Technique');
-    suggestedDiscipline = 'Force';
-  } else if (weeklyProgress.sessionsThisWeek >= 3) {
-    reason = 'Volume hebdomadaire élevé, privilégier la récupération active';
-    shouldPrioritize.push('Mobilité', 'Endurance légère', 'Technique');
-    shouldAvoid.push('Haute intensité', 'Volume élevé');
-  } else if (mostUsed && disciplineCounts[mostUsed] >= 3) {
-    reason = `Discipline ${mostUsed} très utilisée récemment, varier l'entraînement`;
-    shouldAvoid.push(mostUsed);
-    suggestedDiscipline = leastUsed;
-  } else {
-    reason = 'Équilibre normal, continuer la progression';
-    shouldPrioritize.push('Progression technique', 'Variation des mouvements');
+    reason = `${daysSinceLastSession} jours de repos : Reprendre progressivement avec activation neurale et mobilité`;
+    shouldPrioritize.push('Activation progressive', 'Mobilité articulaire', 'Technique légère');
+    shouldAvoid.push('Charges lourdes', 'Volumes élevés');
+    suggestedDiscipline = mostUsed || 'Force'; // Continue last discipline but lighter
+  }
+  // HIGH VOLUME WEEK - Recovery needed
+  else if (weeklyProgress.sessionsThisWeek >= 4) {
+    reason = `${weeklyProgress.sessionsThisWeek} séances cette semaine : Privilégier la récupération active`;
+    shouldPrioritize.push('Mobilité', 'Cardio léger Z1-Z2', 'Étirements dynamiques');
+    shouldAvoid.push('Haute intensité', 'Volume important', 'Efforts maximaux');
+    suggestedDiscipline = 'Endurance'; // Active recovery
+  }
+  // OVERUSE DETECTED - Need variety
+  else if (mostUsed && disciplineCounts[mostUsed] >= 3) {
+    reason = `${mostUsed} utilisée ${disciplineCounts[mostUsed]} fois récemment : Varier pour équilibrer le développement`;
+    shouldAvoid.push(mostUsed, 'Mouvements répétitifs');
+    shouldPrioritize.push('Mouvements complémentaires', 'Schémas moteurs variés');
+    suggestedDiscipline = leastUsed || 'Fonctionnel'; // Switch to least used
+  }
+  // MODERATE VOLUME - Continue progression
+  else if (weeklyProgress.sessionsThisWeek >= 2) {
+    reason = `${weeklyProgress.sessionsThisWeek} séances cette semaine : Volume modéré, continuer la progression`;
+    shouldPrioritize.push('Progression contrôlée', 'Intensité modérée', 'Qualité technique');
+    shouldAvoid.push('Fatigue excessive', 'Sur-entraînement');
+    suggestedDiscipline = mostUsed || 'Force';
+  }
+  // LOW VOLUME - Ramp up
+  else {
+    reason = 'Début de semaine : Moment optimal pour une séance de qualité';
+    shouldPrioritize.push('Exercices prioritaires', 'Charges challengeantes', 'Technique parfaite');
+    shouldAvoid.push('Mouvements à risque si fatigue');
+    suggestedDiscipline = mostUsed || 'Force';
   }
 
   return {

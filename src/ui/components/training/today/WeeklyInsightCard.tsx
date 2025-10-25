@@ -21,6 +21,8 @@ interface PriorityTodayData {
   suggestedDiscipline: string;
   reasoning: string;
   priority: 'high' | 'medium' | 'low';
+  shouldPrioritize?: string[];
+  shouldAvoid?: string[];
 }
 
 interface CyclePhaseData {
@@ -236,39 +238,92 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
         )
       )}
 
-      {/* Priority Today - Always show with fallback */}
+      {/* Priority Today - ALWAYS show with intelligent fallback */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="p-4 rounded-lg mt-4 mb-4"
         style={{
-          background: hasInsightsData && priorityToday
+          background: priorityToday
             ? `linear-gradient(135deg, ${getPriorityColor(priorityToday.priority)}10 0%, transparent 100%)`
             : `linear-gradient(135deg, ${stepColor}10 0%, transparent 100%)`,
-          border: hasInsightsData && priorityToday
+          border: priorityToday
             ? `1px solid ${getPriorityColor(priorityToday.priority)}30`
             : `1px solid ${stepColor}30`
         }}
       >
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-3 mb-3">
           <SpatialIcon
             Icon={ICONS.Target}
-            size={20}
-            style={{ color: hasInsightsData && priorityToday ? getPriorityColor(priorityToday.priority) : stepColor }}
+            size={24}
+            style={{ color: priorityToday ? getPriorityColor(priorityToday.priority) : stepColor }}
           />
-          <div>
-            <div className="text-xs text-white/60 uppercase tracking-wide">Priorité Aujourd'hui</div>
+          <div className="flex-1">
+            <div className="text-xs text-white/60 uppercase tracking-wide mb-1">Priorité Aujourd'hui</div>
             <div className="text-lg font-semibold text-white capitalize">
-              {hasInsightsData && priorityToday ? priorityToday.suggestedDiscipline : 'À déterminer'}
+              {priorityToday?.suggestedDiscipline || 'Force / Technique'}
             </div>
           </div>
+          {priorityToday && (
+            <div
+              className="px-3 py-1 rounded-full text-xs font-semibold uppercase"
+              style={{
+                background: `${getPriorityColor(priorityToday.priority)}20`,
+                color: getPriorityColor(priorityToday.priority),
+                border: `1px solid ${getPriorityColor(priorityToday.priority)}40`
+              }}
+            >
+              {priorityToday.priority === 'high' ? 'Prioritaire' : priorityToday.priority === 'medium' ? 'Important' : 'Normal'}
+            </div>
+          )}
         </div>
-        <p className="text-sm text-white/70 leading-relaxed">
-          {hasInsightsData && priorityToday
-            ? priorityToday.reasoning
-            : 'Après votre première séance, le système analysera vos objectifs et vous recommandera une discipline prioritaire basée sur votre progression et vos besoins.'}
+        <p className="text-sm text-white/80 leading-relaxed mb-3">
+          {priorityToday?.reasoning ||
+            'Démarrez avec des mouvements fondamentaux pour construire une base technique solide. L\'analyse s\'affinera après vos premières séances.'}
         </p>
+
+        {/* Action Tags */}
+        {priorityToday && (priorityToday.shouldPrioritize?.length > 0 || priorityToday.shouldAvoid?.length > 0) && (
+          <div className="space-y-2 pt-3 border-t border-white/10">
+            {priorityToday.shouldPrioritize && priorityToday.shouldPrioritize.length > 0 && (
+              <div>
+                <div className="text-xs text-white/50 mb-1.5 flex items-center gap-1.5">
+                  <SpatialIcon Icon={ICONS.CheckCircle} size={14} style={{ color: '#10B981' }} />
+                  Privilégier
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {priorityToday.shouldPrioritize.slice(0, 3).map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 rounded-md text-xs text-white/90 bg-emerald-500/15 border border-emerald-500/30"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {priorityToday.shouldAvoid && priorityToday.shouldAvoid.length > 0 && (
+              <div>
+                <div className="text-xs text-white/50 mb-1.5 flex items-center gap-1.5">
+                  <SpatialIcon Icon={ICONS.AlertTriangle} size={14} style={{ color: '#EF4444' }} />
+                  Éviter
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {priorityToday.shouldAvoid.slice(0, 3).map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 rounded-md text-xs text-white/90 bg-red-500/15 border border-red-500/30"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
 
       {/* Cycle Phase */}
