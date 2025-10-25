@@ -116,28 +116,77 @@ Si l'utilisateur a des données wearable:
 - **Home gym** : 100+ options (poids libres, bancs, racks muraux, TRX, meubles, objets du quotidien)
 - **Outdoor** : 60+ possibilités (éléments urbains, naturels, street workout, obstacles)
 
-### Hiérarchie de Sélection
+### Hiérarchie de Sélection - CADRE GÉNÉRIQUE
 
-1. **Composés majeurs** (priorité absolue):
-   - Squat (back, front, safety bar, hack squat, pendulum, belt squat, Smith machine)
-   - Bench Press (plat, incliné, decline, Smith, machines convergentes)
-   - Deadlift (conventionnel, sumo, roumain, trap bar, rack pulls)
-   - Overhead Press (barbell, dumbbell, machines, landmine)
-   - Row (barbell, T-bar, landmine T-bar, seated cable, chest-supported)
+**CRITIQUE**: Ne pas lister des exercices spécifiques dans ta génération. Utilise le CATALOGUE D'EXERCICES fourni et applique ce cadre de priorisation:
 
-2. **Composés secondaires**:
-   - Lunges (walking, reverse, Bulgarian split, deficit)
-   - Dips (parallèles, barre, machine, wall-mounted bars)
-   - Pull-ups/Chin-ups (barre libre, assisté, doorway bar, gymnastic rings)
-   - Face pulls, shrugs (barbell, halteres, machine, trap bar)
-   - Hip thrust (barre, machine, banc spécialisé)
+#### 1. **Mouvements Composés Majeurs** (priorité absolue - 60-70% du volume)
 
-3. **Isolation** (complément):
-   - Biceps (curl bar, EZ-bar, haltères, câbles, preacher bench)
-   - Triceps (extensions, dips, câbles, close-grip press)
-   - Deltoïdes (lat raises, face pulls, machines spécialisées)
-   - Mollets (standing, seated, donkey, leg press)
-   - Abdos (crunch machine, ab coaster, GHD, ab wheel, câbles)
+Patterns de mouvement fondamentaux qui engagent plusieurs groupes musculaires:
+- **Pattern Squat**: Flexion de hanche + genou (quadriceps dominants, chaîne postérieure, core)
+- **Pattern Hip Hinge**: Extension de hanche (chaîne postérieure dominante: fessiers, ischios, lombaires)
+- **Pattern Push Horizontal**: Poussée horizontale (pectoraux, deltoïdes antérieurs, triceps)
+- **Pattern Push Vertical**: Poussée verticale (deltoïdes, trapèzes, triceps)
+- **Pattern Pull Horizontal**: Tirage horizontal (dorsaux, trapèzes moyens, biceps, arrière-deltoïdes)
+- **Pattern Pull Vertical**: Tirage vertical (dorsaux, trapèzes, biceps)
+
+Critères de sélection prioritaire:
+- Charge lourde possible (progression mesurable)
+- Multi-articulaire (2+ articulations)
+- Haute demande systémique (fatigue centrale importante)
+- Transfert fonctionnel maximal
+
+#### 2. **Mouvements Composés Secondaires** (20-25% du volume)
+
+Patterns complémentaires et unilatéraux:
+- **Patterns Unilatéraux**: Variations single-leg ou single-arm (équilibre musculaire, stabilisation)
+- **Patterns Accessoires**: Mouvements bi-articulaires ciblant des groupes spécifiques
+- **Patterns de Stabilisation**: Mouvements anti-rotation, anti-extension pour le core
+
+Objectifs:
+- Corriger asymétries
+- Renforcer stabilisateurs
+- Prévenir blessures
+- Développement musculaire complémentaire
+
+#### 3. **Mouvements d'Isolation** (10-15% du volume - complément uniquement)
+
+Travail mono-articulaire ciblé:
+- **Petits groupes musculaires**: Biceps, triceps, deltoïdes latéraux/postérieurs, mollets
+- **Finalisation esthétique**: Volume supplémentaire pour groupes retardataires
+- **Pré/Post-activation**: Travail accessoire pour améliorer composés
+
+Principes d'utilisation:
+- Jamais en début de séance
+- Après les composés majeurs épuisés
+- Volume élevé, charges modérées
+- Focus sur connexion esprit-muscle
+
+### Application Pratique du Cadre
+
+**Lors de la sélection d'exercices depuis le CATALOGUE:**
+
+1. Identifier les patterns de mouvement requis selon l'objectif
+2. Chercher dans le catalogue les exercices correspondants disponibles avec l'équipement présent
+3. Prioriser les composés majeurs en début de session
+4. Ajouter composés secondaires pour équilibre et prévention
+5. Compléter avec isolation si temps/énergie restants
+
+**Exemple de structure de séance (SANS nommer d'exercices spécifiques):**
+```
+1. Pattern Squat (composé majeur) - 4 sets
+2. Pattern Hip Hinge (composé majeur) - 3-4 sets
+3. Pattern Push Horizontal (composé majeur) - 3-4 sets
+4. Pattern Pull Horizontal (composé secondaire) - 3 sets
+5. Pattern Unilatéral membres inférieurs (composé secondaire) - 2-3 sets
+6. Isolation triceps/biceps (optionnel si temps) - 2 sets chacun
+```
+
+**Adaptation selon équipement disponible:**
+- Gym complet: Utiliser poids libres en priorité, machines en complément
+- Home gym: Privilégier variations avec équipement disponible, créativité sur substitutions
+- Outdoor: Focus sur patterns avec poids du corps, utiliser environnement pour charge additionnelle
+- Minimal: Maximiser variations de patterns avec ce qui est disponible
 
 ### Équipements Spécialisés par Catégorie
 
