@@ -29,6 +29,7 @@ import type { AgentType } from '../../../../../domain/ai/trainingAiTypes';
 import { useProfileValidation } from '../../../../../hooks/useProfileValidation';
 import Step1ProfileIncompleteEmptyState from '../components/Step1ProfileIncompleteEmptyState';
 import { enrichPreparerContext } from '../../../../../system/services/preparerContextEnrichmentService';
+import WeeklyInsightCard from '../../../../../ui/components/training/today/WeeklyInsightCard';
 
 const Step1Preparer: React.FC = () => {
   const { setPreparerData, goToNextStep } = useTrainingPipeline();
@@ -51,6 +52,8 @@ const Step1Preparer: React.FC = () => {
   );
   const [selectedCoachType, setSelectedCoachType] = useState<AgentType>('coach-force');
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+  const [weeklyInsights, setWeeklyInsights] = useState<any>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   const timeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const energyDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,6 +66,48 @@ const Step1Preparer: React.FC = () => {
       step1NotificationService.cleanup();
     };
   }, []);
+
+  // Load weekly insights on mount
+  useEffect(() => {
+    const loadWeeklyInsights = async () => {
+      if (!profile?.id) return;
+
+      setIsLoadingInsights(true);
+      try {
+        // Create a minimal payload to get insights
+        const insights = await enrichPreparerContext(profile.id, {
+          availableTime: initialTime,
+          wantsShortVersion: false,
+          locationId: '',
+          locationName: '',
+          locationPhotos: [],
+          availableEquipment: [],
+          energyLevel: 7,
+          hasFatigue: false,
+          hasPain: false,
+          tempSport: selectedDiscipline
+        });
+
+        setWeeklyInsights({
+          weeklyProgress: insights.weeklyProgress,
+          priorityToday: insights.priorityToday,
+          cyclePhase: insights.cyclePhase
+        });
+
+        logger.info('STEP_1_PREPARER', 'Weekly insights loaded', {
+          hasWeeklyProgress: !!insights.weeklyProgress,
+          hasPriorityToday: !!insights.priorityToday,
+          hasCyclePhase: !!insights.cyclePhase
+        });
+      } catch (error) {
+        logger.error('STEP_1_PREPARER', 'Failed to load weekly insights', { error });
+      } finally {
+        setIsLoadingInsights(false);
+      }
+    };
+
+    loadWeeklyInsights();
+  }, [profile?.id]);
 
   useEffect(() => {
     if (locations) {
@@ -335,6 +380,16 @@ const Step1Preparer: React.FC = () => {
       {/* Regular form - only show when profile is complete */}
       {!showEmptyState && (
         <>
+      {/* Weekly Insights Card - Position 0 (Top) */}
+      {!isLoadingInsights && weeklyInsights && (
+        <WeeklyInsightCard
+          weeklyProgress={weeklyInsights.weeklyProgress}
+          priorityToday={weeklyInsights.priorityToday}
+          cyclePhase={weeklyInsights.cyclePhase}
+          stepColor={stepColor}
+        />
+      )}
+
       {/* Time Available - Position 1 */}
       <GlassCard
         className="space-y-4"

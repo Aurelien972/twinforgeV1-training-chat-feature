@@ -17,3 +17,4 @@ export { default as WearableTodayDashboard } from './WearableTodayDashboard';
 export { default as TodayEnergyLevelIndicator } from './TodayEnergyLevelIndicator';
 export { default as OptimalTrainingWindow } from './OptimalTrainingWindow';
 export { default as TodayEmptyState } from './TodayEmptyState';
+export { default as WeeklyInsightCard } from './WeeklyInsightCard';
