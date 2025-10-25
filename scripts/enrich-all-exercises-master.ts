@@ -223,9 +223,9 @@ function generateMovementTrajectory(exercise: Exercise, movementConfig: any): st
     return 'mouvement contrôlé phase excentrique puis concentrique, amplitude complète articulaire, tempo constant, trajectoire optimale biomécanique';
   }
 
-  const macroArrow = movementConfig.macroArrow;
-  const microArrows = movementConfig.microArrows.join(', ');
-  const trajectory = movementConfig.trajectory;
+  const macroArrow = movementConfig.macroArrow || 'flèche principale visible';
+  const microArrows = movementConfig.microArrows || 'flèches secondaires aux articulations';
+  const trajectory = movementConfig.trajectory || 'trajectoire contrôlée';
 
   return `${trajectory}, ${macroArrow} visible trajectoire principale, ${microArrows} montrant articulations clés`;
 }
@@ -362,12 +362,42 @@ async function processSprint(sprintNumber: number, batchSize: number = 220): Pro
   const startTime = Date.now();
 
   try {
-    // Get exercises for this sprint
+    // Get exercises for this sprint WITH muscle and equipment relations
     const { data: exercises, error } = await supabase
-      .rpc('get_exercises_for_enrichment_batch', {
-        p_batch_size: batchSize,
-        p_sprint_number: sprintNumber
-      });
+      .from('exercises')
+      .select(`
+        id,
+        name,
+        discipline,
+        category,
+        difficulty,
+        movement_pattern,
+        visual_keywords,
+        description_short,
+        quality_score,
+        exercise_muscle_groups(
+          muscle_group:muscle_groups(
+            id,
+            name,
+            name_fr
+          )
+        ),
+        exercise_equipment(
+          equipment_type:equipment_types(
+            id,
+            name,
+            name_fr
+          )
+        )
+      `)
+      .eq('is_active', true)
+      .eq('enrichment_status', 'pending')
+      .is('enrichment_sprint_number', null)
+      .order('usage_count', { ascending: false, nullsFirst: false })
+      .order('illustration_priority', { ascending: false, nullsFirst: false })
+      .order('discipline')
+      .order('name')
+      .limit(batchSize);
 
     if (error) {
       console.error(`❌ Erreur récupération exercices:`, error);
@@ -379,23 +409,48 @@ async function processSprint(sprintNumber: number, batchSize: number = 220): Pro
       return;
     }
 
-    console.log(`📊 ${exercises.length} exercices récupérés`);
-    console.log(`🎯 Disciplines: ${[...new Set(exercises.map((e: any) => e.discipline))].join(', ')}\n`);
+    // Transform the data to match Exercise interface
+    const exercisesWithRelations = exercises.map((e: any) => ({
+      ...e,
+      muscles: (e.exercise_muscle_groups || []).map((emg: any) => ({
+        muscle_group: emg.muscle_group
+      })),
+      equipment: (e.exercise_equipment || []).map((ee: any) => ({
+        equipment_type: ee.equipment_type
+      }))
+    }));
+
+    console.log(`📊 ${exercisesWithRelations.length} exercices récupérés`);
+    console.log(`🎯 Disciplines: ${[...new Set(exercisesWithRelations.map((e: any) => e.discipline))].join(', ')}\n`);
 
     // Enrich each exercise
     const results: EnrichmentResult[] = [];
     const enrichedExercises: any[] = [];
 
-    for (let i = 0; i < exercises.length; i++) {
-      const exercise = exercises[i];
+    for (let i = 0; i < exercisesWithRelations.length; i++) {
+      const exercise = exercisesWithRelations[i];
 
       // Show progress every 20 exercises
-      if ((i + 1) % 20 === 0 || i === 0 || i === exercises.length - 1) {
-        console.log(`⚙️  Processing ${i + 1}/${exercises.length}: ${exercise.name}`);
+      if ((i + 1) % 20 === 0 || i === 0 || i === exercisesWithRelations.length - 1) {
+        console.log(`⚙️  Processing ${i + 1}/${exercisesWithRelations.length}: ${exercise.name}`);
       }
 
       const result = generateEnrichedDescription(exercise);
       results.push(result);
+
+      // Debug first failure
+      if (!result.success && results.filter(r => !r.success).length === 1) {
+        console.log(`\n❌ First failure - ${exercise.name}:`);
+        console.log(`   Error: ${result.error}`);
+        console.log(`   Exercise data:`, JSON.stringify({
+          id: exercise.id,
+          name: exercise.name,
+          discipline: exercise.discipline,
+          movement_pattern: exercise.movement_pattern,
+          muscles_count: exercise.muscles?.length || 0,
+          equipment_count: exercise.equipment?.length || 0
+        }, null, 2));
+      }
 
       if (result.success) {
         enrichedExercises.push({
