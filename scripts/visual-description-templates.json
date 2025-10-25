@@ -1,0 +1,219 @@
+{
+  "anatomyDictionary": {
+    "pectoralis_major": {
+      "fr": "pectoraux majeurs",
+      "visual": "poitrine, fibres horizontales convergent vers humérus, highlight rouge zone sternale et claviculaire",
+      "position": "thorax antérieur"
+    },
+    "latissimus_dorsi": {
+      "fr": "grands dorsaux",
+      "visual": "dos, larges muscles en forme de V, highlight rouge mi-dos vers aisselles",
+      "position": "dos latéral"
+    },
+    "deltoids": {
+      "fr": "deltoïdes",
+      "visual": "épaules arrondies, trois faisceaux antérieur moyen postérieur, highlight rouge selon angle mouvement",
+      "position": "épaules"
+    },
+    "quadriceps": {
+      "fr": "quadriceps",
+      "visual": "face avant cuisse, quatre chefs musculaires vaste médial latéral intermédiaire et droit fémoral, highlight rouge contraction extension genou",
+      "position": "cuisse antérieure"
+    },
+    "hamstrings": {
+      "fr": "ischio-jambiers",
+      "visual": "arrière cuisse, biceps fémoral semi-tendineux semi-membraneux, highlight rouge contraction flexion genou extension hanche",
+      "position": "cuisse postérieure"
+    },
+    "gluteus_maximus": {
+      "fr": "grand fessier",
+      "visual": "fessiers, masse musculaire puissante, highlight rouge vif extension hanche",
+      "position": "bassin postérieur"
+    },
+    "biceps_brachii": {
+      "fr": "biceps brachial",
+      "visual": "face avant bras, deux chefs long et court, highlight rouge flexion coude supination avant-bras",
+      "position": "bras antérieur"
+    },
+    "triceps_brachii": {
+      "fr": "triceps brachial",
+      "visual": "face arrière bras, trois chefs long latéral médial, highlight rouge extension coude",
+      "position": "bras postérieur"
+    },
+    "rectus_abdominis": {
+      "fr": "grands droits abdominaux",
+      "visual": "abdominaux centraux, six packs visibles, highlight rouge flexion tronc stabilisation",
+      "position": "abdomen central"
+    },
+    "obliques": {
+      "fr": "obliques",
+      "visual": "abdominaux latéraux, externes et internes, highlight rouge rotation et flexion latérale tronc",
+      "position": "abdomen latéral"
+    },
+    "trapezius": {
+      "fr": "trapèzes",
+      "visual": "haut dos et nuque, trois portions supérieure moyenne inférieure, highlight rouge élévation rétraction dépression scapula",
+      "position": "dos supérieur"
+    },
+    "erector_spinae": {
+      "fr": "érecteurs du rachis",
+      "visual": "muscles para-vertébraux, longent colonne vertébrale, highlight rouge extension maintien posture",
+      "position": "dos central"
+    },
+    "gastrocnemius": {
+      "fr": "gastrocnémiens",
+      "visual": "mollets, deux chefs médial et latéral, highlight rouge flexion plantaire cheville",
+      "position": "jambe postérieure"
+    }
+  },
+  "movementPatterns": {
+    "push_vertical": {
+      "trajectory": "trajectoire linéaire verticale, charges montent ligne droite depuis épaules vers overhead lockout bras tendus",
+      "macroArrow": "flèche rouge épaisse verticale ascendante",
+      "microArrows": "flèches fines rouges aux épaules montrant élévation, aux coudes montrant extension"
+    },
+    "push_horizontal": {
+      "trajectory": "trajectoire horizontale ou légèrement inclinée, charges poussées depuis poitrine vers extension bras devant corps",
+      "macroArrow": "flèche rouge épaisse horizontale vers avant",
+      "microArrows": "flèches fines rouges aux épaules montrant flexion horizontale, aux coudes montrant extension"
+    },
+    "pull_vertical": {
+      "trajectory": "trajectoire verticale descendante, charges tirées depuis overhead vers épaules ou poitrine",
+      "macroArrow": "flèche rouge épaisse verticale descendante",
+      "microArrows": "flèches fines rouges aux scapulas montrant dépression adduction, aux coudes montrant flexion"
+    },
+    "pull_horizontal": {
+      "trajectory": "trajectoire horizontale vers corps, charges tirées depuis extension bras vers poitrine torse",
+      "macroArrow": "flèche rouge épaisse horizontale vers arrière corps",
+      "microArrows": "flèches fines rouges aux scapulas montrant rétraction, aux coudes montrant flexion"
+    },
+    "squat": {
+      "trajectory": "descente verticale contrôlée, hanches genoux chevilles fléchissent simultanément, remontée explosive même trajectoire",
+      "macroArrow": "flèche rouge épaisse verticale bidirectionnelle descente ascension",
+      "microArrows": "flèches fines rouges aux hanches genoux chevilles montrant flexion extension angles"
+    },
+    "hinge": {
+      "trajectory": "flexion hanche dominante, torse penche vers avant axe quasi-horizontal, jambes quasi-tendues genoux léger angle",
+      "macroArrow": "flèche rouge épaisse courbe montrant pivot hanches",
+      "microArrows": "flèches fines rouges aux hanches montrant hinge principal, à colonne lombaire montrant maintien neutre"
+    },
+    "lunge": {
+      "trajectory": "fente avant ou arrière, jambe lead fléchit genou angle 90 degrés, jambe trail extension arrière",
+      "macroArrow": "flèche rouge épaisse montrant direction fente descente",
+      "microArrows": "flèches fines rouges genou avant montrant flexion, hanche arrière montrant extension"
+    },
+    "rotation": {
+      "trajectory": "rotation tronc autour axe vertébral, torsion thoracique lombaire, bassin stabilisé",
+      "macroArrow": "flèche rouge épaisse circulaire montrant rotation",
+      "microArrows": "flèches fines rouges à colonne montrant torsion segmentaire, au bassin montrant stabilisation"
+    },
+    "carry": {
+      "trajectory": "déplacement horizontal avec charge, maintien posture stable, marche contrôlée",
+      "macroArrow": "flèche rouge épaisse horizontale direction marche",
+      "microArrows": "flèches fines rouges à colonne montrant anti-flexion, aux épaules montrant stabilisation"
+    }
+  },
+  "equipmentDescriptors": {
+    "barbell": "barre olympique chromée 20kg 2m20, disques olympiques ronds métal, colliers sécurité verrouillés",
+    "dumbbells": "haltères libres symétriques, poids proportionnels à charge, prise neutre pronation ou supination selon exercice",
+    "kettlebell": "kettlebell fonte anse unique, centre gravité décalé sous poignée, poids compact sphérique",
+    "cable_pulley": "machine à câbles poulie réglable hauteur, poignées variées barre corde triangle, résistance constante trajectoire",
+    "bench_flat": "banc plat horizontal stable, rembourrage ferme, pieds ancrés sol largeur hanches",
+    "bench_incline": "banc incliné angle 30-45 degrés, dossier réglable, assise stable",
+    "bench_decline": "banc décliné angle négatif 15-30 degrés, supports pieds fixation chevilles",
+    "squat_rack": "rack à squat montants verticaux robustes, barres sécurité réglables hauteur, J-hooks pour barre",
+    "pull_up_bar": "barre fixe horizontale solide, hauteur permettant suspension complète bras tendus",
+    "parallel_bars": "barres parallèles écartement largeur épaules, hauteur permettant support poids corps bras tendus",
+    "rings": "anneaux gymnastique suspendus hauteur réglable, instabilité inhérente",
+    "none_bodyweight": "aucun équipement, poids corps uniquement, surface stable sol ou tapis"
+  },
+  "viewAngleRecommendations": {
+    "side_view": "vue latérale profil 90 degrés, montre trajectoire mouvement et alignements posturaux, idéal pour mouvements sagittaux",
+    "three_quarter_view": "vue trois-quarts 45 degrés, vision globale corps et mouvement, idéal pour mouvements multi-plans",
+    "front_view": "vue frontale face, montre symétrie bilatérale et largeur stance, idéal pour mouvements frontaux",
+    "back_view": "vue dorsale arrière, montre activation muscles dos et alignement scapulas, idéal pour exercices dos",
+    "top_view": "vue plongeante overhead, montre trajectoire au sol et patterns pieds, idéal pour exercices locomotion",
+    "diptych_side": "diptych deux panels vue latérale, panel gauche position départ panel droit position arrivée, flèches rouges trajectoire"
+  },
+  "visualStyles": {
+    "technical_anatomical": "style technique anatomique, lignes épurées nettes, muscles saillants visibles, highlight rouge zones activation, annotations discrets, flèches trajectoire précises, fond gris neutre",
+    "dynamic_action": "style dynamique action, énergie mouvement visible, lignes mouvement fluides, muscles en tension, impression vitesse puissance, fond suggère contexte entraînement",
+    "minimalist_clean": "style minimaliste épuré, silhouette simplifiée, formes géométriques pures, couleurs limitées noir blanc rouge, focus essentiel mouvement sans distraction",
+    "photorealistic": "style photo-réaliste détaillé, anatomie précise hyper-réaliste, textures peau muscles visibles, éclairage dramatique contrasté, rendu 3D haute qualité"
+  },
+  "disciplineTemplates": {
+    "force": {
+      "defaultView": "side_view",
+      "defaultStyle": "technical_anatomical",
+      "phases": ["setup", "eccentric", "pause_bottom", "concentric", "lockout"],
+      "focusPoints": ["trajectoire barre", "activation musculaire primaire secondaire", "alignements posturaux critiques", "points sécurité"],
+      "descriptionPattern": "[POSITION_DÉPART 60-80c] [ÉQUIPEMENT_SETUP 50-70c] [TRAJECTOIRE_MOUVEMENT 70-100c] [ACTIVATION_MUSCULAIRE 50-70c] [POINTS_TECHNIQUES 40-60c] [VUE_STYLE 30-40c]"
+    },
+    "calisthenics": {
+      "defaultView": "three_quarter_view",
+      "defaultStyle": "dynamic_action",
+      "phases": ["preparation", "skill_entry", "hold_or_transition", "skill_exit"],
+      "focusPoints": ["contrôle corporel", "points équilibre", "tension musculaire globale", "transitions fluides"],
+      "descriptionPattern": "[POSITION_INITIALE 60-80c] [SETUP_CORPS 40-60c] [MOUVEMENT_SKILL 80-100c] [CONTRÔLE_MUSCULAIRE 50-70c] [POINTS_ÉQUILIBRE 40-60c] [VUE_STYLE 30-40c]"
+    },
+    "endurance": {
+      "defaultView": "side_view",
+      "defaultStyle": "dynamic_action",
+      "phases": ["contact_phase", "propulsion", "flight_or_recovery", "landing"],
+      "focusPoints": ["biomécanique déplacement", "économie gestuelle", "cadence rythme", "posture maintenue"],
+      "descriptionPattern": "[POSTURE_COURSE 60-80c] [PHASE_CONTACT 50-70c] [MOUVEMENT_CYCLIQUE 70-100c] [ÉCONOMIE_GESTE 40-60c] [TECHNIQUE_RESPIRATION 30-50c] [VUE_STYLE 30-40c]"
+    },
+    "functional": {
+      "defaultView": "three_quarter_view",
+      "defaultStyle": "dynamic_action",
+      "phases": ["setup", "loading_phase", "explosive_movement", "landing_or_finish"],
+      "focusPoints": ["séquence multi-articulaire", "transfert énergie", "explosivité", "landing sécuritaire"],
+      "descriptionPattern": "[POSITION_COMPLEXE 60-80c] [ÉQUIPEMENTS_MULTIPLES 50-70c] [SÉQUENCE_EXPLOSIVE 80-110c] [TRANSFERT_ÉNERGIE 50-70c] [SÉCURITÉ_LANDING 40-60c] [VUE_STYLE 30-40c]"
+    },
+    "competitions": {
+      "defaultView": "side_view",
+      "defaultStyle": "technical_anatomical",
+      "phases": ["setup_competition", "execution", "completion", "judge_position"],
+      "focusPoints": ["standards compétition", "technique précise", "amplitudes requises", "positions validées"],
+      "descriptionPattern": "[POSITION_STANDARD 60-80c] [ÉQUIPEMENT_RÉGLEMENTAIRE 50-70c] [MOUVEMENT_VALIDÉ 70-100c] [CRITÈRES_JUGEMENT 50-70c] [POINTS_VALIDATION 40-60c] [VUE_STYLE 30-40c]"
+    },
+    "mobility": {
+      "defaultView": "side_view",
+      "defaultStyle": "technical_anatomical",
+      "phases": ["starting_position", "stretch_progression", "peak_stretch", "controlled_release"],
+      "focusPoints": ["amplitude mouvement", "étirement progressif", "respiration synchronisée", "tensions relâchées"],
+      "descriptionPattern": "[POSITION_INITIALE 60-80c] [SETUP_ÉTIREMENT 40-60c] [PROGRESSION_AMPLITUDE 70-90c] [ZONES_ÉTIRÉES 50-70c] [RESPIRATION_CONTRÔLE 40-60c] [VUE_STYLE 30-40c]"
+    },
+    "rehab": {
+      "defaultView": "side_view",
+      "defaultStyle": "technical_anatomical",
+      "phases": ["safe_starting_position", "controlled_movement", "therapeutic_hold", "safe_return"],
+      "focusPoints": ["sécurité articulaire", "amplitude contrôlée", "activation ciblée", "douleur évitée"],
+      "descriptionPattern": "[POSITION_SÉCURITAIRE 60-80c] [SETUP_THÉRAPEUTIQUE 50-70c] [MOUVEMENT_CONTRÔLÉ 70-90c] [ACTIVATION_CIBLÉE 50-70c] [PRÉCAUTIONS_SÉCURITÉ 50-70c] [VUE_STYLE 30-40c]"
+    }
+  },
+  "qualityCriteria": {
+    "lengthTarget": {
+      "min": 250,
+      "optimal": 300,
+      "max": 400
+    },
+    "requiredElements": [
+      "starting_position",
+      "equipment_setup",
+      "movement_trajectory",
+      "muscle_activation",
+      "technical_points",
+      "view_and_style"
+    ],
+    "scoringWeights": {
+      "length_appropriate": 20,
+      "has_starting_position": 15,
+      "has_equipment_detail": 15,
+      "has_movement_trajectory": 20,
+      "has_muscle_activation": 15,
+      "has_technical_points": 10,
+      "has_view_style": 5
+    }
+  }
+}
