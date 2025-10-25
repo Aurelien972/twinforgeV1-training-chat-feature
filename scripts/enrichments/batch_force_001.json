@@ -1,0 +1,762 @@
+{
+  "ebbf008b-cb52-4642-be0f-f6f8ef156077": {
+    "common_mistakes": [
+      "Creuser excessivement le bas du dos en hyper-extension lombaire",
+      "Descendre la barre trop bas sur les cervicales au risque de compression",
+      "Projeter la tête vers l'avant au lieu de rester neutre",
+      "Utiliser une charge trop lourde compromettant la mobilité d'épaule"
+    ],
+    "benefits": [
+      "Développer la force du faisceau postérieur des deltoïdes",
+      "Améliorer la mobilité active de la ceinture scapulaire",
+      "Renforcer les rotateurs externes de l'épaule",
+      "Augmenter la masse musculaire des deltoïdes dans leur ensemble"
+    ],
+    "execution_phases": [
+      "Phase 1: Position de départ - barre posée sur les trapèzes supérieurs, prise large pronation, nuque alignée, coudes sous la barre",
+      "Phase 2: Phase concentrique - pousser la barre verticalement en extension complète des coudes sans verrouiller, maintenir le tronc gainé",
+      "Phase 3: Phase excentrique - descendre contrôlée jusqu'à effleurer les trapèzes supérieurs, coudes toujours sous la barre",
+      "Phase 4: Respiration - inspirer en descente, expirer en poussée, maintenir la pression intra-abdominale"
+    ],
+    "contraindications": [
+      "Pathologie de la coiffe des rotateurs ou tendinite d'épaule",
+      "Limitation importante de mobilité en rotation externe d'épaule",
+      "Hernie cervicale ou compression discale C5-C7",
+      "Douleur aiguë au niveau des trapèzes supérieurs"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Utiliser des haltères pour plus de liberté de trajectoire",
+        "Effectuer le mouvement au cadre guidé Smith machine",
+        "Réduire l'amplitude en arrêtant 5cm au-dessus des trapèzes"
+      ],
+      "harder": [
+        "Ajouter une pause isométrique de 2 secondes en position basse",
+        "Augmenter le tempo excentrique à 3-4 secondes",
+        "Travailler en séries descendantes drop sets après échec"
+      ]
+    }
+  },
+  "65835eb1-baec-40ae-b21c-9b63539672f6": {
+    "common_mistakes": [
+      "Fléchir les genoux lors de la montée réduisant l'activation des mollets",
+      "Effectuer des amplitudes partielles sans étirement complet en bas",
+      "Rebondir en bas du mouvement au lieu d'un contrôle excentrique",
+      "Pencher le buste en avant déplaçant le centre de gravité"
+    ],
+    "benefits": [
+      "Développer la force et le volume des gastrocnémiens et soléaires",
+      "Améliorer la stabilité de la cheville et prévention entorses",
+      "Augmenter la puissance de propulsion verticale et sprint",
+      "Renforcer le tendon d'Achille par adaptation progressive"
+    ],
+    "execution_phases": [
+      "Phase 1: Position de départ - avant-pieds sur cale, talons dans le vide, genoux légèrement fléchis ou tendus selon variante",
+      "Phase 2: Phase concentrique - extension maximale sur pointes de pieds en contractant gastrocnémiens et soléaires",
+      "Phase 3: Phase excentrique - descente lente et contrôlée jusqu'à étirement maximal des mollets, talons sous le niveau de la cale",
+      "Phase 4: Tempo - 1 seconde montée explosive, 1 seconde contraction pic, 2-3 secondes descente contrôlée"
+    ],
+    "contraindications": [
+      "Tendinite d'Achille aiguë ou rupture partielle",
+      "Fasciite plantaire en phase inflammatoire",
+      "Entorse cheville récente moins de 6 semaines",
+      "Épine calcanéenne avec douleur vive"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Effectuer au sol sans cale pour réduire l'amplitude",
+        "Version assise pour isoler les soléaires avec moins de charge",
+        "Une jambe à la fois avec support pour l'équilibre"
+      ],
+      "harder": [
+        "Mollets unilatéraux avec haltère pour travail asymétrique",
+        "Ajouter une pause isométrique de 3 secondes en position haute",
+        "Augmenter l'amplitude avec cale plus haute 15-20cm"
+      ]
+    }
+  },
+  "b5c38823-0e32-4301-87f7-f5784e268dc1": {
+    "common_mistakes": [
+      "Écarter excessivement les fesses vers le haut perdant l'alignement",
+      "Laisser les coudes s'évaser latéralement au lieu de rester serrés",
+      "Descendre uniquement avec le front sans engager les épaules",
+      "Verrouiller les genoux au lieu de maintenir une légère flexion"
+    ],
+    "benefits": [
+      "Développer la force et masse des deltoïdes antérieurs et moyens",
+      "Préparer progressivement au handstand push-up vertical",
+      "Renforcer la ceinture scapulaire et stabilisateurs d'épaule",
+      "Améliorer la force de poussée verticale au poids du corps"
+    ],
+    "execution_phases": [
+      "Phase 1: Position pike - mains au sol largeur épaules, pieds sur élévation, hanches hautes formant un V inversé",
+      "Phase 2: Phase excentrique - descendre contrôlée en fléchissant coudes vers l'arrière, front vers le sol entre les mains",
+      "Phase 3: Phase concentrique - pousser explosif jusqu'à extension complète des bras sans verrouiller les coudes",
+      "Phase 4: Maintien position - garder le dos droit, abdominaux gainés, regard entre les mains durant tout le mouvement"
+    ],
+    "contraindications": [
+      "Tendinite coiffe des rotateurs ou conflit sous-acromial",
+      "Hypertension artérielle non contrôlée position inversée",
+      "Douleur cervicale aiguë ou hernie discale cervicale",
+      "Syndrome du canal carpien avec compression nerveuse"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Pieds au sol position pike basse réduisant l'angle",
+        "Limiter l'amplitude en plaçant un support sous la tête",
+        "Version avec élévation des mains sur blocs pour plus d'amplitude"
+      ],
+      "harder": [
+        "Élever davantage les pieds sur chaise ou mur",
+        "Ajouter un gilet lesté ou disque sur le dos",
+        "Progression vers handstand push-ups pieds contre mur"
+      ]
+    }
+  },
+  "6a79a803-da64-48fa-a87a-14a1b2486261": {
+    "common_mistakes": [
+      "Balancer le corps utilisant l'élan au lieu du contrôle strict",
+      "Décoller les coudes du tronc réduisant l'isolation des biceps",
+      "Raccourcir l'amplitude sur les 7 dernières reps par fatigue",
+      "Utiliser une charge trop lourde impossible à contrôler sur 21 reps"
+    ],
+    "benefits": [
+      "Maximiser le temps sous tension des biceps avec 21 répétitions",
+      "Recruter différentes fibres via amplitudes variées (basse, haute, complète)",
+      "Augmenter l'hypertrophie par congestion musculaire intense",
+      "Améliorer l'endurance de force des fléchisseurs du coude"
+    ],
+    "execution_phases": [
+      "Phase 1: 7 reps amplitude basse - de bras tendus à 90° flexion, isoler la portion longue du biceps",
+      "Phase 2: 7 reps amplitude haute - de 90° flexion à contraction complète, cibler le pic du biceps",
+      "Phase 3: 7 reps amplitude complète - de extension totale à flexion maximale, recrutement global",
+      "Phase 4: Technique - strict form, coudes fixes, tempo contrôlé 2-1-2, pas de repos entre phases"
+    ],
+    "contraindications": [
+      "Tendinite du biceps ou rupture partielle tendon long biceps",
+      "Épicondylite médiale (golf elbow) avec douleur face interne coude",
+      "Syndrome du tunnel cubital avec compression nerf ulnaire",
+      "Déchirure musculaire récente des fléchisseurs"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Réduire la charge de 20-30% pour compléter les 21 reps",
+        "Effectuer 15s au lieu de 21s (5-5-5 reps par amplitude)",
+        "Utiliser des bandes élastiques pour résistance accommodante"
+      ],
+      "harder": [
+        "Ajouter une pause isométrique 2s à chaque mi-amplitude",
+        "Augmenter le tempo excentrique à 4 secondes sur chaque rep",
+        "Enchaîner directement avec un exercice biceps complémentaire"
+      ]
+    }
+  },
+  "8715b9a0-5bb4-4278-b6d3-3c856579fbf7": {
+    "common_mistakes": [
+      "Hyper-étendre le dos en montée créant une cambrure excessive",
+      "Monter trop haut au-delà de l'horizontale sollicitant les lombaires",
+      "Utiliser un élan balistique au lieu d'un contrôle musculaire",
+      "Croiser les bras devant au lieu de les placer derrière la nuque"
+    ],
+    "benefits": [
+      "Renforcer les érecteurs du rachis en position semi-verticale sécuritaire",
+      "Développer la chaîne postérieure (lombaires, fessiers, ischio-jambiers)",
+      "Améliorer la stabilité lombaire et prévention lombalgie",
+      "Préparer aux extensions au sol plus exigeantes"
+    ],
+    "execution_phases": [
+      "Phase 1: Installation - face contre coussin à 45°, hanches sur le bord, pieds calés, bras croisés poitrine ou nuque",
+      "Phase 2: Phase excentrique - descendre contrôlée en flexion du tronc jusqu'à 90° environ, maintenir le dos neutre",
+      "Phase 3: Phase concentrique - remonter en extension jusqu'à alignement corps horizontal, contraction fessiers et lombaires",
+      "Phase 4: Amplitude - s'arrêter à l'horizontal, ne pas hyper-étendre en montant davantage"
+    ],
+    "contraindications": [
+      "Hernie discale lombaire L4-L5 ou L5-S1 active",
+      "Spondylolisthésis avec glissement vertébral",
+      "Lombalgie aiguë ou sciatique avec douleur irradiante",
+      "Arthrose facettaire lombaire avec douleur en extension"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Réduire l'amplitude en descendant seulement à 45° flexion",
+        "Garder les bras le long du corps au lieu de derrière la nuque",
+        "Effectuer des isométries en position horizontale 10-15s"
+      ],
+      "harder": [
+        "Tenir un disque ou haltère contre la poitrine",
+        "Ajouter une pause isométrique 3s en position haute",
+        "Augmenter le tempo excentrique à 4-5 secondes"
+      ]
+    }
+  },
+  "4f7e2dc5-ab26-4b37-a58e-1ee4f347f004": {
+    "common_mistakes": [
+      "Tirer avec les bras au lieu de fléchir le tronc par les abdominaux",
+      "Décoller le bas du dos du coussin perdant la stabilisation lombaire",
+      "Utiliser un poids trop lourd générant une compensation dos",
+      "Effectuer le mouvement trop rapidement sans contrôle excentrique"
+    ],
+    "benefits": [
+      "Isoler les abdominaux grand droit en flexion contrôlée",
+      "Minimiser le stress lombaire grâce au support du coussin dorsal",
+      "Progresser en charge facilement avec poids ajustable",
+      "Développer l'endurance et force des abdominaux en toute sécurité"
+    ],
+    "execution_phases": [
+      "Phase 1: Installation - assis sur la machine, coussin dorsal contre le dos, mains sur les poignées, pieds au sol",
+      "Phase 2: Phase concentrique - fléchir le tronc en enroulant les abdominaux, amener le thorax vers les genoux",
+      "Phase 3: Phase excentrique - retour contrôlé en résistant à la charge, ne pas relâcher brusquement",
+      "Phase 4: Position finale - maintenir 1 seconde la contraction maximale en flexion avant de revenir"
+    ],
+    "contraindications": [
+      "Hernie abdominale ombilicale ou inguinale non opérée",
+      "Diastasis des grands droits important post-partum",
+      "Lombalgie chronique aggravée par la flexion lombaire",
+      "Hypertension artérielle sévère non contrôlée"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Commencer sans charge additionnelle, utiliser seulement le poids du buste",
+        "Réduire l'amplitude en ne descendant qu'à mi-course",
+        "Effectuer des crunchs isométriques en maintenant la position fléchie"
+      ],
+      "harder": [
+        "Augmenter progressivement la charge par paliers de 2.5-5kg",
+        "Ajouter une pause de 3 secondes en contraction maximale",
+        "Tempo excentrique lent 4-5 secondes pour intensifier"
+      ]
+    }
+  },
+  "16ce7f8d-ed1c-49ac-a5bf-96b7aad55d33": {
+    "common_mistakes": [
+      "Laisser le bas du dos s'affaisser en extension lombaire",
+      "Rouler avec les bras au lieu de maintenir une position fixe du tronc",
+      "Utiliser une amplitude trop grande impossible à contrôler",
+      "Initier le mouvement avec les bras plutôt que le gainage abdominal"
+    ],
+    "benefits": [
+      "Développer une force anti-extension exceptionnelle du core",
+      "Renforcer les abdominaux profonds transverse et obliques",
+      "Améliorer la stabilité dynamique du rachis lombaire",
+      "Transférer vers exercices avancés comme le dragon flag"
+    ],
+    "execution_phases": [
+      "Phase 1: Position de départ - à genoux, mains sur les poignées roue, dos droit neutre, abdominaux pré-contractés",
+      "Phase 2: Phase excentrique - rouler progressivement vers l'avant en maintenant le gainage abdominal maximal, bras tendus",
+      "Phase 3: Phase concentrique - ramener la roue en contractant violemment les abdominaux, sans fléchir les hanches",
+      "Phase 4: Contrôle - garder le dos neutre durant tout le mouvement, ne jamais cambrer les lombaires"
+    ],
+    "contraindications": [
+      "Hernie discale lombaire récente ou symptomatique",
+      "Diastasis des grands droits de plus de 2-3cm",
+      "Lombalgie chronique avec instabilité segmentaire",
+      "Syndrome facettaire lombaire avec douleur en extension"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Limiter l'amplitude en plaçant un mur à 1m devant soi",
+        "Effectuer contre un mur incliné en position debout",
+        "Utiliser une barre chargée sur le sol au lieu d'une roue"
+      ],
+      "harder": [
+        "Progression vers rollouts debout depuis les pieds",
+        "Rollouts unilatéraux en alternant bras gauche/droit",
+        "Rollouts avec gilet lesté 5-10kg"
+      ]
+    }
+  },
+  "78cbc558-4da3-4a59-b082-4a03a1e6b914": {
+    "common_mistakes": [
+      "Utiliser un élan excessif en balançant les jambes",
+      "Pousser avec le bas du dos au lieu d'isoler les abducteurs",
+      "Effectuer une amplitude partielle sans aller en position maximale",
+      "Croiser excessivement les jambes au retour créant une adduction"
+    ],
+    "benefits": [
+      "Isoler et renforcer le moyen fessier et petit fessier",
+      "Améliorer la stabilité du bassin en appui unipodal",
+      "Prévenir le syndrome de la bandelette ilio-tibiale",
+      "Corriger les déséquilibres musculaires des hanches"
+    ],
+    "execution_phases": [
+      "Phase 1: Installation - assis sur la machine, dos contre le dossier, cuisses contre les coussinets latéraux",
+      "Phase 2: Phase concentrique - écarter les jambes en abduction maximale en contractant les fessiers externes",
+      "Phase 3: Phase excentrique - ramener contrôlée jusqu'à la position de départ sans croiser",
+      "Phase 4: Respiration - expirer en écartement, inspirer en retour, maintenir le tronc stable"
+    ],
+    "contraindications": [
+      "Tendinite du moyen fessier ou bursite trochantérienne",
+      "Conflit fémoro-acétabulaire avec douleur en abduction",
+      "Syndrome du piriforme avec sciatique associée",
+      "Déchirure musculaire récente des abducteurs"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Commencer avec une résistance légère et amplitude réduite",
+        "Effectuer des séries de 15-20 reps avec pauses courtes",
+        "Abduction latérale debout avec élastique en alternative"
+      ],
+      "harder": [
+        "Augmenter progressivement la charge par paliers de 5kg",
+        "Ajouter une pause isométrique de 3 secondes en abduction max",
+        "Tempo excentrique lent 4 secondes pour intensifier"
+      ]
+    }
+  },
+  "b1e87b65-bfa8-4060-9b20-f09b3ab9fe2c": {
+    "common_mistakes": [
+      "Compenser avec le bas du dos en se penchant latéralement",
+      "Effectuer le mouvement trop rapidement sans contrôle",
+      "Utiliser une charge excessive impossible à contrôler en excentrique",
+      "Décoller les fesses du siège perdant la stabilité"
+    ],
+    "benefits": [
+      "Renforcer les adducteurs (long, court, grand) et gracilis",
+      "Améliorer la stabilité médiale du genou",
+      "Prévenir les pubalgies et tendinopathies adducteurs",
+      "Équilibrer la force entre abducteurs et adducteurs"
+    ],
+    "execution_phases": [
+      "Phase 1: Installation - assis jambes écartées contre les coussinets externes, dos droit contre le dossier",
+      "Phase 2: Phase concentrique - rapprocher les jambes en adduction maximale en contractant l'intérieur des cuisses",
+      "Phase 3: Phase excentrique - résister à l'écartement contrôlé jusqu'à la position de départ sans relâcher",
+      "Phase 4: Contraction - maintenir 1 seconde en position serrée avant de relâcher"
+    ],
+    "contraindications": [
+      "Pubalgie aiguë ou tendinite des adducteurs active",
+      "Déchirure musculaire adducteurs moins de 8 semaines",
+      "Arthrose coxo-fémorale avec douleur en adduction",
+      "Syndrome du canal d'Alcock avec compression nerveuse pudendal"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Utiliser une résistance minimale et amplitude confortable",
+        "Adduction couché latéral avec cheville lestée en alternative",
+        "Effectuer des squats sumo légers pour renforcement global"
+      ],
+      "harder": [
+        "Augmenter la charge progressivement tous les 15 jours",
+        "Ajouter une pause isométrique de 5 secondes en adduction max",
+        "Tempo excentrique très lent 5-6 secondes"
+      ]
+    }
+  },
+  "f3480bff-ab71-467c-b9d7-bca9228d5856": {
+    "common_mistakes": [
+      "Perdre la tension musculaire en position basse dead stop",
+      "Ne pas respecter le temps de pause complet 2-3 secondes",
+      "Rebondir sur les sécurités au lieu d'un arrêt complet",
+      "Arrondir le dos en remontée par manque de gainage"
+    ],
+    "benefits": [
+      "Développer la force explosive concentrique pure sans cycle étirement-raccourcissement",
+      "Éliminer le réflexe myotatique améliorant le recrutement neural",
+      "Renforcer le point faible en sortie du trou du squat",
+      "Augmenter la force maximale par surcharge excentrique"
+    ],
+    "execution_phases": [
+      "Phase 1: Position dead stop - barre posée sur safeties dans le rack à hauteur parallèle ou légèrement sous",
+      "Phase 2: Installation - se placer sous la barre, inspirer, se stabiliser, pause complète 2-3 secondes immobile",
+      "Phase 3: Phase concentrique - exploser vers le haut sans utiliser de rebond, extension complète",
+      "Phase 4: Redescente - reposer la barre sur les safeties, relâcher toute tension, repositionner avant la rep suivante"
+    ],
+    "contraindications": [
+      "Hernie discale lombaire symptomatique ou instable",
+      "Arthrose de genou sévère avec douleur en charge maximale",
+      "Tendinopathie patellaire ou syndrome fémoro-patellaire aigu",
+      "Instabilité lombaire ou spondylolisthésis grade 2+"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Commencer avec les safeties plus hauts réduisant l'amplitude",
+        "Utiliser 60-70% de son 1RM squat classique",
+        "Effectuer avec une kettlebell en goblet squat"
+      ],
+      "harder": [
+        "Augmenter la charge de 5-10% au-delà du squat normal",
+        "Allonger la pause dead stop à 5 secondes",
+        "Ajouter des chaînes ou bandes pour résistance variable"
+      ]
+    }
+  },
+  "0155418e-cce4-4d07-8311-79b8fa30c929": {
+    "common_mistakes": [
+      "Laisser les hanches s'affaisser perdant l'alignement corporel",
+      "Ne pas transférer suffisamment le poids sur le bras de travail",
+      "Effectuer une amplitude partielle sans descente complète poitrine",
+      "Écarter excessivement le bras opposé déséquilibrant la posture"
+    ],
+    "benefits": [
+      "Développer la force unilatérale de poussée horizontale",
+      "Préparer progressivement au one-arm push-up complet",
+      "Renforcer les obliques et anti-rotation du core",
+      "Améliorer le contrôle moteur et proprioception des pectoraux"
+    ],
+    "execution_phases": [
+      "Phase 1: Position archer - planche main large, poids majoritaire sur un bras, bras opposé tendu latéral",
+      "Phase 2: Phase excentrique - descendre en fléchissant le coude du bras de travail, maintenir le corps droit",
+      "Phase 3: Phase concentrique - pousser explosif avec le bras de travail jusqu'à extension complète",
+      "Phase 4: Alternance - effectuer toutes les reps d'un côté avant de changer, ou alterner chaque rep"
+    ],
+    "contraindications": [
+      "Tendinite coiffe des rotateurs ou instabilité gléno-humérale",
+      "Luxation d'épaule récurrente ou subluxation",
+      "Syndrome du tunnel carpien avec compression nerveuse",
+      "Déchirure pectorale récente moins de 6 mois"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Effectuer avec les genoux au sol réduisant la charge",
+        "Limiter l'amplitude en plaçant une élévation sous la poitrine",
+        "Archer push-up incliné mains sur élévation"
+      ],
+      "harder": [
+        "Élever les pieds sur box ou chaise 30-40cm",
+        "Ajouter un gilet lesté 5-10kg",
+        "Progression vers one-arm push-up complet avec bras derrière le dos"
+      ]
+    }
+  },
+  "8c6620f2-b09d-4ce4-a2c6-1c80012452e4": {
+    "common_mistakes": [
+      "Prendre des temps de repos entre les 4 exercices du giant set",
+      "Utiliser des charges trop lourdes empêchant de compléter le circuit",
+      "Négliger l'amplitude complète par fatigue sur les derniers exercices",
+      "Ne pas respecter l'alternance biceps-triceps pour la congestion"
+    ],
+    "benefits": [
+      "Maximiser la congestion musculaire des bras par accumulation métabolique",
+      "Augmenter le volume d'entraînement en temps réduit efficacité métabolique",
+      "Recruter l'ensemble des chefs biceps et triceps",
+      "Développer l'endurance musculaire locale et capacité lactique"
+    ],
+    "execution_phases": [
+      "Phase 1: Exercice 1 - curl barre EZ 10-12 reps amplitude complète strict",
+      "Phase 2: Exercice 2 - extension triceps corde 10-12 reps contraction maximale",
+      "Phase 3: Exercice 3 - curl haltères incliné 10-12 reps étirement biceps",
+      "Phase 4: Exercice 4 - dips triceps ou overhead extension 10-12 reps, pause 90-120s puis répéter"
+    ],
+    "contraindications": [
+      "Tendinite du biceps ou épicondylite latérale active",
+      "Épicondylite médiale ou syndrome du tunnel cubital",
+      "Déchirure musculaire triceps ou biceps récente",
+      "Arthrose du coude avec douleur en flexion-extension répétée"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Réduire à 3 exercices au lieu de 4 pour débuter",
+        "Diminuer les reps à 8-10 par exercice",
+        "Prendre 15-20 secondes de transition entre exercices"
+      ],
+      "harder": [
+        "Augmenter à 12-15 reps par exercice maintenant l'intensité",
+        "Effectuer 4-5 tours au lieu de 3",
+        "Ajouter une technique d'intensification drop set sur le dernier exercice"
+      ]
+    }
+  },
+  "c3fa401c-6755-4abd-860d-4a7825db9dbc": {
+    "common_mistakes": [
+      "Ne pas effectuer la rotation complète des poignets en montée",
+      "Monter en supination jusqu'en haut sans transition rotation",
+      "Utiliser une charge trop lourde limitant l'amplitude rotation",
+      "Décoller les coudes latéralement au lieu de maintenir devant"
+    ],
+    "benefits": [
+      "Recruter les trois faisceaux des deltoïdes par rotation dynamique",
+      "Améliorer la mobilité active de la ceinture scapulaire",
+      "Développer la force rotationnelle des deltoïdes antérieurs",
+      "Augmenter la masse musculaire des épaules par recrutement maximal"
+    ],
+    "execution_phases": [
+      "Phase 1: Position de départ - haltères en supination devant les épaules, coudes devant le corps",
+      "Phase 2: Phase concentrique - pousser en rotation progressive vers pronation, finir haltères parallèles au-dessus",
+      "Phase 3: Phase excentrique - descendre en rotation inverse pronation vers supination, contrôle strict",
+      "Phase 4: Trajectoire - décrire un arc de cercle, rotation fluide sans à-coups"
+    ],
+    "contraindications": [
+      "Tendinite coiffe des rotateurs ou conflit sous-acromial",
+      "Instabilité gléno-humérale ou luxation récurrente",
+      "Capsulite rétractile avec limitation rotation externe",
+      "Arthrose acromio-claviculaire avec douleur en élévation"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Effectuer le mouvement assis avec dossier pour plus de stabilité",
+        "Réduire l'amplitude de rotation partiellement si douleur",
+        "Utiliser des haltères plus légers 30-40% moins que développé classique"
+      ],
+      "harder": [
+        "Arnold press debout pour engagement core et stabilisation",
+        "Ajouter une pause de 2 secondes en position haute",
+        "Tempo excentrique lent 4 secondes avec rotation contrôlée"
+      ]
+    }
+  },
+  "9e32401b-8844-4ec9-82db-d69b3f6c3ad7": {
+    "common_mistakes": [
+      "Prendre un temps de repos entre les deux exercices du superset",
+      "Utiliser un poids trop lourd sur Arnold press compromettant les face pulls",
+      "Effectuer les face pulls avec les coudes bas au lieu de hauts",
+      "Ne pas maintenir la rétraction scapulaire en contraction des face pulls"
+    ],
+    "benefits": [
+      "Équilibrer le travail push (Arnold) et pull (face pull) des épaules",
+      "Renforcer les rotateurs externes prévention blessures coiffe",
+      "Développer les deltoïdes postérieurs souvent sous-développés",
+      "Améliorer la santé articulaire de l'épaule par travail antagoniste"
+    ],
+    "execution_phases": [
+      "Phase 1: Arnold press - 8-12 reps avec haltères, rotation supination-pronation complète",
+      "Phase 2: Transition immédiate - poser haltères, aller à la poulie haute 0 repos",
+      "Phase 3: Face pulls - 12-15 reps corde vers le visage, coudes hauts niveau épaules",
+      "Phase 4: Technique face pulls - rétraction scapulaire maximale, rotation externe poignets, pause 1s contractée"
+    ],
+    "contraindications": [
+      "Tendinite coiffe des rotateurs aiguë bilatérale",
+      "Conflit sous-acromial avec douleur intense en élévation",
+      "Instabilité gléno-humérale antérieure récidivante",
+      "Capsulite rétractile limitant fortement les amplitudes"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Réduire le poids Arnold press de 20-30%",
+        "Prendre 10-15 secondes de repos entre les deux exercices",
+        "Effectuer face pulls avec élastique au lieu de poulie"
+      ],
+      "harder": [
+        "Augmenter les reps Arnold press à 12-15",
+        "Ajouter une pause de 3 secondes sur les face pulls contractés",
+        "Effectuer 4-5 tours au lieu de 3 maintenant intensité"
+      ]
+    }
+  },
+  "4eaf1b21-784c-4907-a8f7-28a5245d3c53": {
+    "common_mistakes": [
+      "Utiliser trop d'assistance réduisant le travail musculaire réel",
+      "Compenser avec des balancements du corps au lieu du contrôle",
+      "Ne pas descendre jusqu'à l'extension complète des bras",
+      "Monter partiellement sans amener le menton au-dessus de la barre"
+    ],
+    "benefits": [
+      "Développer progressivement la force de traction verticale",
+      "Préparer aux tractions complètes au poids du corps",
+      "Renforcer le grand dorsal, grand rond, biceps et rhomboïdes",
+      "Améliorer le contrôle excentrique pour progresser vers pull-ups stricts"
+    ],
+    "execution_phases": [
+      "Phase 1: Installation - genoux ou pieds sur la plateforme d'assistance, prise large pronation sur la barre",
+      "Phase 2: Phase concentrique - tirer en engageant d'abord les dorsaux, amener le menton au niveau ou au-dessus de la barre",
+      "Phase 3: Phase excentrique - descendre contrôlée en résistant l'assistance jusqu'à extension complète bras",
+      "Phase 4: Progression - réduire l'assistance de 5-10kg toutes les 2-3 semaines"
+    ],
+    "contraindications": [
+      "Déchirure du grand dorsal récente moins de 3 mois",
+      "Tendinite du biceps ou épicondylite latérale active",
+      "Conflit sous-acromial avec douleur en élévation bras",
+      "Instabilité gléno-humérale inférieure avec subluxation"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Augmenter l'assistance de 10-15kg pour travailler en amplitude complète",
+        "Effectuer des tractions avec bande élastique attachée",
+        "Tractions négatives excentriques seulement en descendant lentement"
+      ],
+      "harder": [
+        "Réduire progressivement l'assistance vers 0kg",
+        "Ajouter une pause isométrique de 2s en position haute",
+        "Transition vers tractions strictes au poids du corps"
+      ]
+    }
+  },
+  "2ec2a0e4-44d3-485c-88ce-a2b357d3b841": {
+    "common_mistakes": [
+      "Arrondir le dos au lieu de maintenir une lordose lombaire naturelle",
+      "Soulever avec les bras au lieu d'engager les jambes et hanches",
+      "Ne pas serrer suffisamment la pierre contre le corps",
+      "Monter trop vite sans contrôle risquant la chute de la pierre"
+    ],
+    "benefits": [
+      "Développer la force de préhension et grip extrême",
+      "Renforcer la chaîne postérieure complète hanche-dos",
+      "Améliorer la force fonctionnelle de soulevé objet lourd au sol",
+      "Préparer techniquement au stone lift complet to platform"
+    ],
+    "execution_phases": [
+      "Phase 1: Approche - pierre au sol, se placer au-dessus, pieds largeur hanches, fléchir hanches et genoux",
+      "Phase 2: Prise - enrouler les bras sous et autour de la pierre, mains dessus si possible, serrer contre le torse",
+      "Phase 3: Lift to lap - extension explosive hanches et genoux, rouler pierre sur cuisses, s'asseoir légèrement",
+      "Phase 4: Stabilisation - maintenir pierre serrée sur genoux 2-3 secondes, dos droit, avant de reposer"
+    ],
+    "contraindications": [
+      "Hernie discale lombaire active ou récente moins de 6 mois",
+      "Déchirure musculaire ischio-jambiers ou lombaires récente",
+      "Hernie ombilicale ou inguinale non opérée",
+      "Tendinite biceps sévère ou rupture partielle"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Commencer avec sandbag rempli partiellement 20-30kg",
+        "Pratiquer le mouvement avec pierre tacky sans charge",
+        "Stone to lap depuis une élévation réduisant l'amplitude"
+      ],
+      "harder": [
+        "Augmenter progressivement le poids de la pierre par paliers 5-10kg",
+        "Effectuer des répétitions multiples 3-5 reps sans reposer",
+        "Progression vers atlas stone to platform complète"
+      ]
+    }
+  },
+  "13248ec3-78c7-4e64-9286-6b3baf94d409": {
+    "common_mistakes": [
+      "Ne pas utiliser de tacky compromettant l'adhérence pierre",
+      "Tenter de soulever avec le dos au lieu des jambes",
+      "Perdre le contact serré pierre-corps pendant le lift",
+      "Monter la pierre trop loin du platform manquant le dépôt"
+    ],
+    "benefits": [
+      "Développer une force fonctionnelle et puissance maximale",
+      "Renforcer intensément la chaîne postérieure complète",
+      "Améliorer la force de préhension et biceps sous tension extrême",
+      "Tester la force athlétique globale et explosivité"
+    ],
+    "execution_phases": [
+      "Phase 1: Lap position - pierre sur genoux après stone to lap, mains repositionnées dessus/dessous",
+      "Phase 2: Triple extension - exploser jambes-hanches-dos simultanément, projeter pierre vers le haut",
+      "Phase 3: Roll sur platform - rouler pierre sur le rebord en la poussant avec menton et épaules",
+      "Phase 4: Finalisation - pousser jusqu'à dépôt complet pierre sur platform, relâcher mains"
+    ],
+    "contraindications": [
+      "Hernie discale L4-L5 ou L5-S1 symptomatique",
+      "Déchirure biceps ou pectoraux récente moins de 1 an",
+      "Hernie ombilicale ou de la ligne blanche active",
+      "Spondylolisthésis avec instabilité lombaire"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Commencer avec pierre légère 40-60kg sur platform basse 1m",
+        "Pratiquer le mouvement décomposé en 3 phases distinctes",
+        "Utiliser sandbag pour apprendre la technique"
+      ],
+      "harder": [
+        "Augmenter progressivement poids pierre jusqu'à 120-150kg+",
+        "Élever la hauteur du platform 1.2m, 1.4m, 1.5m",
+        "Effectuer des séries chronométrées 5 pierres en 60 secondes"
+      ]
+    }
+  },
+  "4bb321a4-00b9-4a6f-ad64-cefc9376933d": {
+    "common_mistakes": [
+      "Manquer de vitesse sur la triple extension perdant le momentum",
+      "Positionner la pierre trop loin du platform avant le roll",
+      "Ne pas utiliser suffisamment le menton et épaules pour rouler",
+      "Relâcher la préhension trop tôt avant dépôt complet"
+    ],
+    "benefits": [
+      "Développer la puissance explosive maximale multi-articulaire",
+      "Renforcer la force de poussée verticale fonctionnelle",
+      "Améliorer le timing et coordination neuromusculaire",
+      "Tester la capacité athlétique force-vitesse globale"
+    ],
+    "execution_phases": [
+      "Phase 1: Stone to lap - soulever pierre au sol vers genoux position lap stable",
+      "Phase 2: Extension explosive - triple extension jambes-hanches-dos, projeter pierre vers platform",
+      "Phase 3: Rolling technique - rouler pierre sur rebord avec menton-épaules-poitrine, garder contact serré",
+      "Phase 4: Push final - pousser dernière impulsion pour dépôt complet, relâcher mains seulement après"
+    ],
+    "contraindications": [
+      "Hernie discale lombaire ou cervicale active",
+      "Déchirure musculaire majeure chaîne postérieure récente",
+      "Spondylolisthésis ou instabilité vertébrale",
+      "Tendinite biceps sévère ou rupture partielle long biceps"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Pierre 40-60kg sur platform 90-100cm pour débuter",
+        "Décomposer en 3 phases avec pauses entre chaque",
+        "Utiliser mold pour pierre avec poignées temporaires"
+      ],
+      "harder": [
+        "Augmenter poids pierre 80kg, 100kg, 120kg, 150kg+",
+        "Élever hauteur platform 1.2m, 1.4m, 1.5m progressivement",
+        "Effectuer loading series 3-5 pierres poids croissants sans repos"
+      ]
+    }
+  },
+  "3bde07a3-a439-4a6b-803b-8c56fbdb92e3": {
+    "common_mistakes": [
+      "Ne pas gérer correctement son énergie sur les pierres légères",
+      "Prendre trop de temps entre chaque pierre perdant le rythme",
+      "Manquer de tacky sur les dernières pierres par usure",
+      "Négliger la technique sur les pierres légères par excès confiance"
+    ],
+    "benefits": [
+      "Développer l'endurance de force et capacité répétée",
+      "Tester la gestion de l'effort sur charges progressives",
+      "Améliorer la résistance mentale et détermination",
+      "Simuler les conditions de compétition strongman authentiques"
+    ],
+    "execution_phases": [
+      "Phase 1: Série progressive - 3-5 pierres poids croissants (ex: 80, 100, 120, 140, 160kg)",
+      "Phase 2: Timing - limiter à 60 secondes par pierre max, enchaîner rapidement",
+      "Phase 3: Technique constante - maintenir form strict même avec fatigue, ne pas précipiter",
+      "Phase 4: Gestion énergie - démarrer à 70-80% effort sur légères, finir à 100% sur lourdes"
+    ],
+    "contraindications": [
+      "Hernie discale symptomatique ou instabilité rachidienne",
+      "Déchirure musculaire non consolidée moins de 6 mois",
+      "Hernie ombilicale, inguinale ou de la ligne blanche",
+      "Capacité cardiovasculaire limitée ou hypertension non contrôlée"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Série de 3 pierres au lieu de 5 réduisant volume",
+        "Écart de 10kg entre pierres au lieu de 20kg",
+        "Prendre 30-45 secondes de repos entre pierres"
+      ],
+      "harder": [
+        "Série de 6-7 pierres jusqu'à maximum absolu",
+        "Réduire le temps à 45 secondes maximum par pierre",
+        "Effectuer en conditions compétition avec chrono et juge"
+      ]
+    }
+  },
+  "758b0e46-2092-439c-921a-6e8780768600": {
+    "common_mistakes": [
+      "Mal évaluer la distance pierre-platform avant la montée",
+      "Monter avec les bras tendus au lieu de serrer contre le corps",
+      "Ne pas utiliser le drive des jambes pour la projection initiale",
+      "Perdre l'équilibre en arrière après le dépôt de la pierre"
+    ],
+    "benefits": [
+      "Développer la force explosive maximale en condition dynamique",
+      "Renforcer l'ensemble de la chaîne musculaire antérieure et postérieure",
+      "Améliorer la proprioception et coordination sous charge extrême",
+      "Tester la puissance athlétique globale en mouvement fonctionnel"
+    ],
+    "execution_phases": [
+      "Phase 1: Lifting - stone to lap, pierre serrée sur genoux, repositionnement mains optimal",
+      "Phase 2: Drive initial - extension explosive jambes-hanches, projeter pierre vers le haut et avant",
+      "Phase 3: Rolling phase - rouler pierre sur le rebord platform, utiliser menton-épaules-poitrine pour guider",
+      "Phase 4: Final push - dernière poussée bras et épaules pour dépôt complet, stabilisation corps"
+    ],
+    "contraindications": [
+      "Hernie discale ou spondylolisthésis avec douleur",
+      "Déchirure musculaire majeure récente chaîne postérieure",
+      "Tendinite biceps sévère ou rupture partielle",
+      "Hernie abdominale non opérée ombilicale ou inguinale"
+    ],
+    "scaling_options": {
+      "easier": [
+        "Pierre 40-70kg sur platform 1m pour apprentissage",
+        "Pratiquer rolling technique avec sandbag d'abord",
+        "Platform plus basse 80-90cm facilitant le dépôt"
+      ],
+      "harder": [
+        "Pierre 120-180kg sur platform standard 1.2-1.5m",
+        "Effectuer en série chronométrée 5 pierres 90 secondes",
+        "Loading medley 3-5 pierres différentes même hauteur"
+      ]
+    }
+  }
+}
