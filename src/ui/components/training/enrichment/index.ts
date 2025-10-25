@@ -1,0 +1,1 @@
+export { EnrichmentStatusBadge } from './EnrichmentStatusBadge';
