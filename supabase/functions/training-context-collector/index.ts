@@ -14,7 +14,7 @@ const corsHeaders = {
 };
 
 // Cache schema version - increment when structure changes
-const CACHE_SCHEMA_VERSION = "2.3.0"; // Incremented for loadHistory addition (12 months detailed progression)
+const CACHE_SCHEMA_VERSION = "2.4.0"; // Incremented for userFeedbacks addition (feedback learning system)
 
 interface ContextCollectorRequest {
   userId: string;
@@ -603,7 +603,79 @@ Deno.serve(async (req: Request) => {
       totalRecords: loadHistory?.totalRecords || 0
     });
 
-    // 8. Build user data structure with recovery analysis AND wearable recovery data
+    // 8. Fetch user feedbacks (last 20 most recent)
+    console.log("[CONTEXT-COLLECTOR] Fetching user feedbacks...");
+    const { data: userFeedbacks, error: feedbacksError } = await supabase
+      .from("training_session_user_feedback")
+      .select(`
+        id,
+        session_id,
+        feedback_text,
+        sentiment_score,
+        key_themes,
+        source,
+        created_at,
+        training_sessions!inner(
+          discipline,
+          session_name,
+          created_at
+        )
+      `)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (feedbacksError) {
+      console.error("[CONTEXT-COLLECTOR] Error fetching feedbacks:", feedbacksError);
+    } else {
+      console.log("[CONTEXT-COLLECTOR] User feedbacks fetched", {
+        count: userFeedbacks?.length || 0,
+        withSentiment: userFeedbacks?.filter(f => f.sentiment_score !== null).length || 0
+      });
+    }
+
+    // Analyze feedback patterns
+    let feedbackAnalysis = null;
+    if (userFeedbacks && userFeedbacks.length > 0) {
+      const avgSentiment = userFeedbacks
+        .filter(f => f.sentiment_score !== null)
+        .reduce((sum, f) => sum + (f.sentiment_score || 0), 0) /
+        Math.max(1, userFeedbacks.filter(f => f.sentiment_score !== null).length);
+
+      const allThemes = userFeedbacks
+        .flatMap(f => f.key_themes || [])
+        .reduce((acc, theme) => {
+          acc[theme] = (acc[theme] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+      const topThemes = Object.entries(allThemes)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([theme, count]) => ({ theme, count }));
+
+      feedbackAnalysis = {
+        totalFeedbacks: userFeedbacks.length,
+        averageSentiment: avgSentiment,
+        topThemes,
+        recentFeedbacks: userFeedbacks.slice(0, 5).map(f => ({
+          sessionName: f.training_sessions?.session_name,
+          discipline: f.training_sessions?.discipline,
+          feedback: f.feedback_text,
+          sentiment: f.sentiment_score,
+          themes: f.key_themes,
+          date: f.created_at
+        }))
+      };
+
+      console.log("[CONTEXT-COLLECTOR] Feedback analysis completed", {
+        avgSentiment: avgSentiment.toFixed(2),
+        topThemesCount: topThemes.length,
+        recentCount: feedbackAnalysis.recentFeedbacks.length
+      });
+    }
+
+    // 9. Build user data structure with recovery analysis AND wearable recovery data
     console.log("[CONTEXT-COLLECTOR] Building user data structure...");
     const userData = {
       userId,
@@ -637,7 +709,9 @@ Deno.serve(async (req: Request) => {
       // NOUVEAU: Données wearable de récupération physiologique
       wearableRecovery: wearableRecoveryData,
       // NOUVEAU: Historique détaillé des charges sur 12 mois pour progression intelligente
-      loadHistory: loadHistory
+      loadHistory: loadHistory,
+      // NOUVEAU: Feedbacks utilisateur pour apprentissage et adaptation IA
+      userFeedbacks: feedbackAnalysis
     };
     console.log("[CONTEXT-COLLECTOR] User data built", {
       hasProfile: !!profile,
@@ -648,7 +722,10 @@ Deno.serve(async (req: Request) => {
       hasRecoveryAnalysis: !!userData.recoveryAnalysis,
       lastWorkoutDate: userData.recoveryAnalysis.lastWorkoutDate,
       hasWearableRecovery: !!userData.wearableRecovery,
-      wearableDeviceName: userData.wearableRecovery?.deviceName
+      wearableDeviceName: userData.wearableRecovery?.deviceName,
+      hasFeedbackAnalysis: !!userData.userFeedbacks,
+      feedbacksCount: userData.userFeedbacks?.totalFeedbacks || 0,
+      avgSentiment: userData.userFeedbacks?.averageSentiment || 0
     });
 
     // 9. Query Exercise Catalog from Database

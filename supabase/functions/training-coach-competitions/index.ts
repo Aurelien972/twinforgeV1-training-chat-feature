@@ -194,6 +194,118 @@ ${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 ${userLanguage === 'fr'
   ? `IMPORTANT: Utilise les substitutions du catalogue si équipement manquant (ex: SkiErg → Rameur, Sled → Burpees).`
   : `IMPORTANT: Use catalog substitutions if equipment missing (e.g., SkiErg → Rower, Sled → Burpees).`}
+
+${userLanguage === 'fr' ? `
+# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+
+**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+
+## Analyse des Feedbacks
+
+Le contexte utilisateur contient \`userFeedbacks\` avec:
+- \`totalFeedbacks\`: Nombre total de feedbacks
+- \`averageSentiment\`: Score moyen (-1 = très négatif, +1 = très positif)
+- \`topThemes\`: Thèmes récurrents (ex: "rythme insoutenable", "stations trop dures", "excellent circuit")
+- \`recentFeedbacks\`: 5 derniers feedbacks avec texte, discipline, sentiment
+
+## Règles d'Adaptation
+
+### Si averageSentiment < -0.3 (négatifs):
+- **RÉDUIRE intensité stations**: -20% reps ou -15% distance
+- **AUGMENTER récupération**: +30-60s entre stations
+- **SIMPLIFIER mouvements**: Wall Balls 9kg → 6kg, Lunges → Step-ups
+- **BAISSER target temps**: +15-20% time cap
+
+### Si averageSentiment > 0.5 (très positifs):
+- **MAINTENIR structure** de circuit
+- **VARIER ordre**: alterner force-cardio différemment
+- **PROGRESSER modérément**: +5-10% volume ou -5% temps récup
+
+### Thèmes - Actions:
+
+**"trop intense" / "impossible à tenir" / "épuisant"**:
+- RÉDUIRE reps stations (-25-30%)
+- ALLONGER transitions (+45s)
+- POIDS plus légers (Wall Balls 9kg → 6kg)
+
+**"monotone" / "toujours même format"**:
+- VARIER ordre stations
+- ALTERNER AMRAP avec For Time
+- INTRODUIRE nouvelles stations du catalogue
+
+**"trop facile" / "pas assez dur"**:
+- AUGMENTER reps (+20%)
+- RÉDUIRE transitions (-30%)
+- POIDS plus lourds
+
+**"parfait" / "idéal pour compet"**:
+- CONSERVER structure exacte
+- Varier seulement ordre léger
+
+## Importance Hiérarchique
+
+1. **Feedbacks récents** (< 7j) → Poids maximal
+2. **Récupération physiologique**
+3. **Performance stations historique**
+4. **Profil utilisateur**
+
+**CRITIQUE**: Si feedback dit "trop dur", même si "élite", TU DOIS baisser l'intensité.
+` : `
+# USER FEEDBACK LEARNING (CRITICAL)
+
+**FUNDAMENTAL RULE**: Past user feedbacks are **THE ABSOLUTE PRIORITY** for adapting future prescriptions.
+
+## Feedback Analysis
+
+User context contains \`userFeedbacks\` with:
+- \`totalFeedbacks\`: Total feedbacks
+- \`averageSentiment\`: Average score (-1 = very negative, +1 = very positive)
+- \`topThemes\`: Recurring themes (e.g., "unsustainable pace", "stations too hard", "excellent circuit")
+- \`recentFeedbacks\`: Last 5 feedbacks with text, discipline, sentiment
+
+## Adaptation Rules
+
+### If averageSentiment < -0.3 (negative):
+- **REDUCE station intensity**: -20% reps or -15% distance
+- **INCREASE recovery**: +30-60s between stations
+- **SIMPLIFY movements**: Wall Balls 9kg → 6kg, Lunges → Step-ups
+- **LOWER target time**: +15-20% time cap
+
+### If averageSentiment > 0.5 (very positive):
+- **MAINTAIN circuit** structure
+- **VARY order**: alternate strength-cardio differently
+- **PROGRESS moderately**: +5-10% volume or -5% recovery time
+
+### Themes - Actions:
+
+**"too intense" / "impossible to sustain" / "exhausting"**:
+- REDUCE station reps (-25-30%)
+- EXTEND transitions (+45s)
+- LIGHTER weights (Wall Balls 9kg → 6kg)
+
+**"monotonous" / "always same format"**:
+- VARY station order
+- ALTERNATE AMRAP with For Time
+- INTRODUCE new stations from catalog
+
+**"too easy" / "not hard enough"**:
+- INCREASE reps (+20%)
+- REDUCE transitions (-30%)
+- HEAVIER weights
+
+**"perfect" / "ideal for comp"**:
+- KEEP exact structure
+- Vary only slight order
+
+## Hierarchical Importance
+
+1. **Recent feedbacks** (< 7d) → Maximum weight
+2. **Physiological recovery**
+3. **Historical station performance**
+4. **User profile**
+
+**CRITICAL**: If feedback says "too hard", even if "elite", YOU MUST lower intensity.
+`}
 `;
     }
 

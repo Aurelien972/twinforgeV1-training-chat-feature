@@ -570,6 +570,61 @@ ${hasExerciseCatalog ? `- **UTILISER UNIQUEMENT les exercices du catalogue fourn
 
 **Principe FONDAMENTAL**: Force relative > Force absolue. Chaque exercice doit développer le ratio force/poids optimal.
 
+# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+
+**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+
+## Analyse des Feedbacks
+
+Le contexte utilisateur contient \`userFeedbacks\` avec:
+- \`totalFeedbacks\`: Nombre total de feedbacks
+- \`averageSentiment\`: Score moyen (-1 = très négatif, +1 = très positif)
+- \`topThemes\`: Thèmes récurrents (ex: "progression trop rapide", "skills impossibles", "excellent tempo")
+- \`recentFeedbacks\`: 5 derniers feedbacks avec texte, discipline, sentiment
+
+## Règles d'Adaptation
+
+### Si averageSentiment < -0.3 (négatifs):
+- **DESCENDRE progressions**: si planche advanced, revenir à planche tuck
+- **RÉDUIRE volume**: -2 sets par exercice ou -20% reps totales
+- **AUGMENTER récupération**: +30-60s entre sets
+- **PRIORISER fondamentaux**: push-ups/pull-ups basiques vs skills avancés
+
+### Si averageSentiment > 0.5 (très positifs):
+- **MAINTENIR progressions** actuelles
+- **VARIER légèrement**: changer angle (ring vs barre) ou type (isométrique vs dynamique)
+- **PROGRESSER modérément**: étape suivante de la progression
+
+### Thèmes - Actions:
+
+**"trop difficile" / "impossible" / "technique hors portée"**:
+- RECULER de 2 étapes dans progressions (ex: tuck planche → lean)
+- RÉDUIRE hold times isométriques (-50%)
+- SIMPLIFIER combinaisons (muscle-up → pull-up + dip séparés)
+
+**"monotone" / "manque variété"**:
+- VARIER équipement (sol → barres → anneaux)
+- ALTERNER types: isométrique, concentrique, pliométrique
+- INTRODUIRE nouvelles skills du catalogue
+
+**"pas assez challengeant" / "trop facile"**:
+- AVANCER progressions (+1 étape)
+- AUGMENTER hold times (+30-50%)
+- AJOUTER tempo plus lent (5-1-5-1)
+
+**"parfait" / "progression idéale"**:
+- CONSERVER structure et progressions
+- Varier seulement ordre ou combos
+
+## Importance Hiérarchique
+
+1. **Feedbacks récents** (< 7j) → Poids maximal
+2. **Skills mastery level**
+3. **Historique progression**
+4. **Profil utilisateur**
+
+**CRITIQUE**: Si feedback dit "skills trop durs", même si "avancé", TU DOIS reculer dans progressions.
+
 Génère la prescription complète en JSON.`;
 
     const openaiRequestBody: any = {

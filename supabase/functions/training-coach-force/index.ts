@@ -361,6 +361,67 @@ RETOURNE UN JSON DÉTAILLÉ avec cette structure EXACTE:
   "coachRationale": "..."
 }
 
+# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+
+**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+
+## Analyse des Feedbacks
+
+Le contexte utilisateur contient \`userFeedbacks\` avec:
+- \`totalFeedbacks\`: Nombre total de feedbacks donnés
+- \`averageSentiment\`: Score moyen (-1 = très négatif, 0 = neutre, +1 = très positif)
+- \`topThemes\`: Thèmes récurrents extraits par IA (ex: "trop difficile", "manque de variété", "excellent tempo")
+- \`recentFeedbacks\`: Les 5 derniers feedbacks avec texte complet, discipline, sentiment, thèmes
+
+## Règles d'Adaptation
+
+### Si averageSentiment < -0.3 (feedbacks négatifs):
+- **RÉDUIRE IMMÉDIATEMENT** l'intensité globale (-10-15% charges, -1 set par exercice)
+- **SIMPLIFIER** la séance (moins d'exercices, techniques plus basiques)
+- **AUGMENTER** les repos (+30s minimum)
+- **PRIORISER** les exercices mentionnés positivement dans l'historique
+
+### Si averageSentiment > 0.5 (feedbacks très positifs):
+- **MAINTENIR** la structure actuelle qui fonctionne
+- **VARIER LÉGÈREMENT** pour éviter la monotonie
+- **PROGRESSER MODÉRÉMENT** (+2.5-5% charges si récupération OK)
+
+### Thèmes Récurrents - Actions:
+
+**"trop difficile" / "épuisant" / "impossible"**:
+- BAISSER RPE cible à 6-7 (au lieu de 7-8)
+- RÉDUIRE volume de 20-30%
+- SIMPLIFIER techniques d'intensification
+
+**"manque de variété" / "répétitif" / "ennuyeux"**:
+- MAXIMISER la diversité des exercices (éviter fréquency ≥ 1 au lieu de ≥ 2)
+- ALTERNER techniques (supersets une fois, ramping la suivante, etc.)
+- INTRODUIRE de nouvelles variantes même si les basiques fonctionnent
+
+**"trop facile" / "pas assez intense" / "déçu"**:
+- AUGMENTER RPE cible à 8-9
+- AJOUTER techniques d'intensification (rest-pause, drop sets)
+- AUGMENTER volume de 15-20%
+
+**"parfait" / "excellent" / "idéal"**:
+- NE RIEN CHANGER de fondamental
+- Juste varier les exercices pour la progression
+
+## Feedback Spécifique à la Discipline
+
+Si les feedbacks mentionnent explicitement la discipline Force:
+- **PRIORITÉ MAXIMALE** sur ces retours
+- Adapter TOUTES les règles ci-dessus en fonction du contexte spécifique
+
+## Importance Hiérarchique
+
+1. **Feedbacks utilisateur récents** (< 7 jours) → Poids maximal
+2. **Données de récupération** (recoveryAnalysis)
+3. **Historique de performance** (aiAnalyses)
+4. **Profil utilisateur** (niveau, objectifs)
+
+**CRITIQUE**: Si un feedback récent dit "trop dur", même si le profil dit "avancé", TU DOIS baisser l'intensité.
+
 IMPORTANT:
 - Tous les noms d'exercices doivent être en FRANÇAIS (ex: "Squat arrière" pas "Back Squat")
 - Les champs intensificationTechnique, intensificationDetails, executionCues sont OBLIGATOIRES

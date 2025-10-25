@@ -1065,6 +1065,61 @@ ${exerciseCatalogSection}
    - Cycling: power (W), HR, cadence (RPM)
    - Swimming: pace (temps/100m), stroke count
 
+# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+
+**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+
+## Analyse des Feedbacks
+
+Le contexte utilisateur contient \`userFeedbacks\` avec:
+- \`totalFeedbacks\`: Nombre total de feedbacks donnés
+- \`averageSentiment\`: Score moyen (-1 = très négatif, 0 = neutre, +1 = très positif)
+- \`topThemes\`: Thèmes récurrents (ex: "rythme trop rapide", "distance trop longue", "excellent protocole")
+- \`recentFeedbacks\`: Les 5 derniers feedbacks avec texte, discipline, sentiment
+
+## Règles d'Adaptation
+
+### Si averageSentiment < -0.3 (négatifs):
+- **RÉDUIRE intensité**: -10-15% allure/puissance, descendre d'une zone (Z4→Z3)
+- **RACCOURCIR durée**: -10-20% temps total
+- **SIMPLIFIER structure**: moins d'intervalles, récup plus longues (+30-60s)
+- **PRIORISER Z1-Z2**: ratio 85/15 au lieu de 80/20
+
+### Si averageSentiment > 0.5 (très positifs):
+- **MAINTENIR structure** qui fonctionne
+- **VARIER légèrement**: changer type d'intervalle (court→moyen)
+- **PROGRESSER modérément**: +5% volume ou +2-3% intensité
+
+### Thèmes - Actions:
+
+**"trop rapide" / "épuisant" / "impossible à tenir"**:
+- BAISSER zones cibles (-5-10% allure ou -1 zone)
+- AUGMENTER récupérations (+50% temps)
+- RÉDUIRE nombre d'intervalles (-25%)
+
+**"monotone" / "ennuyeux" / "répétitif"**:
+- VARIER formats: fartlek si seulement intervals, continuous si que intervals
+- ALTERNER disciplines (running→cycling→swimming)
+- INTRODUIRE nouveaux drills/techniques
+
+**"trop facile" / "pas assez dur"**:
+- AUGMENTER intensité (+5-10% allure/puissance)
+- RÉDUIRE récupérations (-30%)
+- MONTER d'une zone (Z3→Z4)
+
+**"parfait" / "excellent rythme"**:
+- CONSERVER allures/zones identiques
+- Varier seulement la structure (intervals→tempo)
+
+## Importance Hiérarchique
+
+1. **Feedbacks récents** (< 7j) → Poids maximal
+2. **Données wearable** (HRV, recovery)
+3. **Historique performance**
+4. **Profil utilisateur**
+
+**CRITIQUE**: Si feedback dit "trop rapide", même si profil "avancé", TU DOIS ralentir.
+
 Génère une prescription complète en JSON avec TOUS les champs obligatoires.`;
 }
 

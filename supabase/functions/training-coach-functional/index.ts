@@ -296,6 +296,118 @@ ${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 ${userLanguage === 'fr'
   ? `IMPORTANT: Utilise les substitutions du catalogue pour proposer scaling RX, Scaled, et Foundations.`
   : `IMPORTANT: Use the catalog substitutions to propose RX, Scaled, and Foundations scaling.`}
+
+${userLanguage === 'fr' ? `
+# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+
+**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+
+## Analyse des Feedbacks
+
+Le contexte utilisateur contient \`userFeedbacks\` avec:
+- \`totalFeedbacks\`: Nombre total de feedbacks
+- \`averageSentiment\`: Score moyen (-1 = très négatif, +1 = très positif)
+- \`topThemes\`: Thèmes récurrents (ex: "trop intense", "excellent WOD", "manque récup")
+- \`recentFeedbacks\`: 5 derniers feedbacks avec texte, discipline, sentiment
+
+## Règles d'Adaptation
+
+### Si averageSentiment < -0.3 (négatifs):
+- **RÉDUIRE intensité**: passer de "extreme" à "high", ou "high" à "moderate"
+- **AUGMENTER time cap**: +20-30%
+- **SIMPLIFIER mouvements**: remplacer complexes par basiques (muscle-up → pull-up)
+- **SCALING plus accessible**: prioriser Scaled/Foundations
+
+### Si averageSentiment > 0.5 (très positifs):
+- **MAINTENIR style** qui fonctionne
+- **VARIER formats**: si AMRAP fonctionnait, essayer For Time ou EMOM
+- **PROGRESSER modérément**: mouvements légèrement plus complexes
+
+### Thèmes - Actions:
+
+**"trop dur" / "impossible" / "épuisant"**:
+- BAISSER reps (-30-40%)
+- ALLONGER rest entre rounds (+60s)
+- SIMPLIFIER technique (snatch → power clean)
+
+**"monotone" / "toujours pareil"**:
+- VARIER format WOD (chipper, couplet, triplet)
+- ALTERNER modalités (M+G une fois, pure cardio suivante)
+- NOUVEAUX mouvements du catalogue
+
+**"trop facile" / "pas assez challengeant"**:
+- AUGMENTER reps (+25%)
+- RÉDUIRE time cap (-15%)
+- MOUVEMENTS plus complexes (pull-up → C2B)
+
+**"excellent" / "parfait"**:
+- CONSERVER structure
+- Varier seulement exercices
+
+## Importance Hiérarchique
+
+1. **Feedbacks récents** (< 7j) → Poids maximal
+2. **Données récupération**
+3. **Performance historique**
+4. **Profil utilisateur**
+
+**CRITIQUE**: Si feedback dit "trop dur", même si "avancé", TU DOIS baisser l'intensité.
+` : `
+# USER FEEDBACK LEARNING (CRITICAL)
+
+**FUNDAMENTAL RULE**: Past user feedbacks are **THE ABSOLUTE PRIORITY** for adapting future prescriptions.
+
+## Feedback Analysis
+
+User context contains \`userFeedbacks\` with:
+- \`totalFeedbacks\`: Total feedbacks given
+- \`averageSentiment\`: Average score (-1 = very negative, +1 = very positive)
+- \`topThemes\`: Recurring themes (e.g., "too intense", "excellent WOD", "lack recovery")
+- \`recentFeedbacks\`: Last 5 feedbacks with text, discipline, sentiment
+
+## Adaptation Rules
+
+### If averageSentiment < -0.3 (negative):
+- **REDUCE intensity**: move from "extreme" to "high", or "high" to "moderate"
+- **INCREASE time cap**: +20-30%
+- **SIMPLIFY movements**: replace complex with basic (muscle-up → pull-up)
+- **MORE ACCESSIBLE scaling**: prioritize Scaled/Foundations
+
+### If averageSentiment > 0.5 (very positive):
+- **MAINTAIN style** that works
+- **VARY formats**: if AMRAP worked, try For Time or EMOM
+- **PROGRESS moderately**: slightly more complex movements
+
+### Themes - Actions:
+
+**"too hard" / "impossible" / "exhausting"**:
+- LOWER reps (-30-40%)
+- EXTEND rest between rounds (+60s)
+- SIMPLIFY technique (snatch → power clean)
+
+**"monotonous" / "always same"**:
+- VARY WOD format (chipper, couplet, triplet)
+- ALTERNATE modalities (M+G once, pure cardio next)
+- NEW movements from catalog
+
+**"too easy" / "not challenging enough"**:
+- INCREASE reps (+25%)
+- REDUCE time cap (-15%)
+- MORE COMPLEX movements (pull-up → C2B)
+
+**"excellent" / "perfect"**:
+- KEEP structure
+- Vary only exercises
+
+## Hierarchical Importance
+
+1. **Recent feedbacks** (< 7d) → Maximum weight
+2. **Recovery data**
+3. **Historical performance**
+4. **User profile**
+
+**CRITICAL**: If feedback says "too hard", even if "advanced", YOU MUST lower intensity.
+`}
 `;
     }
 
