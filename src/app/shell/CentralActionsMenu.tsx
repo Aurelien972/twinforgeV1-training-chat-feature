@@ -257,41 +257,57 @@ const CentralActionsMenu: React.FC<CentralActionsMenuProps> = ({ isOpen }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          className="central-actions-menu fixed"
-          style={{
-            zIndex: Z_INDEX.CENTRAL_MENU,
-            transformOrigin: 'top center',
-            overflow: 'visible',
-            // Dynamic positioning based on device - all open from top (header)
-            ...(isMobile ? {
-              top: '80px',
-              left: '8px',
-              right: '8px',
-              width: 'auto',
-              maxHeight: 'calc(100vh - 96px - var(--new-bottom-bar-height) - var(--new-bottom-bar-bottom-offset))'
-            } : isTablet ? {
-              top: '80px',
-              left: '16px',
-              right: '16px',
-              width: 'auto',
-              maxWidth: 'calc(100vw - 32px)',
-              maxHeight: 'calc(100vh - 120px - var(--new-bottom-bar-height) - var(--new-bottom-bar-bottom-offset))'
-            } : {
-              top: '80px',
-              right: '24px',
-              left: 'auto',
-              width: '400px',
-              maxHeight: 'calc(100vh - 120px)'
-            })
-          }}
-          initial={animationVariants.initial}
-          animate={animationVariants.animate}
-          exit={animationVariants.exit}
-          role="dialog"
-          aria-label="Actions rapides"
-          aria-modal="true"
-        >
+        <>
+          {/* Backdrop - same as MobileDrawer */}
+          <motion.div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.BACKDROP }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => {
+              logger.debug('CENTRAL_ACTIONS_MENU', 'Backdrop clicked - closing menu');
+              closeOverlay();
+            }}
+          />
+
+          {/* Menu Panel */}
+          <motion.div
+            className="central-actions-menu fixed"
+            style={{
+              zIndex: Z_INDEX.CENTRAL_MENU,
+              transformOrigin: 'top center',
+              overflow: 'visible',
+              // Dynamic positioning based on device - all open from top (header)
+              ...(isMobile ? {
+                top: '80px',
+                left: '8px',
+                right: '8px',
+                width: 'auto',
+                maxHeight: 'calc(100vh - 96px - var(--new-bottom-bar-height) - var(--new-bottom-bar-bottom-offset))'
+              } : isTablet ? {
+                top: '80px',
+                left: '16px',
+                right: '16px',
+                width: 'auto',
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: 'calc(100vh - 120px - var(--new-bottom-bar-height) - var(--new-bottom-bar-bottom-offset))'
+              } : {
+                top: '80px',
+                right: '24px',
+                left: 'auto',
+                width: '400px',
+                maxHeight: 'calc(100vh - 120px)'
+              })
+            }}
+            initial={animationVariants.initial}
+            animate={animationVariants.animate}
+            exit={animationVariants.exit}
+            role="dialog"
+            aria-label="Actions rapides"
+            aria-modal="true"
+          >
           {/* PANEL - Ultra-transparent Liquid Glass - UNIFIED APPEARANCE */}
           <div
             className="rounded-3xl overflow-hidden relative central-actions-panel liquid-glass-premium max-h-[inherit]"
@@ -484,7 +500,8 @@ const CentralActionsMenu: React.FC<CentralActionsMenuProps> = ({ isOpen }) => {
             )}
             </div>
           </div>
-        </motion.div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );
