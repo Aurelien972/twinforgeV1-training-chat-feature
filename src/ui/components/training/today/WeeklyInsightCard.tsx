@@ -50,11 +50,6 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
 }) => {
   const shouldAnimate = useConditionalAnimation();
 
-  // Don't render if no data and no CTA to show
-  if (!weeklyProgress && !priorityToday && !cyclePhase && !showCTA) {
-    return null;
-  }
-
   const hasInsightsData = weeklyProgress || priorityToday || cyclePhase;
 
   const getPhaseColor = (phase?: string) => {
@@ -148,41 +143,97 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
         </div>
       </div>
 
-      {/* Weekly Progress */}
-      {weeklyProgress && (
+      {/* Weekly Progress or Empty State */}
+      {!hasInsightsData ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-3"
+          className="space-y-4 text-center py-6"
         >
-          <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-            <div className="flex items-center gap-2">
-              <SpatialIcon Icon={ICONS.Calendar} size={18} style={{ color: '#3B82F6' }} />
-              <span className="text-white/80 text-sm">Séances cette semaine</span>
+          <div className="flex justify-center">
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center"
+              style={{
+                background: `
+                  radial-gradient(circle at 30% 30%, color-mix(in srgb, ${stepColor} 25%, transparent) 0%, transparent 60%),
+                  rgba(255, 255, 255, 0.08)
+                `,
+                border: `2px solid color-mix(in srgb, ${stepColor} 30%, transparent)`
+              }}
+            >
+              <SpatialIcon
+                Icon={ICONS.TrendingUp}
+                size={32}
+                variant="pure"
+                style={{
+                  color: stepColor,
+                  opacity: 0.6
+                }}
+              />
             </div>
-            <span className="text-xl font-bold text-white">{weeklyProgress.sessionsThisWeek}</span>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <h4 className="text-lg font-semibold text-white">Première séance de la semaine</h4>
+            <p className="text-white/60 text-sm leading-relaxed max-w-md mx-auto">
+              Vos insights hebdomadaires apparaîtront ici après votre première séance.
+              Prêt à commencer votre entraînement ?
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="text-white/60 text-xs mb-1">Volume</div>
-              <div className="text-lg font-semibold text-white">
-                {Math.round(weeklyProgress.currentWeekVolume)}
-              </div>
+              <SpatialIcon Icon={ICONS.Calendar} size={20} style={{ color: stepColor, opacity: 0.5, margin: '0 auto 8px' }} />
+              <div className="text-white/40 text-xs">Séances</div>
+              <div className="text-white/60 text-lg font-semibold">0</div>
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="text-white/60 text-xs mb-1">Intensité Moy.</div>
-              <div className="text-lg font-semibold text-white">
-                {weeklyProgress.intensityAverage.toFixed(1)}/10
-              </div>
+              <SpatialIcon Icon={ICONS.Activity} size={20} style={{ color: stepColor, opacity: 0.5, margin: '0 auto 8px' }} />
+              <div className="text-white/40 text-xs">Volume</div>
+              <div className="text-white/60 text-lg font-semibold">-</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <SpatialIcon Icon={ICONS.Zap} size={20} style={{ color: stepColor, opacity: 0.5, margin: '0 auto 8px' }} />
+              <div className="text-white/40 text-xs">Intensité</div>
+              <div className="text-white/60 text-lg font-semibold">-</div>
             </div>
           </div>
         </motion.div>
+      ) : (
+        weeklyProgress && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2">
+                <SpatialIcon Icon={ICONS.Calendar} size={18} style={{ color: '#3B82F6' }} />
+                <span className="text-white/80 text-sm">Séances cette semaine</span>
+              </div>
+              <span className="text-xl font-bold text-white">{weeklyProgress.sessionsThisWeek}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Volume</div>
+                <div className="text-lg font-semibold text-white">
+                  {Math.round(weeklyProgress.currentWeekVolume)}
+                </div>
+              </div>
+              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Intensité Moy.</div>
+                <div className="text-lg font-semibold text-white">
+                  {weeklyProgress.intensityAverage.toFixed(1)}/10
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )
       )}
 
       {/* Priority Today */}
-      {priorityToday && (
+      {hasInsightsData && priorityToday && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,7 +262,7 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
       )}
 
       {/* Cycle Phase */}
-      {cyclePhase && (
+      {hasInsightsData && cyclePhase && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

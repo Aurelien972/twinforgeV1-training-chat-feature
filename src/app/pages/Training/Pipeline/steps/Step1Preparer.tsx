@@ -402,19 +402,6 @@ const Step1Preparer: React.FC = () => {
       {/* Regular form - only show when profile is complete */}
       {!showEmptyState && (
         <>
-      {/* Weekly Insights Card with CTA - Position 0 (Top) */}
-      {!isLoadingInsights && (
-        <WeeklyInsightCard
-          weeklyProgress={weeklyInsights?.weeklyProgress}
-          priorityToday={weeklyInsights?.priorityToday}
-          cyclePhase={weeklyInsights?.cyclePhase}
-          stepColor={stepColor}
-          showCTA={true}
-          canGenerate={!!selectedLocation && !profileValidation.isValidating}
-          onGenerateClick={handleContinue}
-        />
-      )}
-
       {/* Time Available - Position 1 */}
       <GlassCard
         className="space-y-4"
@@ -737,6 +724,19 @@ const Step1Preparer: React.FC = () => {
           />
         )}
       </GlassCard>
+
+      {/* Weekly Insights Card with CTA - Bottom Position */}
+      {!isLoadingInsights && (
+        <WeeklyInsightCard
+          weeklyProgress={weeklyInsights?.weeklyProgress}
+          priorityToday={weeklyInsights?.priorityToday}
+          cyclePhase={weeklyInsights?.cyclePhase}
+          stepColor={stepColor}
+          showCTA={true}
+          canGenerate={!!selectedLocation && !profileValidation.isValidating}
+          onGenerateClick={handleContinue}
+        />
+      )}
 
       {/* Spacer for bottom padding */}
       <div className="mb-32" ref={continueButtonRef} />
