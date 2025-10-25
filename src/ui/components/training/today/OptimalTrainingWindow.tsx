@@ -16,7 +16,7 @@ import type { OptimalWindow } from '../../../../system/services/trainingTodayDyn
 const TRAINING_COLOR = '#18E3FF';
 
 interface OptimalTrainingWindowProps {
-  window: OptimalWindow;
+  window?: OptimalWindow;
   hoursUntil?: number;
 }
 
@@ -24,6 +24,11 @@ const OptimalTrainingWindow: React.FC<OptimalTrainingWindowProps> = ({
   window,
   hoursUntil,
 }) => {
+  // Defensive check: ensure window object has required properties
+  // If no window data is provided, don't render the component
+  if (!window || !window.start || !window.end) {
+    return null;
+  }
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
       case 'high':
@@ -68,7 +73,9 @@ const OptimalTrainingWindow: React.FC<OptimalTrainingWindowProps> = ({
     }
   };
 
-  const confidenceColor = getConfidenceColor(window.confidence);
+  // Safe access to confidence with fallback
+  const confidence = window.confidence || 'medium';
+  const confidenceColor = getConfidenceColor(confidence);
   const isActive = isWindowActive();
 
   return (
@@ -99,7 +106,7 @@ const OptimalTrainingWindow: React.FC<OptimalTrainingWindowProps> = ({
             <div>
               <h3 className="text-lg font-bold text-white">Fenêtre Optimale</h3>
               <p className="text-white/60 text-sm">
-                {getConfidenceLabel(window.confidence)}
+                {getConfidenceLabel(confidence)}
               </p>
             </div>
           </div>
@@ -185,7 +192,7 @@ const OptimalTrainingWindow: React.FC<OptimalTrainingWindowProps> = ({
             style={{ color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}
           />
           <p className="text-white/70 text-xs">
-            {window.reasoning}
+            {window.reasoning || 'Fen\u00eatre calcul\u00e9e en fonction de vos donn\u00e9es'}
           </p>
         </div>
       </GlassCard>
