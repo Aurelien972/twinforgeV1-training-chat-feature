@@ -115,33 +115,14 @@ Ordre peut être adapté selon principe force → fatigue:
 ❌ HYROX: Run → Rameur → Run → SkiErg (ordre altéré INTERDIT)
 ❌ DEKA FIT: Burpees → Tank → Ski (ordre altéré INTERDIT)
 
-# GROUPES MUSCULAIRES CIBLÉS (OBLIGATOIRE pour stations force)
+# Groupes Musculaires (OBLIGATOIRE stations force)
+muscleGroups (array 1-3 FR pour strength/hybrid): "Quadriceps","Ischio-jambiers","Fessiers","Dorsaux","Pectoraux","Deltoïdes","Abdominaux","Mollets","Trapèzes"
+Ex: Wall Balls→["Quadriceps","Deltoïdes"] | Fentes→["Quadriceps","Fessiers"] | Rameur→["Dorsaux","Quadriceps"]
 
-**muscleGroups** (OBLIGATOIRE pour stations strength/hybrid): Array de 1-3 groupes en français
-- Exemples: "Quadriceps", "Ischio-jambiers", "Fessiers", "Dorsaux", "Pectoraux", "Deltoïdes", "Abdominaux", "Mollets", "Trapèzes"
-- Ex: Wall Balls → ["Quadriceps", "Deltoïdes"] | Fentes → ["Quadriceps", "Fessiers"] | Rameur → ["Dorsaux", "Quadriceps"]
+# JSON Structure
+{sessionId,sessionName,type:"Compétition Fitness",category:"fitness-competitions",competitionFormat:"hyrox|deka-fit|deka-mile|deka-strong|hybrid",durationTarget,focus,sessionSummary,warmup:{duration,isOptional:false,exercises:[{id,name,duration,instructions,targetAreas}],notes},stations:[{id,stationNumber,stationType:"cardio|strength|hybrid",name,equipment,muscleGroups,prescription,targetTime,targetPace,intensity,rpeTarget,transitionTime,executionCues,pacingStrategy,coachNotes,substitutions}],cooldown:{duration,exercises,notes},pacingPlan:{overall,runPacing,stationApproach,transitionGoal},overallNotes,expectedRpe,expectedIntensity,coachRationale}
 
-# Format JSON
-{
-  "sessionId": "uuid",
-  "sessionName": "string",
-  "type": "Compétition Fitness",
-  "category": "fitness-competitions",
-  "competitionFormat": "hyrox|deka-fit|deka-mile|deka-strong|hybrid",
-  "durationTarget": number,
-  "focus": ["string"],
-  "sessionSummary": "string",
-  "warmup": {"duration": number, "isOptional": false, "exercises": [{"id": "string", "name": "string", "duration": number, "instructions": "string", "targetAreas": ["string"]}], "notes": "string"},
-  "stations": [{"id": "string", "stationNumber": number, "stationType": "cardio|strength|hybrid", "name": "string", "equipment": ["string"], "muscleGroups": ["string"], "prescription": "string", "targetTime": number, "targetPace": "string", "intensity": "string", "rpeTarget": number, "transitionTime": number, "executionCues": ["string"], "pacingStrategy": "string", "coachNotes": "string", "substitutions": ["string"]}],
-  "cooldown": {"duration": number, "exercises": ["string"], "notes": "string"},
-  "pacingPlan": {"overall": "string", "runPacing": "string", "stationApproach": "string", "transitionGoal": "string"},
-  "overallNotes": "string",
-  "expectedRpe": number,
-  "expectedIntensity": "string",
-  "coachRationale": "string"
-}
-
-RÈGLES: Utiliser le tableau "stations". CHAQUE station strength/hybrid DOIT avoir muscleGroups (array 1-3 groupes en français). Inclure stationNumber, stationType, targetTime, transitionTime pour chaque station. Ajouter des substitutions si équipement manquant. TOUT EN FRANÇAIS.
+CRITIQUE: Tableau "stations" | CHAQUE station strength/hybrid DOIT muscleGroups (array 1-3 FR) | Inclure stationNumber,stationType,targetTime,transitionTime | Substitutions si équipement manquant | TOUT FR
 `;
 
 function buildUserPrompt(userContext: any, preparerContext: any, exerciseCatalogSection: string): string {
@@ -226,75 +207,32 @@ async function generatePrescription(
 
       exerciseCatalogSection = `
 
-# ${userLanguage === 'fr' ? 'CATALOGUE D\'EXERCICES COMPETITIONS DISPONIBLES' : 'AVAILABLE COMPETITIONS EXERCISE CATALOG'}
-
-${userLanguage === 'fr'
-  ? `TU DOIS UTILISER UNIQUEMENT LES EXERCICES DE CE CATALOGUE.
-Ne génère PAS de nouveaux exercices. Catalogue filtré: ${filteredExercises.length} exercices optimisés.`
-  : `YOU MUST USE ONLY EXERCISES FROM THIS CATALOG.
-Do NOT generate new exercises. Filtered catalog: ${filteredExercises.length} optimized exercises.`}
+# ${userLanguage === 'fr' ? 'CATALOGUE COMPETITIONS' : 'COMPETITIONS CATALOG'}
+${userLanguage === 'fr' ? `UTILISE UNIQUEMENT exercices catalogue. Filtré: ${filteredExercises.length} exercices. NE génère PAS nouveaux.` : `USE ONLY catalog exercises. Filtered: ${filteredExercises.length} exercises. DO NOT generate new.`}
 
 ${formatExercisesForAI(filteredExercises, userLanguage as 'fr' | 'en')}
 
-${userLanguage === 'fr'
-  ? `IMPORTANT: Utilise les substitutions du catalogue si équipement manquant (ex: SkiErg → Rameur, Sled → Burpees).`
-  : `IMPORTANT: Use catalog substitutions if equipment missing (e.g., SkiErg → Rower, Sled → Burpees).`}
+${userLanguage === 'fr' ? 'IMPORTANT: Substitutions catalogue si équipement manquant (SkiErg→Rameur, Sled→Burpees).' : 'IMPORTANT: Catalog substitutions if equipment missing (SkiErg→Rower, Sled→Burpees).'}
 
 ${userLanguage === 'fr' ? `
-# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+# FEEDBACKS (CRITIQUE)
+RÈGLE: Feedbacks passés = PRIORITÉ ABSOLUE.
 
-**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+Contexte contient userFeedbacks: totalFeedbacks, averageSentiment (-1 négatif/+1 positif), topThemes, recentFeedbacks
 
-## Analyse des Feedbacks
+Adaptations:
+- averageSentiment<-0.3: RÉDUIRE intensité stations -20% reps/-15% distance | AUGMENTER récup +30-60s | SIMPLIFIER mouvements (Wall Balls 9kg→6kg, Lunges→Step-ups) | BAISSER target temps +15-20%
+- averageSentiment>0.5: MAINTENIR structure circuit | VARIER ordre (alterner force-cardio) | PROGRESSER +5-10% volume/-5% récup
 
-Le contexte utilisateur contient \`userFeedbacks\` avec:
-- \`totalFeedbacks\`: Nombre total de feedbacks
-- \`averageSentiment\`: Score moyen (-1 = très négatif, +1 = très positif)
-- \`topThemes\`: Thèmes récurrents (ex: "rythme insoutenable", "stations trop dures", "excellent circuit")
-- \`recentFeedbacks\`: 5 derniers feedbacks avec texte, discipline, sentiment
+Thèmes→Actions:
+"trop intense/impossible": RÉDUIRE reps -25-30% | ALLONGER transitions +45s | POIDS légers (Wall Balls 9kg→6kg)
+"monotone": VARIER ordre stations | ALTERNER AMRAP/For Time | INTRODUIRE nouvelles stations
+"trop facile": AUGMENTER reps +20% | RÉDUIRE transitions -30% | POIDS lourds
+"parfait": CONSERVER structure | Varier ordre léger
 
-## Règles d'Adaptation
+Hiérarchie: 1)Feedbacks récents <7j 2)Récup physiologique 3)Performance historique 4)Profil
 
-### Si averageSentiment < -0.3 (négatifs):
-- **RÉDUIRE intensité stations**: -20% reps ou -15% distance
-- **AUGMENTER récupération**: +30-60s entre stations
-- **SIMPLIFIER mouvements**: Wall Balls 9kg → 6kg, Lunges → Step-ups
-- **BAISSER target temps**: +15-20% time cap
-
-### Si averageSentiment > 0.5 (très positifs):
-- **MAINTENIR structure** de circuit
-- **VARIER ordre**: alterner force-cardio différemment
-- **PROGRESSER modérément**: +5-10% volume ou -5% temps récup
-
-### Thèmes - Actions:
-
-**"trop intense" / "impossible à tenir" / "épuisant"**:
-- RÉDUIRE reps stations (-25-30%)
-- ALLONGER transitions (+45s)
-- POIDS plus légers (Wall Balls 9kg → 6kg)
-
-**"monotone" / "toujours même format"**:
-- VARIER ordre stations
-- ALTERNER AMRAP avec For Time
-- INTRODUIRE nouvelles stations du catalogue
-
-**"trop facile" / "pas assez dur"**:
-- AUGMENTER reps (+20%)
-- RÉDUIRE transitions (-30%)
-- POIDS plus lourds
-
-**"parfait" / "idéal pour compet"**:
-- CONSERVER structure exacte
-- Varier seulement ordre léger
-
-## Importance Hiérarchique
-
-1. **Feedbacks récents** (< 7j) → Poids maximal
-2. **Récupération physiologique**
-3. **Performance stations historique**
-4. **Profil utilisateur**
-
-**CRITIQUE**: Si feedback dit "trop dur", même si "élite", TU DOIS baisser l'intensité.
+CRITIQUE: Si feedback "trop dur", même si élite, TU DOIS baisser intensité.
 ` : `
 # USER FEEDBACK LEARNING (CRITICAL)
 
