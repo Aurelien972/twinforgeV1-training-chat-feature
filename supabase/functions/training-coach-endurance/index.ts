@@ -860,123 +860,31 @@ function determineDiscipline(userContext: any, preparerContext: any): string {
 }
 
 function buildEnduranceSystemPrompt(): string {
-  return `Tu es un coach IA expert en Sports d'Endurance.
+  return `Coach IA Endurance. Format JSON obligatoire.
 
-# RÈGLE FONDAMENTALE - CATALOGUE D'EXERCICES
+# Catalogue Exercices
+SI catalogue fourni: UTILISE UNIQUEMENT exercices drills/techniques du catalogue | Sélectionne selon discipline, niveau, zones | NE GÉNÈRE PAS nouveaux noms
+SI aucun catalogue: génère selon connaissances standards
 
-**SI un catalogue d'exercices est fourni dans le contexte utilisateur**:
-- TU DOIS UTILISER UNIQUEMENT les exercices du catalogue pour les drills/techniques
-- NE GÉNÈRE PAS de nouveaux noms d'exercices techniques
-- SÉLECTIONNE les exercices selon: discipline (running, cycling, swimming), niveau, objectifs zones
-- UTILISE les exercices de technique, drills, renforcement spécifique du catalogue
-- RESPECTE les métadonnées: difficulté, zones cardiaques typiques, durée
+# Zones (% FCMax)
+Z1: 50-60% (Récup) | Z2: 60-70% (Base) | Z3: 70-80% (Tempo) | Z4: 80-90% (Seuil) | Z5: 90-100% (VO2Max)
+Principe 80/20: 80% Z1-Z2, 20% Z3-Z5
 
-**SI aucun catalogue n'est fourni**:
-- Génère des exercices selon tes connaissances standards
-
-# Zones d'Entraînement (% FCMax)
-Z1: 50-60% (Récupération)
-Z2: 60-70% (Endurance Fondamentale)
-Z3: 70-80% (Tempo)
-Z4: 80-90% (Seuil Lactique)
-Z5: 90-100% (VO2Max)
-
-# Principe 80/20
-80% du volume en Z1-Z2 (facile), 20% en Z3-Z5 (difficile)
-
-# Types de Séances
-
-**Running**:
-- Easy Run: Z1-Z2, conversation fluide
-- Long Run: Z2, 60-180min, base aérobie
-- Tempo: Z3-Z4, "comfortably hard", 20-40min
-- Intervals: Z4-Z5, 3-8min work / 2-3min rest
-- Fartlek: Variations allures
-
-**Cycling**:
-- Recovery: Z1, 30-60min
-- Endurance: Z2, 60-240min, base
-- Sweet Spot: 88-94% FTP, intervalles 10-30min
-- Threshold: Z4, 5-20min intervalles
-- VO2Max: Z5, 2-5min intervalles
-
-**Swimming**:
-- Technique Drills: Éducatifs
-- Endurance: Z2, 1000-3000m
-- CSS: Critical Swim Speed, Z3-Z4
-- Intervals: 50-200m répétés
-- Sprint: 25-50m maximal
-
-**Triathlon**:
-- Brick: Vélo + Course enchaînés
-- Transitions: T1/T2 practice
-- Multi-sport: 2-3 disciplines
+# Types Séances
+Running: Easy/Long (Z2, 60-180min) | Tempo (Z3-Z4, 20-40min) | Intervals (Z4-Z5, 3-8min work/2-3min rest) | Fartlek
+Cycling: Recovery (Z1) | Endurance (Z2) | Sweet Spot (88-94% FTP) | Threshold (Z4) | VO2Max (Z5, 2-5min)
+Swimming: Drills | Endurance (Z2, 1000-3000m) | CSS (Z3-Z4) | Intervals (50-200m) | Sprint (25-50m max)
+Triathlon: Brick (vélo+course) | Transitions (T1/T2) | Multi-sport
 
 # Progression
-Débutant: +10% volume max/semaine, 90% Z1-Z2
-Intermédiaire: Structure 80/20, 1-2 séances qualité
-Avancé: Périodisation complexe, 75/25
+Déb: +10% vol/sem max, 90% Z1-Z2 | Int: 80/20, 1-2 séances qualité | Av: 75/25, périodisation
 
-# Format JSON Obligatoire
+# JSON Structure
+{sessionId,sessionName,type:"endurance",category:"endurance",discipline,durationTarget,distanceTarget,focusZones,warmup:{duration,description,targetZone,dynamicDrills},mainWorkout:[{id,type,name,duration,targetZone,targetPace,targetHR,intervals:{work:{duration,intensity},rest:{duration,intensity,type},repeats},cues,rpeTarget}],cooldown:{duration,targetZone,stretching},metrics:{estimatedTSS,estimatedCalories,estimatedAvgHR},overallNotes,expectedRpe,coachRationale,nutritionAdvice,recoveryAdvice}
 
-Retourne:
-{
-  "sessionId": "uuid",
-  "sessionName": "Nom motivant",
-  "type": "endurance",
-  "category": "endurance",
-  "discipline": "running" | "cycling" | "swimming" | "triathlon",
-  "durationTarget": 60,
-  "distanceTarget": 10,
-  "focusZones": ["Z2", "Z4"],
-  "warmup": {
-    "duration": 10,
-    "description": "Échauffement progressif",
-    "instructions": "Démarrer très facile, augmenter progressivement",
-    "targetZone": "Z1-Z2",
-    "dynamicDrills": ["Leg swings", "Arm circles"]
-  },
-  "mainWorkout": [{
-    "id": "main-1",
-    "type": "continuous" | "intervals" | "tempo",
-    "name": "Long Run",
-    "description": "Description",
-    "duration": 40,
-    "distance": 8,
-    "targetZone": "Z2",
-    "targetPace": "5:30 min/km",
-    "targetHR": "135-150 bpm",
-    "targetPower": "200-220W",
-    "targetCadence": "85-95 RPM",
-    "intervals": {
-      "work": {"duration": 5, "intensity": "Z4", "pace": "4:30 min/km"},
-      "rest": {"duration": 2, "intensity": "Z1-Z2", "type": "active"},
-      "repeats": 6
-    },
-    "cues": ["Allure régulière", "Respiration contrôlée"],
-    "coachNotes": "Focus régularité",
-    "rpeTarget": 7
-  }],
-  "cooldown": {
-    "duration": 10,
-    "description": "Retour calme",
-    "targetZone": "Z1",
-    "stretching": ["Quadriceps", "Ischio-jambiers"]
-  },
-  "metrics": {
-    "estimatedTSS": 75,
-    "estimatedCalories": 800,
-    "estimatedAvgHR": 145,
-    "estimatedAvgPace": "5:15 min/km"
-  },
-  "overallNotes": "Séance clé développement aérobie",
-  "expectedRpe": 7,
-  "coachRationale": "Pourquoi cette séance",
-  "nutritionAdvice": "Hydratation régulière",
-  "recoveryAdvice": "48h avant prochaine séance intense"
-}
-
-Adapte selon niveau énergie, équipement, temps disponible.`;
+Adapte: énergie<4→Z1 | 4-6→Z2 base | 7-10→tempo/intervals | <30min→recovery/HIIT | 30-60min→tempo | >60min→long
+TSS: Recovery 20-40 | Base 40-70 | Tempo 60-90 | Intervals 70-110
+Métriques: Running→pace(min/km),HR,cadence | Cycling→power(W),HR,cadence(RPM) | Swimming→pace(temps/100m)`;}
 }
 
 function buildUserPrompt(
@@ -990,137 +898,44 @@ function buildUserPrompt(
   const profile = userContext?.profile || {};
   const recentSessions = userContext?.sessions?.slice(0, 3) || [];
   const fitnessLevel = profile.fitnessLevel || 'beginner';
+  const equipmentList = preparerContext.availableEquipment?.join(", ") || "Aucun";
 
-  const equipmentList = preparerContext.availableEquipment?.join(", ") || "Aucun équipement spécifique";
+  const Z1 = `${Math.round(fcMax * 0.5)}-${Math.round(fcMax * 0.6)}`;
+  const Z2 = `${Math.round(fcMax * 0.6)}-${Math.round(fcMax * 0.7)}`;
+  const Z3 = `${Math.round(fcMax * 0.7)}-${Math.round(fcMax * 0.8)}`;
+  const Z4 = `${Math.round(fcMax * 0.8)}-${Math.round(fcMax * 0.9)}`;
+  const Z5 = `${Math.round(fcMax * 0.9)}-${Math.round(fcMax * 1.0)}`;
 
-  const zones = {
-    Z1: `${Math.round(fcMax * 0.5)}-${Math.round(fcMax * 0.6)} bpm`,
-    Z2: `${Math.round(fcMax * 0.6)}-${Math.round(fcMax * 0.7)} bpm`,
-    Z3: `${Math.round(fcMax * 0.7)}-${Math.round(fcMax * 0.8)} bpm`,
-    Z4: `${Math.round(fcMax * 0.8)}-${Math.round(fcMax * 0.9)} bpm`,
-    Z5: `${Math.round(fcMax * 0.9)}-${Math.round(fcMax * 1.0)} bpm`,
-  };
+  const sessions = recentSessions.length > 0
+    ? recentSessions.map((s: any, i: number) => `${i + 1}:${s.type || 'end'}-${s.duration || 45}min`).join(' | ')
+    : 'Aucun historique';
 
-  return `# Profil Utilisateur
-Âge: ${userAge} ans
-FCMax théorique: ${fcMax} bpm
-Niveau: ${fitnessLevel}
-Discipline: ${discipline}
+  return `# Profil
+Âge: ${userAge} | FCMax: ${fcMax} | Niveau: ${fitnessLevel} | Discipline: ${discipline}
+Zones FC: Z1 ${Z1} | Z2 ${Z2} | Z3 ${Z3} | Z4 ${Z4} | Z5 ${Z5} bpm
 
-# Zones FC Personnalisées
-Z1 (Récupération): ${zones.Z1}
-Z2 (Endurance): ${zones.Z2}
-Z3 (Tempo): ${zones.Z3}
-Z4 (Seuil): ${zones.Z4}
-Z5 (VO2Max): ${zones.Z5}
-
-# Contexte de la Séance
-Temps disponible: ${preparerContext.availableTime} minutes
-Version courte demandée: ${preparerContext.wantsShortVersion ? 'Oui' : 'Non'}
-Niveau d'énergie: ${preparerContext.energyLevel}/10
-Équipement disponible: ${equipmentList}
-Type de lieu: ${preparerContext.locationType || 'outdoor'}
-
-# Historique Récent
-${recentSessions.length > 0
-  ? recentSessions.map((s: any, i: number) =>
-      `Séance ${i + 1}: ${s.type || 'endurance'} - ${s.duration || 45}min`
-    ).join('\n')
-  : 'Première séance ou pas d\'historique récent'
-}
-
-# Instructions Génération
-
-1. **Adapter selon énergie**:
-   - Énergie < 4: Recovery Z1 uniquement
-   - Énergie 4-6: Base Z2, technique
-   - Énergie 7-10: Séance qualité (tempo, intervals) possible
-
-2. **Respecter temps disponible**:
-   - < 30min: Recovery ou HIIT court
-   - 30-60min: Tempo ou base
-   - > 60min: Long run/ride ou endurance
-
-3. **Appliquer 80/20**:
-   - Débutant: 90% Z1-Z2, 10% Z3+
-   - Intermédiaire: 80% Z1-Z2, 20% Z3+
-   - Avancé: 75% Z1-Z2, 25% Z3+
-
-4. **Type séance selon discipline**:
-   - Running: Easy/Long/Tempo/Intervals/Fartlek
-   - Cycling: Recovery/Endurance/Sweet Spot/Threshold/VO2Max
-   - Swimming: Drills/Endurance/CSS/Intervals
-   - Triathlon: Brick/Multi-sport/Transitions
-
-5. **Calculer TSS estimé**:
-   - Recovery: 20-40 TSS
-   - Base Z2: 40-70 TSS
-   - Tempo: 60-90 TSS
-   - Intervals: 70-110 TSS
-
-6. **Métriques selon discipline**:
-   - Running: pace (min/km), HR, cadence (spm)
+# Séance
+Temps: ${preparerContext.availableTime}min | Court: ${preparerContext.wantsShortVersion ? 'Oui' : 'Non'} | Énergie: ${preparerContext.energyLevel}/10
+Équipement: ${equipmentList} | Lieu: ${preparerContext.locationType || 'outdoor'}
+Historique: ${sessions}
 
 ${exerciseCatalogSection}
-   - Cycling: power (W), HR, cadence (RPM)
-   - Swimming: pace (temps/100m), stroke count
 
-# APPRENTISSAGE PAR FEEDBACKS UTILISATEUR (CRITIQUE)
+# Feedbacks Utilisateur (PRIORITÉ ABSOLUE)
+${userContext?.userFeedbacks ? `
+Total: ${userContext.userFeedbacks.totalFeedbacks || 0} | Sentiment: ${(userContext.userFeedbacks.averageSentiment || 0).toFixed(2)}
+Thèmes: ${userContext.userFeedbacks.topThemes?.join(', ') || 'Aucun'}
+Récents: ${userContext.userFeedbacks.recentFeedbacks?.slice(0, 3).map((f: any) => `"${f.text?.substring(0, 50)}" (${f.sentiment})`).join(' | ') || 'Aucun'}
 
-**RÈGLE FONDAMENTALE**: Les feedbacks utilisateur passés sont **LA PRIORITÉ ABSOLUE** pour adapter les prescriptions futures.
+ADAPTATIONS:
+Si sentiment < -0.3: -10-15% intensité, -10-20% durée, +30-60s récup, ratio 85/15
+Si "trop rapide/épuisant": -5-10% allure/-1 zone, +50% récup, -25% intervalles
+Si "monotone": varier formats (fartlek/continuous), alterner disciplines
+Si "trop facile": +5-10% intensité, -30% récup, +1 zone
+Si sentiment > 0.5: maintenir structure, progresser modérément +5%
+Hiérarchie: Feedbacks (<7j) > Wearable > Historique > Profil` : ''}
 
-## Analyse des Feedbacks
-
-Le contexte utilisateur contient \`userFeedbacks\` avec:
-- \`totalFeedbacks\`: Nombre total de feedbacks donnés
-- \`averageSentiment\`: Score moyen (-1 = très négatif, 0 = neutre, +1 = très positif)
-- \`topThemes\`: Thèmes récurrents (ex: "rythme trop rapide", "distance trop longue", "excellent protocole")
-- \`recentFeedbacks\`: Les 5 derniers feedbacks avec texte, discipline, sentiment
-
-## Règles d'Adaptation
-
-### Si averageSentiment < -0.3 (négatifs):
-- **RÉDUIRE intensité**: -10-15% allure/puissance, descendre d'une zone (Z4→Z3)
-- **RACCOURCIR durée**: -10-20% temps total
-- **SIMPLIFIER structure**: moins d'intervalles, récup plus longues (+30-60s)
-- **PRIORISER Z1-Z2**: ratio 85/15 au lieu de 80/20
-
-### Si averageSentiment > 0.5 (très positifs):
-- **MAINTENIR structure** qui fonctionne
-- **VARIER légèrement**: changer type d'intervalle (court→moyen)
-- **PROGRESSER modérément**: +5% volume ou +2-3% intensité
-
-### Thèmes - Actions:
-
-**"trop rapide" / "épuisant" / "impossible à tenir"**:
-- BAISSER zones cibles (-5-10% allure ou -1 zone)
-- AUGMENTER récupérations (+50% temps)
-- RÉDUIRE nombre d'intervalles (-25%)
-
-**"monotone" / "ennuyeux" / "répétitif"**:
-- VARIER formats: fartlek si seulement intervals, continuous si que intervals
-- ALTERNER disciplines (running→cycling→swimming)
-- INTRODUIRE nouveaux drills/techniques
-
-**"trop facile" / "pas assez dur"**:
-- AUGMENTER intensité (+5-10% allure/puissance)
-- RÉDUIRE récupérations (-30%)
-- MONTER d'une zone (Z3→Z4)
-
-**"parfait" / "excellent rythme"**:
-- CONSERVER allures/zones identiques
-- Varier seulement la structure (intervals→tempo)
-
-## Importance Hiérarchique
-
-1. **Feedbacks récents** (< 7j) → Poids maximal
-2. **Données wearable** (HRV, recovery)
-3. **Historique performance**
-4. **Profil utilisateur**
-
-**CRITIQUE**: Si feedback dit "trop rapide", même si profil "avancé", TU DOIS ralentir.
-
-Génère une prescription complète en JSON avec TOUS les champs obligatoires.`;
+Génère JSON complet obligatoire.`;
 }
 
 function validateAndEnrichPrescription(
