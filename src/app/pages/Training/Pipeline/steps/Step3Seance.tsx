@@ -38,6 +38,7 @@ import { getWorkoutItems, getWorkoutItemsCount } from '../../../../../utils/pres
 import { useExerciseIllustrations } from '../../../../../hooks/useExerciseIllustrations';
 import { ExerciseIllustration } from '../../../../../ui/components/training/illustrations';
 import { ForceProgressionGuide } from '../../../../../ui/components/training/force/widgets';
+import { userFeedbackService } from '../../../../../system/services/userFeedbackService';
 
 const Step3SeanceContent: React.FC = () => {
   const navigate = useNavigate();
@@ -88,6 +89,8 @@ const Step3SeanceContent: React.FC = () => {
   const [showTransitionCountdown, setShowTransitionCountdown] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [userFeedbackText, setUserFeedbackText] = useState('');
+  const [feedbackSaveStatus, setFeedbackSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [feedbackSaveError, setFeedbackSaveError] = useState<string | null>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [showExerciseSkeleton, setShowExerciseSkeleton] = useState(false);
   const [showProgressionGuide, setShowProgressionGuide] = useState(() => {
@@ -1032,23 +1035,75 @@ const Step3SeanceContent: React.FC = () => {
     setShowFeedbackModal(true);
   };
 
-  const handleFeedbackSubmit = (feedbackText: string) => {
+  const handleFeedbackSubmit = async (feedbackText: string) => {
+    if (!user?.id || !currentSessionId) {
+      logger.error('STEP_3_SEANCE', 'Cannot save feedback: missing user or session ID');
+      setFeedbackSaveError('Impossible de sauvegarder le feedback');
+      setFeedbackSaveStatus('error');
+      return;
+    }
+
     setUserFeedbackText(feedbackText);
-    setShowFeedbackModal(false);
+    setFeedbackSaveStatus('saving');
+    setFeedbackSaveError(null);
 
-    // Update session feedback with user feedback text
-    setSessionFeedback((prev) => ({
-      ...prev!,
-      userFeedbackText: feedbackText,
-    }));
-
-    logger.info('STEP_3_SEANCE', 'User feedback submitted', {
+    logger.info('STEP_3_SEANCE', 'Saving user feedback to database', {
       sessionId: currentSessionId,
+      userId: user.id,
       feedbackLength: feedbackText.length,
     });
 
-    // Continue to step 4
-    goToNextStep();
+    try {
+      // Save feedback to database
+      const result = await userFeedbackService.saveFeedback({
+        sessionId: currentSessionId,
+        userId: user.id,
+        feedbackText,
+        source: 'text', // Could be 'voice' if transcribed
+      });
+
+      if (result.success) {
+        logger.info('STEP_3_SEANCE', 'Feedback saved successfully', {
+          feedbackId: result.feedbackId,
+          sessionId: currentSessionId,
+        });
+
+        setFeedbackSaveStatus('success');
+        Haptics.success();
+
+        // Update session feedback with user feedback text (for UI display)
+        setSessionFeedback((prev) => ({
+          ...prev!,
+          userFeedbackText: feedbackText,
+        }));
+
+        // Close modal after short delay to show success state
+        setTimeout(() => {
+          setShowFeedbackModal(false);
+          goToNextStep();
+        }, 800);
+
+      } else {
+        logger.error('STEP_3_SEANCE', 'Failed to save feedback', {
+          error: result.error,
+          sessionId: currentSessionId,
+        });
+
+        setFeedbackSaveError(result.error || 'Erreur de sauvegarde');
+        setFeedbackSaveStatus('error');
+        Haptics.error();
+      }
+
+    } catch (error) {
+      logger.error('STEP_3_SEANCE', 'Exception while saving feedback', {
+        error: error instanceof Error ? error.message : String(error),
+        sessionId: currentSessionId,
+      });
+
+      setFeedbackSaveError('Erreur inattendue');
+      setFeedbackSaveStatus('error');
+      Haptics.error();
+    }
   };
 
   const handleFeedbackSkip = () => {
@@ -1375,6 +1430,8 @@ const Step3SeanceContent: React.FC = () => {
           onClose={handleFeedbackSkip}
           onSubmit={handleFeedbackSubmit}
           stepColor={stepColor}
+          saveStatus={feedbackSaveStatus}
+          saveError={feedbackSaveError}
         />
       )}
 

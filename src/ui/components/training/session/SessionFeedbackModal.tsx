@@ -21,6 +21,8 @@ interface SessionFeedbackModalProps {
   onClose: () => void;
   onSubmit: (feedbackText: string) => void;
   stepColor: string;
+  saveStatus?: 'idle' | 'saving' | 'success' | 'error';
+  saveError?: string | null;
 }
 
 type InputMode = 'text' | 'voice';
@@ -33,6 +35,8 @@ const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
   onClose,
   onSubmit,
   stepColor,
+  saveStatus = 'idle',
+  saveError = null,
 }) => {
   const [inputMode, setInputMode] = useState<InputMode>('text');
   const [feedbackText, setFeedbackText] = useState('');
@@ -286,7 +290,7 @@ const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
             </button>
           </div>
 
-          {/* Error Display */}
+          {/* Recording Error Display */}
           <AnimatePresence>
             {recordingError && (
               <motion.div
@@ -301,6 +305,59 @@ const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
                     Nouvelle tentative automatique... ({retryCount + 1}/{maxRetries})
                   </p>
                 )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Save Status Display */}
+          <AnimatePresence>
+            {saveStatus === 'saving' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30"
+              >
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <SpatialIcon Icon={ICONS.Loader} size={20} style={{ color: '#3B82F6' }} />
+                  </motion.div>
+                  <p className="text-blue-400 text-sm font-medium">Enregistrement du feedback...</p>
+                </div>
+              </motion.div>
+            )}
+
+            {saveStatus === 'success' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="p-4 rounded-xl bg-green-500/10 border border-green-500/30"
+              >
+                <div className="flex items-center gap-3">
+                  <SpatialIcon Icon={ICONS.Check} size={20} style={{ color: '#10B981' }} />
+                  <p className="text-green-400 text-sm font-medium">Feedback enregistré avec succès!</p>
+                </div>
+              </motion.div>
+            )}
+
+            {saveStatus === 'error' && saveError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-4 rounded-xl bg-red-500/10 border border-red-500/30"
+              >
+                <div className="flex items-start gap-3">
+                  <SpatialIcon Icon={ICONS.AlertCircle} size={20} style={{ color: '#EF4444' }} />
+                  <div>
+                    <p className="text-red-400 text-sm font-medium">Erreur de sauvegarde</p>
+                    <p className="text-red-300/60 text-xs mt-1">{saveError}</p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -465,21 +522,21 @@ const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
               variant="secondary"
               size="lg"
               onClick={handleSkip}
-              disabled={recordingState !== 'idle'}
+              disabled={recordingState !== 'idle' || saveStatus === 'saving'}
             >
               Passer
             </TrainingButton>
             <TrainingButton
               variant="primary"
               size="lg"
-              icon="Check"
+              icon={saveStatus === 'saving' ? 'Loader' : 'Check'}
               iconPosition="right"
               onClick={handleSubmit}
               fullWidth
-              disabled={feedbackText.trim().length === 0 || recordingState !== 'idle'}
+              disabled={feedbackText.trim().length === 0 || recordingState !== 'idle' || saveStatus === 'saving'}
               stepColor={stepColor}
             >
-              Valider
+              {saveStatus === 'saving' ? 'Enregistrement...' : 'Valider'}
             </TrainingButton>
           </div>
         </GlassCard>
