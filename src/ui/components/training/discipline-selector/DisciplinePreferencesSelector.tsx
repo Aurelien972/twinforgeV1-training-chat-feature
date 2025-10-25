@@ -134,12 +134,12 @@ export const DisciplinePreferencesSelector: React.FC<DisciplinePreferencesSelect
           </div>
           <div className="flex-1">
             <h4 className="text-sm font-semibold text-white mb-1">
-              Sélection Multiple avec Défaut
+              Disciplines Pratiquées
             </h4>
             <p className="text-xs text-white/60 leading-relaxed">
-              Sélectionnez toutes vos disciplines pratiquées. L'étoile ⭐ indique votre discipline par défaut
-              utilisée en Step 1. <strong className="text-white/80">En Step 1, vous devrez choisir UNE discipline finale</strong> parmi vos préférences
-              pour générer votre programme d'entraînement.
+              Sélectionnez toutes les disciplines que vous pratiquez. L'étoile ⭐ indique votre discipline principale,
+              qui sera présélectionnée lors de la création d'un programme.
+              <strong className="text-white/80"> Vous choisirez ensuite une discipline spécifique</strong> pour chaque séance d'entraînement.
             </p>
           </div>
         </div>
