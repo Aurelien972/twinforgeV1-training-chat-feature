@@ -14,7 +14,7 @@ const corsHeaders = {
 };
 
 // Cache schema version - increment when structure changes
-const CACHE_SCHEMA_VERSION = "2.2.0"; // Incremented for exerciseCatalog addition
+const CACHE_SCHEMA_VERSION = "2.3.0"; // Incremented for loadHistory addition (12 months detailed progression)
 
 interface ContextCollectorRequest {
   userId: string;
@@ -239,6 +239,114 @@ function calculateRecoveryStatus(sessions: any[]): any {
   }
 
   return recoveryStatus;
+}
+
+/**
+ * Fetch detailed exercise load history for the last 12 months
+ * This provides AI coaches with exact loads used in previous sessions
+ */
+async function fetchExerciseLoadHistory(supabase: any, userId: string, months: number = 12): Promise<any> {
+  console.log(`[CONTEXT-COLLECTOR] [LOAD-HISTORY] Fetching ${months} months of load history...`);
+
+  try {
+    // Fetch all exercise history for the user
+    const { data: loadHistory, error } = await supabase
+      .from("training_exercise_load_history")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("performed_at", new Date(Date.now() - months * 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order("performed_at", { ascending: false });
+
+    if (error) {
+      console.error("[CONTEXT-COLLECTOR] [LOAD-HISTORY] Error fetching load history:", error);
+      return null;
+    }
+
+    if (!loadHistory || loadHistory.length === 0) {
+      console.log("[CONTEXT-COLLECTOR] [LOAD-HISTORY] No load history found");
+      return null;
+    }
+
+    console.log("[CONTEXT-COLLECTOR] [LOAD-HISTORY] Retrieved", {
+      totalRecords: loadHistory.length,
+      uniqueExercises: [...new Set(loadHistory.map((h: any) => h.exercise_name))].length,
+      dateRange: {
+        oldest: loadHistory[loadHistory.length - 1]?.performed_at,
+        newest: loadHistory[0]?.performed_at
+      }
+    });
+
+    // Group by exercise for easy access
+    const exerciseHistory: Record<string, any[]> = {};
+
+    for (const record of loadHistory) {
+      const exerciseName = record.exercise_name;
+      if (!exerciseHistory[exerciseName]) {
+        exerciseHistory[exerciseName] = [];
+      }
+      exerciseHistory[exerciseName].push({
+        performed_at: record.performed_at,
+        sets_completed: record.sets_completed,
+        reps_completed: record.reps_completed,
+        load_completed: record.load_completed,
+        rpe_reported: record.rpe_reported,
+        was_modified: record.was_modified
+      });
+    }
+
+    // Calculate statistics per exercise
+    const exerciseStats: Record<string, any> = {};
+
+    for (const [exerciseName, history] of Object.entries(exerciseHistory)) {
+      // Get last performed
+      const lastPerformed = history[0];
+
+      // Calculate progression trend
+      const loadsOverTime = history
+        .filter((h: any) => h.load_completed !== null)
+        .map((h: any) => {
+          const load = h.load_completed;
+          if (typeof load === 'number') return load;
+          if (Array.isArray(load)) return load.reduce((a: number, b: number) => a + b, 0) / load.length;
+          return 0;
+        });
+
+      const avgLoad = loadsOverTime.length > 0
+        ? loadsOverTime.reduce((a: number, b: number) => a + b, 0) / loadsOverTime.length
+        : 0;
+
+      const firstLoad = loadsOverTime[loadsOverTime.length - 1] || 0;
+      const lastLoad = loadsOverTime[0] || 0;
+      const progressionPct = firstLoad > 0 ? ((lastLoad - firstLoad) / firstLoad * 100) : 0;
+
+      exerciseStats[exerciseName] = {
+        totalPerformances: history.length,
+        lastPerformed: lastPerformed,
+        avgLoad: Math.round(avgLoad * 10) / 10,
+        loadsProgression: {
+          first: Math.round(firstLoad * 10) / 10,
+          last: Math.round(lastLoad * 10) / 10,
+          progressionPct: Math.round(progressionPct * 10) / 10
+        },
+        recentHistory: history.slice(0, 5) // Last 5 performances
+      };
+    }
+
+    console.log("[CONTEXT-COLLECTOR] [LOAD-HISTORY] Stats calculated for", {
+      exercisesWithStats: Object.keys(exerciseStats).length
+    });
+
+    return {
+      totalRecords: loadHistory.length,
+      uniqueExercises: Object.keys(exerciseHistory).length,
+      exerciseHistory: exerciseStats,
+      monthsCovered: months
+    };
+
+  } catch (error) {
+    console.error("[CONTEXT-COLLECTOR] [LOAD-HISTORY] Exception:", error);
+    return null;
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -486,6 +594,15 @@ Deno.serve(async (req: Request) => {
       recoveryStatusGroups: Object.keys(recoveryStatus).length
     });
 
+    // 7b. Fetch detailed load history for AI coaches (12 months)
+    console.log("[CONTEXT-COLLECTOR] Fetching detailed load history...");
+    const loadHistory = await fetchExerciseLoadHistory(supabase, userId, 12);
+    console.log("[CONTEXT-COLLECTOR] Load history fetched:", {
+      hasLoadHistory: !!loadHistory,
+      uniqueExercises: loadHistory?.uniqueExercises || 0,
+      totalRecords: loadHistory?.totalRecords || 0
+    });
+
     // 8. Build user data structure with recovery analysis AND wearable recovery data
     console.log("[CONTEXT-COLLECTOR] Building user data structure...");
     const userData = {
@@ -518,7 +635,9 @@ Deno.serve(async (req: Request) => {
         recentSessionsCount: recentSessions.length
       },
       // NOUVEAU: Données wearable de récupération physiologique
-      wearableRecovery: wearableRecoveryData
+      wearableRecovery: wearableRecoveryData,
+      // NOUVEAU: Historique détaillé des charges sur 12 mois pour progression intelligente
+      loadHistory: loadHistory
     };
     console.log("[CONTEXT-COLLECTOR] User data built", {
       hasProfile: !!profile,
