@@ -28,6 +28,7 @@ import { useUserStore } from '../../../../../system/store/userStore';
 import type { AgentType } from '../../../../../domain/ai/trainingAiTypes';
 import { useProfileValidation } from '../../../../../hooks/useProfileValidation';
 import Step1ProfileIncompleteEmptyState from '../components/Step1ProfileIncompleteEmptyState';
+import { enrichPreparerContext } from '../../../../../system/services/preparerContextEnrichmentService';
 
 const Step1Preparer: React.FC = () => {
   const { setPreparerData, goToNextStep } = useTrainingPipeline();
@@ -224,13 +225,13 @@ const Step1Preparer: React.FC = () => {
     }
   }, [profile]);
 
-  const handleContinue = () => {
-    if (!selectedLocation) {
-      logger.error('STEP_1_PREPARER', 'Cannot continue - no location selected');
+  const handleContinue = async () => {
+    if (!selectedLocation || !profile?.id) {
+      logger.error('STEP_1_PREPARER', 'Cannot continue - missing location or user ID');
       return;
     }
 
-    const preparerPayload = {
+    const basePayload = {
       availableTime,
       wantsShortVersion,
       locationId: selectedLocation.id,
@@ -244,27 +245,48 @@ const Step1Preparer: React.FC = () => {
       tempSport: selectedDiscipline
     };
 
-    logger.info('STEP_1_PREPARER', 'Saving preparerData to store', {
-      locationId: preparerPayload.locationId,
-      locationName: preparerPayload.locationName,
-      energyLevel: preparerPayload.energyLevel,
-      availableTime: preparerPayload.availableTime,
-      equipmentCount: preparerPayload.availableEquipment.length,
-      photosCount: preparerPayload.locationPhotos.length,
-      selectedDiscipline: selectedDiscipline,
-      selectedCoachType: selectedCoachType,
-      tempSport: preparerPayload.tempSport,
-      profileDiscipline: profile?.preferences?.workout?.type,
-      disciplineSource: 'step1_user_selection'
+    logger.info('STEP_1_PREPARER', 'Enriching preparerData with context', {
+      userId: profile.id,
+      basePayloadKeys: Object.keys(basePayload)
     });
 
-    step1NotificationService.onReadyToContinue();
+    try {
+      const enrichedPayload = await enrichPreparerContext(profile.id, basePayload);
 
-    setTimeout(() => {
-      setPreparerData(preparerPayload);
-      logger.info('STEP_1_PREPARER', 'PreparerData saved, navigating to Step 2');
-      goToNextStep();
-    }, 1000);
+      logger.info('STEP_1_PREPARER', 'PreparerData enriched successfully', {
+        locationId: enrichedPayload.locationId,
+        locationName: enrichedPayload.locationName,
+        energyLevel: enrichedPayload.energyLevel,
+        availableTime: enrichedPayload.availableTime,
+        equipmentCount: enrichedPayload.availableEquipment?.length || 0,
+        daysSinceLastSession: enrichedPayload.daysSinceLastSession,
+        lastSessionDiscipline: enrichedPayload.lastSessionDiscipline,
+        recoveryScore: enrichedPayload.recoveryScore,
+        weeklySessionsCount: enrichedPayload.weeklyProgress?.sessionsThisWeek,
+        priorityDiscipline: enrichedPayload.priorityToday?.suggestedDiscipline,
+        cyclePhase: enrichedPayload.cyclePhase?.phase,
+        selectedDiscipline: selectedDiscipline,
+        selectedCoachType: selectedCoachType
+      });
+
+      step1NotificationService.onReadyToContinue();
+
+      setTimeout(() => {
+        setPreparerData(enrichedPayload);
+        logger.info('STEP_1_PREPARER', 'Enriched PreparerData saved, navigating to Step 2');
+        goToNextStep();
+      }, 1000);
+    } catch (error) {
+      logger.error('STEP_1_PREPARER', 'Failed to enrich preparer context', { error });
+
+      logger.warn('STEP_1_PREPARER', 'Falling back to base payload without enrichment');
+      step1NotificationService.onReadyToContinue();
+
+      setTimeout(() => {
+        setPreparerData(basePayload);
+        goToNextStep();
+      }, 1000);
+    }
   };
 
   const canContinue = selectedLocation !== null;

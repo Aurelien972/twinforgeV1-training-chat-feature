@@ -19,6 +19,38 @@ export interface TrainingPipelineStep {
   endProgress: number;
 }
 
+export interface WeeklyProgress {
+  currentWeek: number;
+  weekStartDate: string;
+  sessionsThisWeek: number;
+  sessionsPlannedThisWeek: number;
+  disciplinesThisWeek: string[];
+  totalVolumeThisWeek: number;
+  avgRpeThisWeek: number;
+}
+
+export interface PriorityToday {
+  shouldPrioritize: string[];
+  shouldAvoid: string[];
+  reason: string;
+  suggestedDiscipline?: string;
+}
+
+export interface RecentFocus {
+  exerciseNames: string[];
+  movementPatterns: string[];
+  muscleGroups: string[];
+  disciplines: string[];
+}
+
+export interface CyclePhase {
+  currentWeek: number;
+  totalWeeks: number;
+  phase: 'accumulation' | 'intensification' | 'realization' | 'deload';
+  nextPhase?: string;
+  nextPhaseDate?: string;
+}
+
 export interface PreparerData {
   availableTime: number;
   wantsShortVersion: boolean;
@@ -30,6 +62,23 @@ export interface PreparerData {
   hasFatigue: boolean;
   hasPain: boolean;
   painDetails?: string;
+
+  lastSessionDate?: string;
+  daysSinceLastSession?: number;
+  lastSessionType?: string;
+  lastSessionDiscipline?: string;
+  weeklyProgress?: WeeklyProgress;
+  priorityToday?: PriorityToday;
+  recentFocus?: RecentFocus;
+  shouldAvoid?: string[];
+  currentWeekInCycle?: number;
+  cyclePhase?: CyclePhase;
+  recoveryScore?: number;
+  optimalTrainingWindow?: {
+    isOptimal: boolean;
+    hoursUntilOptimal?: number;
+    reason?: string;
+  };
 }
 
 export interface GenerationState {

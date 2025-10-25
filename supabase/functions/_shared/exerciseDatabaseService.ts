@@ -741,3 +741,147 @@ export function formatExercisesForAI(
 
   return intro + exerciseList + footer;
 }
+
+/**
+ * Validates movement relevance based on user context
+ * Prevents generating irrelevant exercises (e.g., powerlifting at home without equipment)
+ */
+export interface MovementValidationContext {
+  discipline: string;
+  availableEquipment: string[];
+  locationType: 'home' | 'gym' | 'outdoor' | 'any';
+  userExperience?: string;
+  recentExercises?: string[];
+  shouldAvoid?: string[];
+}
+
+export interface MovementValidationResult {
+  isValid: boolean;
+  score: number;
+  warnings: string[];
+  suggestions: string[];
+}
+
+export function validateMovementRelevance(
+  exercise: ExerciseCatalogEntry,
+  context: MovementValidationContext
+): MovementValidationResult {
+  let score = 100;
+  const warnings: string[] = [];
+  const suggestions: string[] = [];
+
+  const requiredEquipment = exercise.equipment
+    .filter(eq => eq.is_required)
+    .map(eq => eq.name.toLowerCase());
+
+  if (requiredEquipment.length > 0) {
+    const hasAllEquipment = requiredEquipment.every(req =>
+      context.availableEquipment.some(avail =>
+        avail.toLowerCase().includes(req) || req.includes(avail.toLowerCase())
+      )
+    );
+
+    if (!hasAllEquipment) {
+      score -= 50;
+      const missing = requiredEquipment.filter(req =>
+        !context.availableEquipment.some(avail =>
+          avail.toLowerCase().includes(req) || req.includes(avail.toLowerCase())
+        )
+      );
+      warnings.push(`Équipement manquant: ${missing.join(', ')}`);
+    }
+  }
+
+  if (context.locationType === 'home') {
+    const gymOnlyPatterns = ['rack', 'smith machine', 'cable', 'leg press', 'hack squat'];
+    const isGymOnly = gymOnlyPatterns.some(pattern =>
+      exercise.name.toLowerCase().includes(pattern) ||
+      requiredEquipment.some(eq => eq.includes(pattern))
+    );
+
+    if (isGymOnly) {
+      score -= 40;
+      warnings.push('Exercice typiquement réalisé en salle de sport');
+    }
+  }
+
+  if (context.locationType === 'outdoor') {
+    const indoorOnlyPatterns = ['machine', 'cable', 'bench press', 'rack'];
+    const isIndoorOnly = indoorOnlyPatterns.some(pattern =>
+      exercise.name.toLowerCase().includes(pattern) ||
+      requiredEquipment.some(eq => eq.includes(pattern))
+    );
+
+    if (isIndoorOnly) {
+      score -= 40;
+      warnings.push('Exercice nécessitant un environnement intérieur');
+    }
+  }
+
+  if (context.userExperience === 'beginner' && exercise.difficulty === 'advanced') {
+    score -= 30;
+    warnings.push('Exercice avancé pour un débutant');
+    if (exercise.regressions && exercise.regressions.length > 0) {
+      suggestions.push(`Considérer les régressions: ${exercise.regressions[0]}`);
+    }
+  }
+
+  if (context.recentExercises && context.recentExercises.length > 0) {
+    const isRecent = context.recentExercises.some(recent =>
+      recent.toLowerCase() === exercise.name.toLowerCase()
+    );
+
+    if (isRecent) {
+      score -= 20;
+      warnings.push('Exercice utilisé récemment');
+      if (exercise.substitutions && exercise.substitutions.length > 0) {
+        suggestions.push(`Variation suggérée: ${exercise.substitutions[0]}`);
+      }
+    }
+  }
+
+  if (context.shouldAvoid && context.shouldAvoid.length > 0) {
+    const shouldBeAvoided = context.shouldAvoid.some(avoid =>
+      exercise.name.toLowerCase().includes(avoid.toLowerCase()) ||
+      exercise.movement_pattern.toLowerCase().includes(avoid.toLowerCase())
+    );
+
+    if (shouldBeAvoided) {
+      score -= 60;
+      warnings.push('Exercice à éviter selon le contexte utilisateur');
+    }
+  }
+
+  const disciplineMatch = exercise.discipline.toLowerCase() === context.discipline.toLowerCase();
+  if (!disciplineMatch) {
+    score -= 15;
+    warnings.push('Discipline différente de la demande');
+  }
+
+  const isValid = score >= 40;
+
+  return {
+    isValid,
+    score: Math.max(0, score),
+    warnings,
+    suggestions
+  };
+}
+
+/**
+ * Filters exercises by relevance score
+ */
+export function filterExercisesByRelevance(
+  exercises: ExerciseCatalogEntry[],
+  context: MovementValidationContext,
+  minScore: number = 50
+): ExerciseCatalogEntry[] {
+  return exercises
+    .map(ex => ({
+      exercise: ex,
+      validation: validateMovementRelevance(ex, context)
+    }))
+    .filter(({ validation }) => validation.isValid && validation.score >= minScore)
+    .sort((a, b) => b.validation.score - a.validation.score)
+    .map(({ exercise }) => exercise);
+}
