@@ -402,13 +402,16 @@ const Step1Preparer: React.FC = () => {
       {/* Regular form - only show when profile is complete */}
       {!showEmptyState && (
         <>
-      {/* Weekly Insights Card - Position 0 (Top) */}
-      {!isLoadingInsights && weeklyInsights && (
+      {/* Weekly Insights Card with CTA - Position 0 (Top) */}
+      {!isLoadingInsights && (
         <WeeklyInsightCard
-          weeklyProgress={weeklyInsights.weeklyProgress}
-          priorityToday={weeklyInsights.priorityToday}
-          cyclePhase={weeklyInsights.cyclePhase}
+          weeklyProgress={weeklyInsights?.weeklyProgress}
+          priorityToday={weeklyInsights?.priorityToday}
+          cyclePhase={weeklyInsights?.cyclePhase}
           stepColor={stepColor}
+          showCTA={true}
+          canGenerate={!!selectedLocation && !profileValidation.isValidating}
+          onGenerateClick={handleContinue}
         />
       )}
 

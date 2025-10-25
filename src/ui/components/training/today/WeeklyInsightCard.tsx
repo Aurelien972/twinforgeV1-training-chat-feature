@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import SpatialIcon from '../../../icons/SpatialIcon';
 import { ICONS } from '../../../icons/registry';
 import GlassCard from '../../../cards/GlassCard';
+import { useConditionalAnimation } from '../../../../lib/motion/useConditionalAnimation';
 
 interface WeeklyProgressData {
   sessionsThisWeek: number;
@@ -33,18 +34,28 @@ interface WeeklyInsightCardProps {
   priorityToday?: PriorityTodayData;
   cyclePhase?: CyclePhaseData;
   stepColor: string;
+  onGenerateClick?: () => void;
+  canGenerate?: boolean;
+  showCTA?: boolean;
 }
 
 const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
   weeklyProgress,
   priorityToday,
   cyclePhase,
-  stepColor
+  stepColor,
+  onGenerateClick,
+  canGenerate = true,
+  showCTA = false
 }) => {
-  // Don't render if no data
-  if (!weeklyProgress && !priorityToday && !cyclePhase) {
+  const shouldAnimate = useConditionalAnimation();
+
+  // Don't render if no data and no CTA to show
+  if (!weeklyProgress && !priorityToday && !cyclePhase && !showCTA) {
     return null;
   }
+
+  const hasInsightsData = weeklyProgress || priorityToday || cyclePhase;
 
   const getPhaseColor = (phase?: string) => {
     switch (phase) {
@@ -232,6 +243,38 @@ const WeeklyInsightCard: React.FC<WeeklyInsightCardProps> = ({
           </div>
           <p className="text-sm text-white/70 leading-relaxed">{cyclePhase.recommendation}</p>
         </motion.div>
+      )}
+
+      {/* CTA Button - Générer ma Séance */}
+      {showCTA && onGenerateClick && (
+        <motion.button
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={shouldAnimate ? { delay: hasInsightsData ? 0.4 : 0.1 } : { duration: 0 }}
+          onClick={onGenerateClick}
+          disabled={!canGenerate}
+          className="w-full py-4 px-6 rounded-xl font-semibold text-base transition-all"
+          style={{
+            background: canGenerate
+              ? `linear-gradient(135deg, ${stepColor} 0%, color-mix(in srgb, ${stepColor} 80%, black) 100%)`
+              : 'rgba(255, 255, 255, 0.1)',
+            border: canGenerate ? `2px solid ${stepColor}` : '2px solid rgba(255, 255, 255, 0.2)',
+            color: 'white',
+            cursor: canGenerate ? 'pointer' : 'not-allowed',
+            opacity: canGenerate ? 1 : 0.5,
+            boxShadow: canGenerate
+              ? `0 4px 16px color-mix(in srgb, ${stepColor} 40%, transparent), 0 0 24px color-mix(in srgb, ${stepColor} 20%, transparent)`
+              : 'none'
+          }}
+          whileHover={shouldAnimate && canGenerate ? { scale: 1.02, y: -2 } : {}}
+          whileTap={shouldAnimate && canGenerate ? { scale: 0.98 } : {}}
+        >
+          <div className="flex items-center justify-center gap-3">
+            <SpatialIcon Icon={ICONS.Play} size={20} />
+            <span>Générer ma Séance</span>
+            <SpatialIcon Icon={ICONS.ChevronRight} size={20} />
+          </div>
+        </motion.button>
       )}
     </GlassCard>
   );

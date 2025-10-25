@@ -59,7 +59,7 @@ export async function analyzeExerciseProgression(
 
   const { data: sessions, error } = await supabase
     .from('training_sessions')
-    .select('id, created_at, discipline, feedback')
+    .select('id, created_at, discipline')
     .eq('user_id', userId)
     .eq('discipline', context.discipline)
     .gte('created_at', lookbackDate.toISOString())

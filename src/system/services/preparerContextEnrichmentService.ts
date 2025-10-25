@@ -42,7 +42,7 @@ export async function enrichPreparerContext(
 
   const { data: sessions, error } = await supabase
     .from('training_sessions')
-    .select('id, created_at, discipline, prescription, feedback, duration_actual, overall_rpe')
+    .select('id, created_at, discipline, prescription, duration_actual, overall_rpe')
     .eq('user_id', userId)
     .gte('created_at', lookbackDate.toISOString())
     .order('created_at', { ascending: false })
